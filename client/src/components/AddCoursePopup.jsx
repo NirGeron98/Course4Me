@@ -4,8 +4,9 @@ import { Search, X, BookOpen, AlertCircle, Loader2 } from "lucide-react";
 import CourseItem from "./CourseItem";
 import CourseDetailsModal from "./CourseDetailsModal";
 
-const AddCoursePopup = ({ onClose, onCourseAdded }) => {
+const AddCoursePopup = ({ onClose, onCourseAdded, user }) => {
   const [allCourses, setAllCourses] = useState([]);
+  const [trackedCourseIds, setTrackedCourseIds] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredCourses, setFilteredCourses] = useState([]);
   const [error, setError] = useState("");
@@ -21,12 +22,30 @@ const AddCoursePopup = ({ onClose, onCourseAdded }) => {
   };
 
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true);
-        const res = await axios.get("http://localhost:5000/api/courses");
-        setAllCourses(res.data);
-        setFilteredCourses(res.data);
+        const token = localStorage.getItem("token");
+        
+        // Fetch all courses
+        const coursesRes = await axios.get("http://localhost:5000/api/courses");
+        
+        // Fetch user's tracked courses
+        const trackedRes = await axios.get("http://localhost:5000/api/tracked-courses", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        const trackedIds = trackedRes.data.map(tc => tc.course._id || tc.course);
+        
+        setAllCourses(coursesRes.data);
+        setTrackedCourseIds(trackedIds);
+        
+        // Filter out already tracked courses
+        const availableCourses = coursesRes.data.filter(course => 
+          !trackedIds.includes(course._id)
+        );
+        
+        setFilteredCourses(availableCourses);
       } catch (err) {
         console.error(err);
         setError("שגיאה בטעינת הקורסים");
@@ -34,16 +53,22 @@ const AddCoursePopup = ({ onClose, onCourseAdded }) => {
         setIsLoading(false);
       }
     };
-    fetchCourses();
+    
+    fetchData();
   }, []);
 
   useEffect(() => {
+    // Filter available courses (not tracked) by search term
+    const availableCourses = allCourses.filter(course => 
+      !trackedCourseIds.includes(course._id)
+    );
+
     if (searchTerm.length === 0) {
-      setFilteredCourses(allCourses);
+      setFilteredCourses(availableCourses);
       return;
     }
 
-    const filtered = allCourses.filter((course) => {
+    const filtered = availableCourses.filter((course) => {
       const searchLower = searchTerm.toLowerCase();
 
       return (
@@ -57,16 +82,29 @@ const AddCoursePopup = ({ onClose, onCourseAdded }) => {
     });
 
     setFilteredCourses(filtered);
-  }, [searchTerm, allCourses]);
+  }, [searchTerm, allCourses, trackedCourseIds]);
 
   const handleAddCourse = async (course) => {
     setIsAdding(true);
     setError("");
     try {
-      const response = await axios.get("http://localhost:5000/api/courses");
+      const token = localStorage.getItem("token");
+      
+      // Add course to tracked courses
+      await axios.post(
+        "http://localhost:5000/api/tracked-courses",
+        { courseId: course._id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // Update tracked course IDs to remove this course from available list
+      setTrackedCourseIds(prev => [...prev, course._id]);
+      
+      // Call parent callback
       onCourseAdded();
       onClose();
     } catch (err) {
+      console.error("Error adding course:", err);
       if (err.response?.status === 400 && err.response?.data?.message) {
         setError(err.response.data.message);
       } else {
@@ -159,6 +197,16 @@ const AddCoursePopup = ({ onClose, onCourseAdded }) => {
                   <p className="text-gray-400 text-sm mt-2">נסה מילות חיפוש אחרות</p>
                 </div>
               </div>
+            ) : filteredCourses.length === 0 && !searchTerm ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="bg-emerald-100 rounded-full p-3 w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <BookOpen className="w-8 h-8 text-emerald-500" />
+                  </div>
+                  <p className="text-gray-600 font-medium">אתה עוקב אחרי כל הקורסים!</p>
+                  <p className="text-gray-400 text-sm mt-2">אין קורסים נוספים להוספה</p>
+                </div>
+              </div>
             ) : (
               <div className="overflow-y-auto max-h-96 p-6">
                 <div className="space-y-3">
@@ -180,7 +228,7 @@ const AddCoursePopup = ({ onClose, onCourseAdded }) => {
             <div className="border-t bg-gray-50 p-6">
               <div className="flex justify-between items-center">
                 <div className="text-sm text-gray-600">
-                  {filteredCourses.length} קורסים זמינים
+                  {filteredCourses.length} קורסים זמינים להוספה
                 </div>
                 <button
                   onClick={onClose}

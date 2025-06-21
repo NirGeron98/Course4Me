@@ -62,75 +62,75 @@ const CourseDetailsModal = ({ course, onClose }) => {
           </button>
 
           {/* Course Title and Main Info */}
-          <div className="mr-14">
-            <div className="flex items-start gap-4 mb-4">
-              <div className="bg-white/25 rounded-2xl p-3 flex-shrink-0">
-                <BookOpen className="w-7 h-7 text-white" />
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="bg-white/25 rounded-2xl p-2 flex-shrink-0">
+                <BookOpen className="w-6 h-6 text-white" />
               </div>
-              <div className="flex-1 text-right">
-                <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2 leading-tight">
-                  {course.title || course.name || "שם הקורס"}
-                </h2>
-
-                {/* Compact info badges */}
-                <div className="flex flex-wrap items-center gap-2 mb-3">
-                  {/* Course Number */}
-                  <div className="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-1">
-                    <Hash className="w-4 h-4 text-white" />
-                    <span className="text-white font-medium text-sm">
-                      {course.courseNumber || course.code || "לא זמין"}
-                    </span>
-                  </div>
-
-                  {/* Credits */}
-                  {course.credits && (
-                    <div className="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-1">
-                      <Award className="w-4 h-4 text-white" />
-                      <span className="text-white font-medium text-sm">
-                        {course.credits} נק"ז
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Academic Institution */}
-                  {(course.academicInstitution || course.university) && (
-                    <div className="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-1">
-                      <Building className="w-4 h-4 text-white" />
-                      <span className="text-white font-medium text-sm">
-                        {course.academicInstitution || course.university}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Lecturers Display */}
-                {allLecturers.length > 0 && (
-                  <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Users className="w-4 h-4 text-white" />
-                      <span className="text-white font-medium text-sm">
-                        {allLecturers.length > 1 ? 'מרצים' : 'מרצה'}
-                      </span>
-                    </div>
-                    <div className="space-y-2">
-                      {allLecturers.map((lecturer, index) => (
-                        <div
-                          key={index}
-                          className="flex flex-wrap items-center gap-3 text-white/90 text-sm bg-white/10 px-3 py-2 rounded-lg"
-                        >
-                          <span className="font-semibold">{getLecturerName(lecturer)}</span>
-                          {getLecturerDepartment(lecturer) && (
-                            <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">
-                              {getLecturerDepartment(lecturer)}
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+              <h2 className="text-2xl lg:text-3xl font-bold text-white leading-tight">
+                {course.title || course.name || "שם הקורס"}
+              </h2>
             </div>
+
+            {/* Compact info badges */}
+            <div className="flex flex-wrap justify-center gap-2 mb-4">
+              {/* Course Number */}
+              <div className="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-1">
+                <Hash className="w-4 h-4 text-white" />
+                <span className="text-white font-medium text-sm">
+                  {course.courseNumber || course.code || "לא זמין"}
+                </span>
+              </div>
+
+              {/* Credits */}
+              {course.credits && (
+                <div className="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-1">
+                  <Award className="w-4 h-4 text-white" />
+                  <span className="text-white font-medium text-sm">
+                    {course.credits} נק"ז
+                  </span>
+                </div>
+              )}
+
+              {/* Academic Institution */}
+              {(course.academicInstitution || course.university) && (
+                <div className="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-1">
+                  <Building className="w-4 h-4 text-white" />
+                  <span className="text-white font-medium text-sm">
+                    {course.academicInstitution || course.university}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Lecturers Display - Compact and Centered */}
+            {allLecturers.length > 0 && (
+              <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-xl p-4 max-w-md mx-auto">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <div className="bg-white/20 rounded-lg p-1.5">
+                    <Users className="w-4 h-4 text-white" />
+                  </div>
+                  <h3 className="font-semibold text-white text-base">
+                    {allLecturers.length > 1 ? 'מרצים' : 'מרצה'}
+                  </h3>
+                </div>
+                
+                <div className="space-y-2">
+                  {allLecturers.map((lecturer, index) => (
+                    <div key={index} className="text-center">
+                      <div className="font-semibold text-white text-base">
+                        {getLecturerName(lecturer)}
+                      </div>
+                      {getLecturerDepartment(lecturer) && (
+                        <div className="text-white/80 text-sm">
+                          {getLecturerDepartment(lecturer)}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

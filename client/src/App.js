@@ -4,6 +4,7 @@ import {
   Route,
   Routes,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 import Navbar from "./components/common/Navbar";
 import Signup from "./pages/Signup";
@@ -21,41 +22,51 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     const userFullName = localStorage.getItem("userFullName");
-    const userRole = localStorage.getItem("userRole"); // Add role to localStorage
+    const userRole = localStorage.getItem("userRole");
 
     if (token && userFullName) {
       setUser({
         fullName: userFullName,
         token: token,
-        role: userRole || "student", // Default to student if no role stored
+        role: userRole || "student",
       });
     }
     setLoading(false);
   }, []);
 
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const token = localStorage.getItem("token");
+      const userFullName = localStorage.getItem("userFullName");
+      const userRole = localStorage.getItem("userRole");
+
+      if (token && userFullName && !user) {
+        setUser({
+          fullName: userFullName,
+          token: token,
+          role: userRole || "student",
+        });
+      }
+    };
+
+    // Listen for storage changes
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, [user]);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userFullName");
-    localStorage.removeItem("userRole"); // Clear role on logout
+    localStorage.removeItem("userRole");
     setUser(null);
   };
 
   const ProtectedRoute = ({ children }) => {
-    if (loading) {
-      return (
-        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-100 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">טוען...</p>
-          </div>
-        </div>
-      );
-    }
+    const location = useLocation();
 
-    return user ? children : <Navigate to="/login" replace />;
-  };
-
-  const AdminRoute = ({ children }) => {
     if (loading) {
       return (
         <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-100 flex items-center justify-center">
@@ -68,7 +79,34 @@ function App() {
     }
 
     if (!user) {
-      return <Navigate to="/login" replace />;
+      const redirectPath = encodeURIComponent(
+        location.pathname + location.search
+      );
+      return <Navigate to={`/login?redirect=${redirectPath}`} replace />;
+    }
+
+    return children;
+  };
+
+  const AdminRoute = ({ children }) => {
+    const location = useLocation();
+
+    if (loading) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-100 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600">טוען...</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (!user) {
+      const redirectPath = encodeURIComponent(
+        location.pathname + location.search
+      );
+      return <Navigate to={`/login?redirect=${redirectPath}`} replace />;
     }
 
     if (user.role !== "admin") {
@@ -107,6 +145,8 @@ function App() {
   };
 
   const AuthRoute = ({ children }) => {
+    const location = useLocation();
+
     if (loading) {
       return (
         <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-100 flex items-center justify-center">
@@ -118,7 +158,21 @@ function App() {
       );
     }
 
-    return user ? <Navigate to="/" replace /> : children;
+    if (user) {
+      // Check if there's a redirect parameter
+      const urlParams = new URLSearchParams(location.search);
+      const redirectPath = urlParams.get("redirect");
+
+      if (redirectPath) {
+        // User is already logged in and there's a redirect - go to the intended page
+        return <Navigate to={decodeURIComponent(redirectPath)} replace />;
+      } else {
+        // User is logged in, no redirect - go to dashboard
+        return <Navigate to="/" replace />;
+      }
+    }
+
+    return children;
   };
 
   if (loading) {
@@ -181,13 +235,21 @@ function App() {
           }
         />
 
-        {/* New Admin Route */}
         <Route
           path="/admin"
           element={
             <AdminRoute>
               <AdminPanel user={user} />
             </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/course/:id"
+          element={
+            <ProtectedRoute>
+              <CoursePage user={user} />
+            </ProtectedRoute>
           }
         />
 
@@ -208,15 +270,6 @@ function App() {
                 </a>
               </div>
             </div>
-          }
-        />
-
-        <Route
-          path="/course/:id"
-          element={
-            <ProtectedRoute>
-              <CoursePage user={user} />
-            </ProtectedRoute>
           }
         />
       </Routes>
