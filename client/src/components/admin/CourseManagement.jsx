@@ -12,7 +12,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
     const [editId, setEditId] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [filteredCourses, setFilteredCourses] = useState([]);
-    const coursesPerPage = 7;
+    const coursesPerPage = 5;
 
     const [courseForm, setCourseForm] = useState({
         courseNumber: "",

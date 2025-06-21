@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const reviewSchema = new mongoose.Schema(
+const courseReviewSchema = new mongoose.Schema(
   {
     course: {
       type: mongoose.Schema.Types.ObjectId,
@@ -49,4 +49,4 @@ const reviewSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Review", reviewSchema);
+module.exports = mongoose.model("CourseReview", courseReviewSchema);

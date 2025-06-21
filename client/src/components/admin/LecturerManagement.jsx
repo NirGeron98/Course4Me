@@ -1,15 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import {
-  User,
-  Building,
-  Mail,
-  Trash2,
-  ChevronLeft,
-  ChevronRight,
-  X,
-} from "lucide-react";
+import { User, Building, Mail, Trash2, ChevronLeft, ChevronRight, X } from "lucide-react";
 import EntityForm from "../common/EntityForm";
+import Popup from "../common/Popup"; 
 
 const LecturerManagement = ({ onMessage, onError, onLecturersUpdate }) => {
   const [lecturers, setLecturers] = useState([]);
@@ -19,8 +12,12 @@ const LecturerManagement = ({ onMessage, onError, onLecturersUpdate }) => {
   const [editId, setEditId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredLecturers, setFilteredLecturers] = useState([]);
+  
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [lecturerToDelete, setLecturerToDelete] = useState(null);
+  const [popupType, setPopupType] = useState("info"); // Default type is 'info'
 
-  const lecturersPerPage = 7;
+  const lecturersPerPage = 5;
 
   const [lecturerForm, setLecturerForm] = useState({
     name: "",
@@ -81,6 +78,7 @@ const LecturerManagement = ({ onMessage, onError, onLecturersUpdate }) => {
             },
           }
         );
+        setPopupType("success");
         onMessage("מרצה עודכן בהצלחה!");
       } else {
         await axios.post("http://localhost:5000/api/lecturers", lecturerForm, {
@@ -89,6 +87,7 @@ const LecturerManagement = ({ onMessage, onError, onLecturersUpdate }) => {
             "Content-Type": "application/json",
           },
         });
+        setPopupType("success");
         onMessage("מרצה נוסף בהצלחה!");
       }
 
@@ -97,6 +96,7 @@ const LecturerManagement = ({ onMessage, onError, onLecturersUpdate }) => {
       setCurrentPage(1);
     } catch (err) {
       console.error("Error saving lecturer:", err);
+      setPopupType("error");
       onError(err.response?.data?.message || "שגיאה בשמירת המרצה");
     } finally {
       setIsLoading(false);
@@ -114,18 +114,31 @@ const LecturerManagement = ({ onMessage, onError, onLecturersUpdate }) => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleDeleteLecturer = async (id) => {
-    if (!window.confirm("האם אתה בטוח שברצונך למחוק את המרצה?")) return;
+  const openDeleteModal = (lecturer) => {
+    setLecturerToDelete(lecturer);
+    setIsDeleteModalOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    setLecturerToDelete(null);
+    setIsDeleteModalOpen(false);
+  };
+
+  const handleDeleteLecturer = async () => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5000/api/lecturers/${id}`, {
+      await axios.delete(`http://localhost:5000/api/lecturers/${lecturerToDelete._id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      setPopupType("success");
       onMessage("מרצה נמחק בהצלחה!");
       fetchLecturers();
+      closeDeleteModal();
     } catch (err) {
       console.error("Error deleting lecturer:", err);
+      setPopupType("error");
       onError(err.response?.data?.message || "שגיאה במחיקת המרצה");
+      closeDeleteModal();
     }
   };
 
@@ -242,7 +255,7 @@ const LecturerManagement = ({ onMessage, onError, onLecturersUpdate }) => {
                       ✏️
                     </button>
                     <button
-                      onClick={() => handleDeleteLecturer(lecturer._id)}
+                      onClick={() => openDeleteModal(lecturer)}
                       className="text-red-400 hover:text-red-600 p-1"
                       title="מחק מרצה"
                     >
@@ -301,6 +314,18 @@ const LecturerManagement = ({ onMessage, onError, onLecturersUpdate }) => {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <Popup
+        isOpen={isDeleteModalOpen}
+        onClose={closeDeleteModal}
+        onConfirm={handleDeleteLecturer}
+        title="אישור מחיקה"
+        message="האם אתה בטוח שברצונך למחוק את המרצה הזה? פעולה זו לא ניתנת לשחזור."
+        confirmText="מחוק מרצה"
+        cancelText="ביטול"
+        type="error"
+      />
     </div>
   );
 };

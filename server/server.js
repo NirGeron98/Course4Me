@@ -5,9 +5,9 @@ const dotenv = require("dotenv");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const courseRoutes = require("./routes/courseRoutes");
-const reviewRoutes = require("./routes/reviewRoutes");
+const CourseReviewRoutes = require("./routes/courseReviewRoutes");
 const trackedCourseRoutes = require("./routes/trackedCourseRoutes");
-const lecturerRoutes = require("./routes/lecturerRoutes"); // New import
+const lecturerRoutes = require("./routes/lecturerRoutes"); 
 
 dotenv.config();
 const app = express();
@@ -21,7 +21,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/courses", courseRoutes);
-app.use("/api/reviews", reviewRoutes);
+app.use("/api/reviews", CourseReviewRoutes);
 app.use("/api/tracked-courses", trackedCourseRoutes);
 app.use("/api/lecturers", lecturerRoutes); // New route
 

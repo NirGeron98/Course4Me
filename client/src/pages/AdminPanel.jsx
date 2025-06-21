@@ -1,16 +1,35 @@
-import React, { useState } from "react";
-import { BookOpen, Users, AlertCircle, CheckCircle, X } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import CourseManagement from "../components/admin/CourseManagement";
 import LecturerManagement from "../components/admin/LecturerManagement";
+import { AlertCircle, BookOpen, Users, CheckCircle, X } from "lucide-react";
+
 
 const AdminPanel = ({ user }) => {
   const [activeTab, setActiveTab] = useState("courses");
-  const [lecturers, setLecturers] = useState([]);
+  const [lecturers, setLecturers] = useState([]); // State for lecturers
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   // Check if user is admin
   const isAdmin = user && user.role === "admin";
+
+  // Fetch lecturers when the component mounts
+  useEffect(() => {
+    const fetchLecturers = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get("http://localhost:5000/api/lecturers", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setLecturers(response.data); // Store lecturers in state
+      } catch (err) {
+        console.error("Error fetching lecturers:", err);
+        setLecturers([]);
+      }
+    };
+    fetchLecturers();
+  }, []); // Empty dependency array ensures this runs only once
 
   if (!isAdmin) {
     return (
@@ -41,10 +60,6 @@ const AdminPanel = ({ user }) => {
     setTimeout(() => setError(""), 7000);
   };
 
-  const handleLecturersUpdate = (updatedLecturers) => {
-    setLecturers(updatedLecturers);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-100" dir="rtl">
       {/* Header */}
@@ -61,22 +76,20 @@ const AdminPanel = ({ user }) => {
           <div className="flex border-b border-gray-200">
             <button
               onClick={() => setActiveTab("courses")}
-              className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
-                activeTab === "courses"
+              className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${activeTab === "courses"
                   ? "text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50"
                   : "text-gray-600 hover:text-emerald-600"
-              }`}
+                }`}
             >
               <BookOpen className="w-5 h-5 inline-block ml-2" />
               ניהול קורסים
             </button>
             <button
               onClick={() => setActiveTab("lecturers")}
-              className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
-                activeTab === "lecturers"
+              className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${activeTab === "lecturers"
                   ? "text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50"
                   : "text-gray-600 hover:text-emerald-600"
-              }`}
+                }`}
             >
               <Users className="w-5 h-5 inline-block ml-2" />
               ניהול מרצים
@@ -123,7 +136,7 @@ const AdminPanel = ({ user }) => {
             <LecturerManagement
               onMessage={handleMessage}
               onError={handleError}
-              onLecturersUpdate={handleLecturersUpdate}
+              onLecturersUpdate={setLecturers} // Update lecturers in AdminPanel state
             />
           )}
         </div>

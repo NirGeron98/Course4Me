@@ -1,7 +1,10 @@
 import React from "react";
-import { X, BookOpen, User, Building, Hash, FileText, Calendar, Clock, Mail, Award, Users } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { X, BookOpen, Building, Hash, FileText, Award, Users, ArrowLeft } from "lucide-react";
 
 const CourseDetailsModal = ({ course, onClose }) => {
+  const navigate = useNavigate();
+  
   if (!course) return null;
 
   // Helper function to get lecturer name
@@ -10,12 +13,6 @@ const CourseDetailsModal = ({ course, onClose }) => {
     if (typeof lecturer === 'string') return lecturer;
     if (typeof lecturer === 'object') return lecturer.name;
     return null;
-  };
-
-  // Helper function to get lecturer email
-  const getLecturerEmail = (lecturer) => {
-    if (!lecturer || typeof lecturer !== 'object') return null;
-    return lecturer.email;
   };
 
   // Helper function to get lecturer department
@@ -36,6 +33,12 @@ const CourseDetailsModal = ({ course, onClose }) => {
     if (e.target === e.currentTarget) {
       onClose();
     }
+  };
+
+  // Navigate to course page
+  const handleGoToCourse = () => {
+    navigate(`/course/${course._id}`);
+    onClose(); // Close modal after navigation
   };
 
   const allLecturers = getAllLecturers(course.lecturer || course.lecturers);
@@ -121,9 +124,6 @@ const CourseDetailsModal = ({ course, onClose }) => {
                               {getLecturerDepartment(lecturer)}
                             </span>
                           )}
-                          {getLecturerEmail(lecturer) && (
-                            <span className="text-xs text-white/70">{getLecturerEmail(lecturer)}</span>
-                          )}
                         </div>
                       ))}
                     </div>
@@ -208,14 +208,13 @@ const CourseDetailsModal = ({ course, onClose }) => {
               סגור
             </button>
 
-            <div className="flex gap-3">
-              <button className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl font-medium transition-all duration-200 text-sm shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                הוסף למעקב
-              </button>
-              <button className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white rounded-xl font-medium transition-all duration-200 text-sm shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                כתוב ביקורת
-              </button>
-            </div>
+            <button 
+              onClick={handleGoToCourse}
+              className="px-8 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl font-medium transition-all duration-200 text-sm shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center gap-2"
+            >
+              <span>מעבר לדף הקורס</span>
+              <ArrowLeft className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
