@@ -6,6 +6,7 @@ exports.createReview = async (req, res) => {
   try {
     const {
       course,
+      lecturer,
       interest,
       difficulty,
       workload,
@@ -14,21 +15,23 @@ exports.createReview = async (req, res) => {
       comment,
     } = req.body;
 
-    // בדיקה אם כבר יש ביקורת מהמשתמש לקורס זה
+    // Check if review already exists for this course-lecturer-user combination
     const existing = await CourseReview.findOne({
       course,
+      lecturer,
       user: req.user._id,
     });
 
     if (existing) {
       return res.status(400).json({
-        message: "כבר כתבת ביקורת עבור קורס זה",
+        message: "כבר כתבת ביקורת עבור קורס זה עם מרצה זה",
       });
     }
 
     // Create review using the authenticated user's ID
-    const review = new CourseReview({  // שינוי מ-Review ל-CourseReview
+    const review = new CourseReview({
       course,
+      lecturer,
       user: req.user._id,
       interest,
       difficulty,
@@ -38,9 +41,9 @@ exports.createReview = async (req, res) => {
       comment,
     });
 
-    await review.save();  // שינוי מ-CourseReview.save() ל-review.save()
+    await review.save();
 
-    // עדכון הדירוג הממוצע של הקורס
+    // Update the course's average rating
     const allReviews = await CourseReview.find({ course });
 
     const avg =
@@ -60,32 +63,49 @@ exports.createReview = async (req, res) => {
       ratingsCount: allReviews.length,
     });
 
-    // החזרת הביקורת עם פרטי המשתמש
+    // Return the review with populated fields
     const populatedReview = await CourseReview.findById(review._id)
-      .populate('user', 'fullName');
+      .populate("user", "fullName _id")
+      .populate("lecturer", "name");
 
-    res.status(201).json(populatedReview);  // החזרת הביקורת המאוכלסת במקום הודעה
+    res.status(201).json(populatedReview);
   } catch (err) {
     console.error("Error creating review:", err);
-    res
-      .status(500)
-      .json({ message: "שגיאת שרת ביצירת הביקורת", error: err.message });
+    if (err.code === 11000) {
+      return res.status(400).json({
+        message: "כבר כתבת ביקורת עבור קורס זה עם מרצה זה",
+      });
+    }
+    res.status(500).json({
+      message: "שגיאת שרת ביצירת הביקורת",
+      error: err.message,
+    });
   }
 };
 
 // Get all reviews for a specific course
 exports.getReviewsByCourse = async (req, res) => {
   try {
-    const reviews = await CourseReview.find({ course: req.params.courseId })
-      .populate("user", "fullName")
-      .sort({ createdAt: -1 }); // מיון לפי תאריך יצירה - החדש ביותר קודם
-    
+    const { courseId } = req.params;
+    const { lecturerId } = req.query; // Optional filter by lecturer
+
+    let query = { course: courseId };
+    if (lecturerId) {
+      query.lecturer = lecturerId;
+    }
+
+    const reviews = await CourseReview.find(query)
+      .populate("user", "fullName _id")
+      .populate("lecturer", "name")
+      .sort({ createdAt: -1 });
+
     res.status(200).json(reviews);
   } catch (err) {
     console.error("Error fetching reviews:", err);
-    res
-      .status(500)
-      .json({ message: "שגיאת שרת בקבלת הביקורות", error: err.message });
+    res.status(500).json({
+      message: "שגיאת שרת בקבלת הביקורות",
+      error: err.message,
+    });
   }
 };
 
@@ -93,13 +113,148 @@ exports.getReviewsByCourse = async (req, res) => {
 exports.getAllReviews = async (req, res) => {
   try {
     const reviews = await CourseReview.find()
-      .populate('user', 'fullName')
-      .populate('course', 'title courseNumber')
+      .populate("user", "fullName _id")
+      .populate("course", "title courseNumber")
+      .populate("lecturer", "name")
       .sort({ createdAt: -1 });
-    
+
     res.status(200).json(reviews);
   } catch (err) {
     console.error("Error fetching all reviews:", err);
     res.status(500).json({ message: "שגיאת שרת פנימית" });
+  }
+};
+
+// Update a course review
+exports.updateReview = async (req, res) => {
+  try {
+    const { reviewId } = req.params;
+    const {
+      interest,
+      difficulty,
+      workload,
+      investment,
+      teachingQuality,
+      comment,
+    } = req.body;
+
+    // Find the existing review
+    const existingReview = await CourseReview.findById(reviewId);
+
+    if (!existingReview) {
+      return res.status(404).json({ message: "ביקורת לא נמצאה" });
+    }
+
+    // Check if the user owns this review
+    if (existingReview.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "אין הרשאה לעדכן ביקורת זו" });
+    }
+
+    // Update the review
+    const updatedReview = await CourseReview.findByIdAndUpdate(
+      reviewId,
+      {
+        interest,
+        difficulty,
+        workload,
+        investment,
+        teachingQuality,
+        comment,
+      },
+      { new: true, runValidators: true }
+    )
+      .populate("user", "fullName _id")
+      .populate("lecturer", "name");
+
+    // Recalculate course's average rating
+    const allReviews = await CourseReview.find({
+      course: existingReview.course,
+    });
+    const avg =
+      allReviews.reduce((sum, r) => {
+        const averageScore =
+          (r.interest +
+            r.difficulty +
+            r.workload +
+            r.investment +
+            r.teachingQuality) /
+          5;
+        return sum + averageScore;
+      }, 0) / allReviews.length;
+
+    await Course.findByIdAndUpdate(existingReview.course, {
+      averageRating: avg.toFixed(2),
+      ratingsCount: allReviews.length,
+    });
+
+    res.status(200).json(updatedReview);
+  } catch (err) {
+    console.error("Error updating review:", err);
+    res.status(500).json({
+      message: "שגיאת שרת בעדכון הביקורת",
+      error: err.message,
+    });
+  }
+};
+
+// Delete a course review
+exports.deleteReview = async (req, res) => {
+  try {
+    const { reviewId } = req.params;
+
+    // Find the existing review
+    const existingReview = await CourseReview.findById(reviewId);
+
+    if (!existingReview) {
+      return res.status(404).json({ message: "ביקורת לא נמצאה" });
+    }
+
+    // Check if the user owns this review or is admin
+    if (
+      existingReview.user.toString() !== req.user._id.toString() &&
+      req.user.role !== "admin"
+    ) {
+      return res.status(403).json({ message: "אין הרשאה למחוק ביקורת זו" });
+    }
+
+    await CourseReview.findByIdAndDelete(reviewId);
+
+    // Recalculate course's average rating
+    const allReviews = await CourseReview.find({
+      course: existingReview.course,
+    });
+
+    if (allReviews.length > 0) {
+      const avg =
+        allReviews.reduce((sum, r) => {
+          const averageScore =
+            (r.interest +
+              r.difficulty +
+              r.workload +
+              r.investment +
+              r.teachingQuality) /
+            5;
+          return sum + averageScore;
+        }, 0) / allReviews.length;
+
+      await Course.findByIdAndUpdate(existingReview.course, {
+        averageRating: avg.toFixed(2),
+        ratingsCount: allReviews.length,
+      });
+    } else {
+      // No reviews left, reset rating
+      await Course.findByIdAndUpdate(existingReview.course, {
+        averageRating: null,
+        ratingsCount: 0,
+      });
+    }
+
+    res.status(200).json({ message: "ביקורת נמחקה בהצלחה" });
+  } catch (err) {
+    console.error("Error deleting review:", err);
+    res.status(500).json({
+      message: "שגיאת שרת במחיקת הביקורת",
+      error: err.message,
+    });
   }
 };

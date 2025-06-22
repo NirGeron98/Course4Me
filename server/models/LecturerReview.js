@@ -1,15 +1,15 @@
 const mongoose = require("mongoose");
 
-const courseReviewSchema = new mongoose.Schema(
+const lecturerReviewSchema = new mongoose.Schema(
   {
-    course: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Course",
-      required: true,
-    },
     lecturer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Lecturer",
+      required: true,
+    },
+    course: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course",
       required: true,
     },
     user: {
@@ -17,31 +17,31 @@ const courseReviewSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    interest: {
+    clarity: {
       type: Number,
       min: 1,
       max: 5,
       required: true,
     },
-    difficulty: {
+    responsiveness: {
       type: Number,
       min: 1,
       max: 5,
       required: true,
     },
-    workload: {
+    availability: {
       type: Number,
       min: 1,
       max: 5,
       required: true,
     },
-    investment: {
+    organization: {
       type: Number,
       min: 1,
       max: 5,
       required: true,
     },
-    teachingQuality: {
+    knowledge: {
       type: Number,
       min: 1,
       max: 5,
@@ -54,18 +54,18 @@ const courseReviewSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Compound index to ensure one review per user per course per lecturer
-courseReviewSchema.index({ course: 1, lecturer: 1, user: 1 }, { unique: true });
+// Compound index to ensure one review per user per lecturer per course
+lecturerReviewSchema.index({ lecturer: 1, course: 1, user: 1 }, { unique: true });
 
 // Virtual field for overall rating (average of all criteria)
-courseReviewSchema.virtual("overallRating").get(function () {
+lecturerReviewSchema.virtual("overallRating").get(function () {
   return (
-    (this.interest + this.difficulty + this.workload + this.investment + this.teachingQuality) / 5
+    (this.clarity + this.responsiveness + this.availability + this.organization + this.knowledge) / 5
   ).toFixed(1);
 });
 
 // Ensure virtual fields are included when converting to JSON
-courseReviewSchema.set("toJSON", { virtuals: true });
-courseReviewSchema.set("toObject", { virtuals: true });
+lecturerReviewSchema.set("toJSON", { virtuals: true });
+lecturerReviewSchema.set("toObject", { virtuals: true });
 
-module.exports = mongoose.model("CourseReview", courseReviewSchema);
+module.exports = mongoose.model("LecturerReview", lecturerReviewSchema);

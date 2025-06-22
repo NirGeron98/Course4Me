@@ -4,7 +4,7 @@ import { X, BookOpen, Building, Hash, FileText, Award, Users, ArrowLeft } from "
 
 const CourseDetailsModal = ({ course, onClose }) => {
   const navigate = useNavigate();
-  
+
   if (!course) return null;
 
   // Helper function to get lecturer name
@@ -114,7 +114,7 @@ const CourseDetailsModal = ({ course, onClose }) => {
                     {allLecturers.length > 1 ? 'מרצים' : 'מרצה'}
                   </h3>
                 </div>
-                
+
                 <div className="space-y-2">
                   {allLecturers.map((lecturer, index) => (
                     <div key={index} className="text-center">
@@ -170,6 +170,7 @@ const CourseDetailsModal = ({ course, onClose }) => {
           </div>
 
           {/* Course Description - Main Focus */}
+          {/* Course Description - Main Focus */}
           {(course.description || course.summary) && (
             <div className="bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 rounded-2xl p-6 border border-emerald-100 shadow-sm">
               <div className="flex items-center gap-3 mb-5">
@@ -180,22 +181,14 @@ const CourseDetailsModal = ({ course, onClose }) => {
                   תיאור הקורס
                 </h3>
               </div>
-              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-5 border border-white/50">
-                <div
-                  className="text-gray-700 text-right leading-relaxed whitespace-pre-line overflow-y-auto prose prose-sm max-w-none"
-                  style={{
-                    maxHeight: '350px',
-                    fontSize: '15px',
-                    lineHeight: '1.7',
-                    scrollbarWidth: 'thin',
-                    scrollbarColor: '#10b981 transparent'
-                  }}
-                >
-                  {course.description || course.summary || "אין תיאור זמין"}
-                </div>
-              </div>
+
+              {/* ✨ עיצוב חדש - ללא בלוק פנימי לבן מיותר */}
+              <p className="text-gray-700 text-right leading-relaxed whitespace-pre-line text-[15px] md:text-[16px] lg:text-[17px] font-medium">
+                {course.description || course.summary || "אין תיאור זמין"}
+              </p>
             </div>
           )}
+
         </div>
 
         {/* Elegant Footer */}
@@ -208,7 +201,7 @@ const CourseDetailsModal = ({ course, onClose }) => {
               סגור
             </button>
 
-            <button 
+            <button
               onClick={handleGoToCourse}
               className="px-8 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl font-medium transition-all duration-200 text-sm shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center gap-2"
             >

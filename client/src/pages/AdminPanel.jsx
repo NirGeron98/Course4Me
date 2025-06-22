@@ -12,8 +12,8 @@ const AdminPanel = ({ user }) => {
   const [error, setError] = useState("");
 
   // Check if user is admin
-  const isAdmin = user && user.role === "admin";
-
+  const isAdmin = user?.user?.role === "admin";
+  
   // Fetch lecturers when the component mounts
   useEffect(() => {
     const fetchLecturers = async () => {
@@ -77,8 +77,8 @@ const AdminPanel = ({ user }) => {
             <button
               onClick={() => setActiveTab("courses")}
               className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${activeTab === "courses"
-                  ? "text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50"
-                  : "text-gray-600 hover:text-emerald-600"
+                ? "text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50"
+                : "text-gray-600 hover:text-emerald-600"
                 }`}
             >
               <BookOpen className="w-5 h-5 inline-block ml-2" />
@@ -87,8 +87,8 @@ const AdminPanel = ({ user }) => {
             <button
               onClick={() => setActiveTab("lecturers")}
               className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${activeTab === "lecturers"
-                  ? "text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50"
-                  : "text-gray-600 hover:text-emerald-600"
+                ? "text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50"
+                : "text-gray-600 hover:text-emerald-600"
                 }`}
             >
               <Users className="w-5 h-5 inline-block ml-2" />

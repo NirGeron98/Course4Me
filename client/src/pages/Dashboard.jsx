@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { BookOpen, Users, MessageSquare, TrendingUp, ChevronLeft, ChevronRight, User, Building } from "lucide-react";
-import CourseDetailsModal from "../components/CourseDetailsModal";
+import CourseDetailsModal from "../components/tracked-courses/CourseDetailsModal";
 
 const Dashboard = () => {
   const [trackedCourses, setTrackedCourses] = useState([]);
@@ -139,7 +139,7 @@ const Dashboard = () => {
               </div>
               <div>
                 <h1 className="text-4xl font-bold mb-2">שלום, {userName}! 👋</h1>
-                <p className="text-emerald-100 text-lg">ברוך הבא חזרה למערכת ניהול הקורסים</p>
+                <p className="text-emerald-100 text-lg">איזה כיף שחזרת!</p>
               </div>
             </div>
             <div className="hidden md:block">
@@ -170,10 +170,10 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-blue-100 hover:shadow-xl transition-shadow">
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-red-100 hover:shadow-xl transition-shadow">
             <div className="flex items-center gap-4">
-              <div className="bg-blue-100 rounded-full p-3">
-                <MessageSquare className="w-6 h-6 text-blue-600" />
+              <div className="bg-red-100 rounded-full p-3">
+                <MessageSquare className="w-6 h-6 text-red-600" />
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-gray-800">{stats.reviewsCount}</h3>
@@ -182,10 +182,10 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-purple-100 hover:shadow-xl transition-shadow">
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-blue-100 hover:shadow-xl transition-shadow">
             <div className="flex items-center gap-4">
-              <div className="bg-purple-100 rounded-full p-3">
-                <TrendingUp className="w-6 h-6 text-purple-600" />
+              <div className="bg-blue-100 rounded-full p-3">
+                <TrendingUp className="w-6 h-6 text-blue-600" />
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-gray-800">{allCourses.length}</h3>
@@ -194,10 +194,10 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-orange-100 hover:shadow-xl transition-shadow">
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-purple-100 hover:shadow-xl transition-shadow">
             <div className="flex items-center gap-4">
-              <div className="bg-orange-100 rounded-full p-3">
-                <Users className="w-6 h-6 text-orange-600" />
+              <div className="bg-purple-100 rounded-full p-3">
+                <Users className="w-6 h-6 text-purple-600" />
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-gray-800">{lecturers.length}</h3>
@@ -206,6 +206,7 @@ const Dashboard = () => {
             </div>
           </div>
         </section>
+
 
         {/* My Tracked Courses - Compact List */}
         {trackedCourses.length > 0 && (

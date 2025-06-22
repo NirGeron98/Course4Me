@@ -6,8 +6,10 @@ const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const courseRoutes = require("./routes/courseRoutes");
 const CourseReviewRoutes = require("./routes/courseReviewRoutes");
+const lecturerReviewRoutes = require("./routes/lecturerReviewRoutes"); 
 const trackedCourseRoutes = require("./routes/trackedCourseRoutes");
 const lecturerRoutes = require("./routes/lecturerRoutes"); 
+const trackedLecturerRoutes = require("./routes/trackedLecturerRoutes"); 
 
 dotenv.config();
 const app = express();
@@ -22,8 +24,10 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/reviews", CourseReviewRoutes);
+app.use("/api/lecturer-reviews", lecturerReviewRoutes); 
 app.use("/api/tracked-courses", trackedCourseRoutes);
-app.use("/api/lecturers", lecturerRoutes); // New route
+app.use("/api/lecturers", lecturerRoutes);
+app.use("/api/tracked-lecturers", require("./routes/trackedLecturerRoutes"));
 
 // Health check route
 app.get("/", (req, res) => {
@@ -35,6 +39,7 @@ app.get("/", (req, res) => {
       users: "/api/users", 
       courses: "/api/courses",
       reviews: "/api/reviews",
+      lecturerReviews: "/api/lecturer-reviews", 
       trackedCourses: "/api/tracked-courses",
       lecturers: "/api/lecturers"
     }

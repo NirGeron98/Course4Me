@@ -6,8 +6,8 @@ import { BookOpen, AlertCircle, Loader2 } from 'lucide-react';
 import CourseDescription from '../components/course-page/CourseDescription';
 import CourseHeader from '../components/course-page/CourseHeader';
 import QuickActions from '../components/course-page/QuickActions';
-import ReviewFormModal from '../components/course-page/ReviewFormModal';
-import ReviewsSection from '../components/course-page/ReviewsSection';
+import CourseReviewFormModal from '../components/course-page/CourseReviewFormModal';
+import CourseReviewsSection from '../components/course-page/CourseReviewsSection';
 import StatisticsCard from '../components/course-page/StatisticsCard';
 
 
@@ -89,7 +89,8 @@ const CoursePage = ({ user }) => {
                     <div className="lg:col-span-2 space-y-6">
                         <CourseDescription course={course} />
 
-                        <ReviewsSection
+                        <CourseReviewsSection
+                            courseId={id} // <- הוספתי את זה!
                             reviews={reviews}
                             reviewsLoading={reviewsLoading}
                             filteredReviews={filteredReviews}
@@ -98,6 +99,7 @@ const CoursePage = ({ user }) => {
                             sortBy={sortBy}
                             setSortBy={setSortBy}
                             onShowReviewForm={() => setShowReviewForm(true)}
+                            user={user}
                         />
                     </div>
 
@@ -116,7 +118,7 @@ const CoursePage = ({ user }) => {
 
             {/* Review Form Modal */}
             {showReviewForm && (
-                <ReviewFormModal
+                <CourseReviewFormModal
                     courseId={id}
                     courseName={course.title}
                     user={user}

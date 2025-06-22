@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { User, BookOpen, Settings, LogOut, Menu, X, Home, Shield } from "lucide-react";
+import { User, BookOpen, Settings, LogOut, Menu, X, Home, Shield, UserCheck, Heart } from "lucide-react";
 
 const Navbar = ({ user, onLogout }) => {
   const navigate = useNavigate();
@@ -34,19 +34,24 @@ const Navbar = ({ user, onLogout }) => {
   // Navigation items based on user role
   const navItems = [
     {
-      path: "/",
+      path: "/dashboard",
       label: "דף הבית",
       icon: Home
     },
     {
+      path: "/lecturers",
+      label: "המרצים שלי",
+      icon: UserCheck
+    },
+    {
       path: "/tracked-courses",
-      label: "מעקב קורסים",
-      icon: BookOpen
+      label: "הקורסים שלי",
+      icon: Heart
     }
   ];
 
-  // Add admin link if user is admin
-  if (user && user.role === "admin") {
+  // Add admin link if user is admin - Fixed to check user.user.role
+  if (user?.user?.role === "admin") {
     navItems.push({
       path: "/admin",
       label: "ניהול מערכת",
@@ -62,10 +67,10 @@ const Navbar = ({ user, onLogout }) => {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link 
-              to="/" 
+              to="/dashboard" 
               className="flex items-center space-x-4 group"
             >
-              <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl p-2 shadow-lg group-hover:shadow-xl transition-all duration-300">
+              <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl p-2 shadow-lg group-hover:shadow-xl transition-all duration-300 ml-2">
                 <BookOpen className="w-6 h-6 text-white" />
               </div>
               <span className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-700 bg-clip-text text-transparent mr-4">
@@ -86,8 +91,10 @@ const Navbar = ({ user, onLogout }) => {
                     className={`flex items-center space-x-2 px-3 py-2 rounded-xl font-medium transition-all duration-300 whitespace-nowrap ${
                       isActivePage(item.path)
                         ? 'bg-emerald-100 text-emerald-700 shadow-md'
-                        : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50'
-                    } ${item.path === '/admin' ? 'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-700 hover:from-purple-200 hover:to-purple-300' : ''}`}
+                        : item.path === '/admin' 
+                          ? 'text-purple-600 hover:text-purple-700 hover:bg-purple-50'
+                          : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50'
+                    }`}
                   >
                     <Icon className="w-4 h-4 ml-2" />
                     <span>{item.label}</span>
@@ -102,8 +109,8 @@ const Navbar = ({ user, onLogout }) => {
             {/* User Dropdown */}
             <div className="relative group">
               <button className="flex items-center space-x-3 bg-gray-50 hover:bg-emerald-50 rounded-xl px-3 py-2 transition-all duration-300">
-                <div className={`rounded-full p-1.5 ml-4 ${user?.role === 'admin' ? 'bg-purple-500' : 'bg-emerald-500'}`}>
-                  {user?.role === 'admin' ? (
+                <div className={`rounded-full p-1.5 ml-4 ${user?.user?.role === 'admin' ? 'bg-purple-500' : 'bg-emerald-500'}`}>
+                  {user?.user?.role === 'admin' ? (
                     <Shield className="w-3.5 h-3.5 text-white" />
                   ) : (
                     <User className="w-3.5 h-3.5 text-white" />
@@ -111,9 +118,9 @@ const Navbar = ({ user, onLogout }) => {
                 </div>
                 <div className="text-right mr-3">
                   <span className="text-gray-700 font-medium text-sm block">
-                    {user?.fullName || user?.name || 'משתמש'}
+                    {user?.user?.fullName || user?.fullName || user?.name || 'משתמש'}
                   </span>
-                  {user?.role === 'admin' && (
+                  {user?.user?.role === 'admin' && (
                     <span className="text-purple-600 text-xs font-medium">מנהל מערכת</span>
                   )}
                 </div>
@@ -164,8 +171,8 @@ const Navbar = ({ user, onLogout }) => {
               
               {/* User Info Mobile */}
               <div className="flex items-center space-x-3 bg-emerald-50 rounded-xl px-4 py-3 mb-4">
-                <div className={`rounded-full p-2 ${user?.role === 'admin' ? 'bg-purple-500' : 'bg-emerald-500'}`}>
-                  {user?.role === 'admin' ? (
+                <div className={`rounded-full p-2 ${user?.user?.role === 'admin' ? 'bg-purple-500' : 'bg-emerald-500'}`}>
+                  {user?.user?.role === 'admin' ? (
                     <Shield className="w-5 h-5 text-white" />
                   ) : (
                     <User className="w-5 h-5 text-white" />
@@ -173,9 +180,9 @@ const Navbar = ({ user, onLogout }) => {
                 </div>
                 <div className="text-right mr-3">
                   <span className="text-emerald-700 font-medium block">
-                    שלום, {user?.fullName || user?.name || 'משתמש'}
+                    שלום, {user?.user?.fullName || user?.fullName || user?.name || 'משתמש'}
                   </span>
-                  {user?.role === 'admin' && (
+                  {user?.user?.role === 'admin' && (
                     <span className="text-purple-600 text-sm font-medium">מנהל מערכת</span>
                   )}
                 </div>
@@ -192,8 +199,10 @@ const Navbar = ({ user, onLogout }) => {
                     className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-300 ${
                       isActivePage(item.path)
                         ? 'bg-emerald-100 text-emerald-700'
-                        : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50'
-                    } ${item.path === '/admin' ? 'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-700' : ''}`}
+                        : item.path === '/admin'
+                          ? 'text-purple-600 hover:text-purple-700 hover:bg-purple-50'
+                          : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50'
+                    }`}
                   >
                     <Icon className="w-5 h-5 ml-3" />
                     <span>{item.label}</span>

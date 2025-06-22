@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, CheckCircle, AlertCircle, LogIn } from "lucide-react";
 
-const Login = ({ setUser }) => {
-  // const navigate = useNavigate();
+const Login = ({ onLogin }) => {
+  const navigate = useNavigate();
   const location = useLocation();
 
   const [formData, setFormData] = useState({
@@ -23,6 +23,8 @@ const Login = ({ setUser }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setMessage(""); // Clear previous messages
+    
     try {
       const res = await axios.post("http://localhost:5000/api/auth/login", formData);
       
@@ -31,21 +33,21 @@ const Login = ({ setUser }) => {
       localStorage.setItem("userFullName", res.data.user.fullName);
       localStorage.setItem("userRole", res.data.user.role);
       
-      // Set user with callback to handle navigation after state is updated
-      setUser(res.data.user);
+      // Call onLogin with the complete response data (includes both user and token)
+      onLogin(res.data);
 
-      // Force immediate redirect by reloading the page with correct URL
+      // Navigate to dashboard or redirect URL
       const urlParams = new URLSearchParams(location.search);
       const redirectPath = urlParams.get('redirect');
 
       if (redirectPath) {
-        // Direct window navigation to ensure immediate redirect
-        window.location.href = decodeURIComponent(redirectPath);
+        navigate(decodeURIComponent(redirectPath));
       } else {
-        window.location.href = "/";
+        navigate("/dashboard");
       }
       
     } catch (err) {
+      console.error("Login error:", err);
       setMessage(err.response?.data?.message || "התחברות נכשלה");
     } finally {
       setIsLoading(false);

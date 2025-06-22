@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Plus } from "lucide-react";
-import AddCoursePopup from "../components/AddCoursePopup";
-import TrackedCourseCard from "../components/TrackedCourseCard";
-import CourseDetailsModal from "../components/CourseDetailsModal";
+import AddCoursePopup from "../components/tracked-courses/AddCoursePopup";
+import TrackedCourseCard from "../components/tracked-courses/TrackedCourseCard";
+import CourseDetailsModal from "../components/tracked-courses/CourseDetailsModal";
 
 const TrackedCourses = () => {
   const [trackedCourses, setTrackedCourses] = useState([]);
@@ -99,7 +99,7 @@ const TrackedCourses = () => {
             הקורסים שלי
           </h1>
           <p className="text-base md:text-lg text-emerald-50 font-medium max-w-xl mx-auto leading-relaxed">
-            נהל את רשימת הקורסים שלך ועקב אחר עדכונים
+            נהל את רשימת הקורסים שלך ועקוב אחר עדכונים
           </p>
 
           {/* Stats or additional info */}

@@ -3,7 +3,7 @@ import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, User, Mail, Lock, CheckCircle, AlertCircle } from "lucide-react";
 
-const Signup = ({ setUser }) => {
+const Signup = ({ onLogin }) => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -43,15 +43,23 @@ const Signup = ({ setUser }) => {
 
     setIsLoading(true);
     setPasswordError("");
+    setMessage(""); // Clear previous messages
 
     try {
       const { confirmPassword, ...dataToSend } = formData;
       const res = await axios.post("http://localhost:5000/api/auth/signup", dataToSend);
+      
+      // Store user data in localStorage
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userFullName", res.data.user.fullName);
-      setUser(res.data.user);
-      navigate("/");
+      localStorage.setItem("userRole", res.data.user.role);
+      
+      // Call onLogin with the complete response data
+      onLogin(res.data);
+      
+      navigate("/dashboard");
     } catch (err) {
+      console.error("Signup error:", err);
       setMessage(err.response?.data?.message || "ההרשמה נכשלה");
     } finally {
       setIsLoading(false);
