@@ -32,9 +32,9 @@ const courseSchema = new mongoose.Schema(
       max: 20,
       validate: {
         validator: function (value) {
-          return value > 0;
+          return value >= 0; 
         },
-        message: "Credits must be a positive number",
+        message: "Credits must be a non-negative number",
       },
     },
     department: {
@@ -75,7 +75,7 @@ const courseSchema = new mongoose.Schema(
 
 // Virtual field to display credits in Hebrew format
 courseSchema.virtual("creditsDisplay").get(function () {
-  return `${this.credits.toFixed(1)} נק"ז`; 
+  return `${this.credits.toFixed(1)} נק"ז`;
 });
 
 // Virtual field to display rating with stars

@@ -422,115 +422,111 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
 
 
                     {/* Courses List Container */}
-                    <div className="space-y-3">
-                        <div className="min-h-[500px]"> {/* Fixed height container */}
-                            {courses.length === 0 ? (
-                                <div className="text-center py-12 text-gray-500">
-                                    <BookOpen className="w-8 h-8 mx-auto mb-3 text-gray-300" />
-                                    <p className="text-sm">אין קורסים במערכת עדיין</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-3">
-                                    {currentCourses.map((course) => (
-                                        <div key={course._id} className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow group">
-                                            <div className="flex items-start justify-between">
-                                                <div className="flex-1 min-w-0">
-                                                    <h4 className="font-semibold text-sm mb-1 truncate" title={course.title}>
-                                                        {course.title}
-                                                    </h4>
-                                                    <div className="space-y-1">
-                                                        <div className="flex flex-wrap gap-1">
-                                                            <span className="bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded text-xs font-medium">
-                                                                {course.courseNumber}
-                                                            </span>
-                                                            <span className="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded text-xs font-medium">
-                                                                {course.credits} נק״ז
-                                                            </span>
-                                                        </div>
-                                                        {Array.isArray(course.lecturers) && course.lecturers.length > 0 && (
-                                                            <p className="text-xs text-gray-600 truncate">
-                                                                מרצים: {course.lecturers.map((lecturer) => lecturer.name).join(", ")}
-                                                            </p>
-                                                        )}
-
-                                                        {course.department && (
-                                                            <p className="text-xs text-gray-500 truncate">
-                                                                {course.department}
-                                                            </p>
-                                                        )}
+                    <div className="space-y-3 min-h-[500px]">
+                        {courses.length === 0 ? (
+                            <div className="text-center py-12 text-gray-500">
+                                <BookOpen className="w-8 h-8 mx-auto mb-3 text-gray-300" />
+                                <p className="text-sm">אין קורסים במערכת עדיין</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {currentCourses.map((course) => (
+                                    <div key={course._id} className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow group min-h-[100px] flex flex-col">
+                                        <div className="flex items-start justify-between flex-1">
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="font-semibold text-sm mb-1 truncate" title={course.title}>
+                                                    {course.title}
+                                                </h4>
+                                                <div className="space-y-1">
+                                                    <div className="flex flex-wrap gap-1">
+                                                        <span className="bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded text-xs font-medium">
+                                                            {course.courseNumber}
+                                                        </span>
+                                                        <span className="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded text-xs font-medium">
+                                                            {course.credits} נק״ז
+                                                        </span>
                                                     </div>
-                                                </div>
-                                                <div className="flex gap-2 items-center opacity-0 group-hover:opacity-100 transition-all">
-                                                    <button
-                                                        onClick={() => handleEditCourse(course)}
-                                                        className="text-blue-400 hover:text-blue-600 p-1 rounded"
-                                                        title="ערוך קורס"
-                                                    >
-                                                        ✏️
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteCourse(course._id)}
-                                                        className="text-red-400 hover:text-red-600 p-1 rounded"
-                                                        title="מחק קורס"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
+                                                    {Array.isArray(course.lecturers) && course.lecturers.length > 0 && (
+                                                        <p className="text-xs text-gray-600 truncate">
+                                                            מרצים: {course.lecturers.map((lecturer) => lecturer.name).join(", ")}
+                                                        </p>
+                                                    )}
 
+                                                    {course.department && (
+                                                        <p className="text-xs text-gray-500 truncate">
+                                                            {course.department}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-2 items-center opacity-0 group-hover:opacity-100 transition-all">
+                                                <button
+                                                    onClick={() => handleEditCourse(course)}
+                                                    className="text-blue-400 hover:text-blue-600 p-1 rounded"
+                                                    title="ערוך קורס"
+                                                >
+                                                    ✏️
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteCourse(course._id)}
+                                                    className="text-red-400 hover:text-red-600 p-1 rounded"
+                                                    title="מחק קורס"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
 
-                        {/* Pagination Controls */}
-                        {courses.length > coursesPerPage && (
-                            <div className="flex items-center justify-center gap-2 mt-4 py-3 border-t border-gray-200">
-                                {/* Previous Button */}
-                                <button
-                                    onClick={handlePrevPage}
-                                    disabled={currentPage === 1}
-                                    className={`p-2 rounded-lg transition-all duration-200 ${currentPage === 1
-                                        ? 'text-gray-300 cursor-not-allowed'
-                                        : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50'
-                                        }`}
-                                    title="עמוד קודם"
-                                >
-                                    <ChevronRight className="w-4 h-4" />
-                                </button>
+                    {/* Pagination Controls - Fixed position */}
+                    {filteredCourses.length > coursesPerPage && (
+                        <div className="flex items-center justify-center gap-2 mt-4 py-3 border-t border-gray-200">
+                            <button
+                                onClick={handlePrevPage}
+                                disabled={currentPage === 1}
+                                className={`p-2 rounded-lg ${currentPage === 1
+                                    ? "text-gray-300 cursor-not-allowed"
+                                    : "text-gray-600 hover:text-emerald-600 hover:bg-emerald-50"
+                                    }`}
+                            >
+                                <ChevronRight className="w-4 h-4" />
+                            </button>
 
-                                {/* Page Numbers */}
-                                <div className="flex items-center gap-1">
-                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => (
+                            <div className="flex items-center gap-1">
+                                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                                    .filter((pageNumber) =>
+                                        Math.abs(pageNumber - currentPage) <= 2
+                                    )
+                                    .map((pageNumber) => (
                                         <button
                                             key={pageNumber}
                                             onClick={() => handlePageClick(pageNumber)}
-                                            className={`w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 ${currentPage === pageNumber
-                                                ? 'bg-emerald-500 text-white shadow-md'
-                                                : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50'
+                                            className={`w-8 h-8 rounded-lg text-sm font-medium ${currentPage === pageNumber
+                                                ? "bg-emerald-500 text-white shadow-md"
+                                                : "text-gray-600 hover:text-emerald-600 hover:bg-emerald-50"
                                                 }`}
                                         >
                                             {pageNumber}
                                         </button>
                                     ))}
-                                </div>
-
-                                {/* Next Button */}
-                                <button
-                                    onClick={handleNextPage}
-                                    disabled={currentPage === totalPages}
-                                    className={`p-2 rounded-lg transition-all duration-200 ${currentPage === totalPages
-                                        ? 'text-gray-300 cursor-not-allowed'
-                                        : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50'
-                                        }`}
-                                    title="עמוד הבא"
-                                >
-                                    <ChevronLeft className="w-4 h-4" />
-                                </button>
                             </div>
-                        )}
-                    </div>
+
+                            <button
+                                onClick={handleNextPage}
+                                disabled={currentPage === totalPages}
+                                className={`p-2 rounded-lg ${currentPage === totalPages
+                                    ? "text-gray-300 cursor-not-allowed"
+                                    : "text-gray-600 hover:text-emerald-600 hover:bg-emerald-50"
+                                    }`}
+                            >
+                                <ChevronLeft className="w-4 h-4" />
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

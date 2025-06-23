@@ -15,7 +15,6 @@ const Dashboard = () => {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-
   // Carousel states
   const [courseCarouselIndex, setCourseCarouselIndex] = useState(0);
   const [lecturerCarouselIndex, setLecturerCarouselIndex] = useState(0);
@@ -32,7 +31,6 @@ const Dashboard = () => {
     setSelectedCourse(course);
     setIsModalOpen(true);
   };
-
 
   useEffect(() => {
     const fetchData = async () => {
@@ -59,10 +57,37 @@ const Dashboard = () => {
         });
         setLecturers(lecturersRes.data);
 
+        // Fetch user's reviews count
+        let totalReviews = 0;
+        
+        try {
+          // Get course reviews by user
+          const courseReviewsRes = await axios.get("http://localhost:5000/api/course-reviews", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          // Filter reviews by current user (assuming the API returns all reviews)
+          const userCourseReviews = courseReviewsRes.data.filter(review => review.user === localStorage.getItem("userId"));
+          totalReviews += userCourseReviews.length;
+        } catch (error) {
+          console.log("No course reviews endpoint or error:", error);
+        }
+
+        try {
+          // Get lecturer reviews by user
+          const lecturerReviewsRes = await axios.get("http://localhost:5000/api/lecturer-reviews", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          // Filter reviews by current user
+          const userLecturerReviews = lecturerReviewsRes.data.filter(review => review.user === localStorage.getItem("userId"));
+          totalReviews += userLecturerReviews.length;
+        } catch (error) {
+          console.log("No lecturer reviews endpoint or error:", error);
+        }
+
         // Set stats
         setStats({
           coursesCount: trackedRes.data.length,
-          reviewsCount: 0 // TODO: Add reviews API call when available
+          reviewsCount: totalReviews
         });
 
       } catch (error) {
@@ -207,7 +232,6 @@ const Dashboard = () => {
           </div>
         </section>
 
-
         {/* My Tracked Courses - Compact List */}
         {trackedCourses.length > 0 && (
           <section className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
@@ -298,24 +322,93 @@ const Dashboard = () => {
                     </span>
                   )}
                 </div>
-
               ))}
-
             </div>
 
             {allCourses.length > 3 && (
               <div className="flex justify-center mt-4">
-                <div className="flex gap-2">
-                  {Array.from({ length: Math.ceil(allCourses.length / 3) }).map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCourseCarouselIndex(index * 3)}
-                      className={`w-2 h-2 rounded-full transition-colors ${Math.floor(courseCarouselIndex / 3) === index
-                        ? 'bg-blue-600'
-                        : 'bg-gray-300'
-                        }`}
-                    />
-                  ))}
+                <div className="flex items-center gap-2 max-w-full overflow-hidden px-4">
+                  {(() => {
+                    const totalPages = Math.ceil(allCourses.length / 3);
+                    const currentPage = Math.floor(courseCarouselIndex / 3);
+                    
+                    // If less than 8 pages, show all dots
+                    if (totalPages <= 8) {
+                      return Array.from({ length: totalPages }).map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCourseCarouselIndex(index * 3)}
+                          className={`w-2 h-2 rounded-full transition-colors flex-shrink-0 ${
+                            currentPage === index ? 'bg-blue-600' : 'bg-gray-300'
+                          }`}
+                        />
+                      ));
+                    }
+                    
+                    // If more than 8 pages, show pagination with ellipsis
+                    const dots = [];
+                    const maxVisibleDots = 5;
+                    let startPage = Math.max(0, currentPage - Math.floor(maxVisibleDots / 2));
+                    let endPage = Math.min(totalPages - 1, startPage + maxVisibleDots - 1);
+                    
+                    // Adjust start if we're near the end
+                    if (endPage - startPage < maxVisibleDots - 1) {
+                      startPage = Math.max(0, endPage - maxVisibleDots + 1);
+                    }
+                    
+                    // First page dot if not showing it
+                    if (startPage > 0) {
+                      dots.push(
+                        <button
+                          key={0}
+                          onClick={() => setCourseCarouselIndex(0)}
+                          className="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0"
+                        />
+                      );
+                      // Add ellipsis if there's a gap
+                      if (startPage > 1) {
+                        dots.push(
+                          <span key="start-ellipsis" className="text-gray-400 text-xs px-1 flex-shrink-0">
+                            ...
+                          </span>
+                        );
+                      }
+                    }
+                    
+                    // Current range dots
+                    for (let i = startPage; i <= endPage; i++) {
+                      dots.push(
+                        <button
+                          key={i}
+                          onClick={() => setCourseCarouselIndex(i * 3)}
+                          className={`w-2 h-2 rounded-full transition-colors flex-shrink-0 ${
+                            currentPage === i ? 'bg-blue-600' : 'bg-gray-300'
+                          }`}
+                        />
+                      );
+                    }
+                    
+                    // Last page dot if not showing it
+                    if (endPage < totalPages - 1) {
+                      // Add ellipsis if there's a gap
+                      if (endPage < totalPages - 2) {
+                        dots.push(
+                          <span key="end-ellipsis" className="text-gray-400 text-xs px-1 flex-shrink-0">
+                            ...
+                          </span>
+                        );
+                      }
+                      dots.push(
+                        <button
+                          key={totalPages - 1}
+                          onClick={() => setCourseCarouselIndex((totalPages - 1) * 3)}
+                          className="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0"
+                        />
+                      );
+                    }
+                    
+                    return dots;
+                  })()}
                 </div>
               </div>
             )}
@@ -376,17 +469,88 @@ const Dashboard = () => {
 
             {lecturers.length > 3 && (
               <div className="flex justify-center mt-4">
-                <div className="flex gap-2">
-                  {Array.from({ length: Math.ceil(lecturers.length / 3) }).map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setLecturerCarouselIndex(index * 3)}
-                      className={`w-2 h-2 rounded-full transition-colors ${Math.floor(lecturerCarouselIndex / 3) === index
-                        ? 'bg-purple-600'
-                        : 'bg-gray-300'
-                        }`}
-                    />
-                  ))}
+                <div className="flex items-center gap-2 max-w-full overflow-hidden px-4">
+                  {(() => {
+                    const totalPages = Math.ceil(lecturers.length / 3);
+                    const currentPage = Math.floor(lecturerCarouselIndex / 3);
+                    
+                    // If less than 8 pages, show all dots
+                    if (totalPages <= 8) {
+                      return Array.from({ length: totalPages }).map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setLecturerCarouselIndex(index * 3)}
+                          className={`w-2 h-2 rounded-full transition-colors flex-shrink-0 ${
+                            currentPage === index ? 'bg-purple-600' : 'bg-gray-300'
+                          }`}
+                        />
+                      ));
+                    }
+                    
+                    // If more than 8 pages, show pagination with ellipsis
+                    const dots = [];
+                    const maxVisibleDots = 5;
+                    let startPage = Math.max(0, currentPage - Math.floor(maxVisibleDots / 2));
+                    let endPage = Math.min(totalPages - 1, startPage + maxVisibleDots - 1);
+                    
+                    // Adjust start if we're near the end
+                    if (endPage - startPage < maxVisibleDots - 1) {
+                      startPage = Math.max(0, endPage - maxVisibleDots + 1);
+                    }
+                    
+                    // First page dot if not showing it
+                    if (startPage > 0) {
+                      dots.push(
+                        <button
+                          key={0}
+                          onClick={() => setLecturerCarouselIndex(0)}
+                          className="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0"
+                        />
+                      );
+                      // Add ellipsis if there's a gap
+                      if (startPage > 1) {
+                        dots.push(
+                          <span key="start-ellipsis" className="text-gray-400 text-xs px-1 flex-shrink-0">
+                            ...
+                          </span>
+                        );
+                      }
+                    }
+                    
+                    // Current range dots
+                    for (let i = startPage; i <= endPage; i++) {
+                      dots.push(
+                        <button
+                          key={i}
+                          onClick={() => setLecturerCarouselIndex(i * 3)}
+                          className={`w-2 h-2 rounded-full transition-colors flex-shrink-0 ${
+                            currentPage === i ? 'bg-purple-600' : 'bg-gray-300'
+                          }`}
+                        />
+                      );
+                    }
+                    
+                    // Last page dot if not showing it
+                    if (endPage < totalPages - 1) {
+                      // Add ellipsis if there's a gap
+                      if (endPage < totalPages - 2) {
+                        dots.push(
+                          <span key="end-ellipsis" className="text-gray-400 text-xs px-1 flex-shrink-0">
+                            ...
+                          </span>
+                        );
+                      }
+                      dots.push(
+                        <button
+                          key={totalPages - 1}
+                          onClick={() => setLecturerCarouselIndex((totalPages - 1) * 3)}
+                          className="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0"
+                        />
+                      );
+                    }
+                    
+                    return dots;
+                  })()}
                 </div>
               </div>
             )}

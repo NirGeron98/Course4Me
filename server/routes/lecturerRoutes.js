@@ -7,7 +7,11 @@ const { admin } = require("../middleware/adminMiddleware");
 // Public routes
 router.get("/", lecturerController.getAllLecturers);
 router.get("/:id", lecturerController.getLecturerById);
+router.get("/:id/full", lecturerController.getLecturerWithCourses);
 router.get("/search/:query", lecturerController.searchLecturers);
+
+// Get lecturers by department
+router.get("/department/:departmentId", lecturerController.getLecturersByDepartment);
 
 // Protected routes (admin only)
 router.post("/", protect, admin, lecturerController.createLecturer);

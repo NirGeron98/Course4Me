@@ -27,6 +27,11 @@ const Navbar = ({ user, onLogout }) => {
     return location.pathname === path;
   };
 
+  // Navigate to profile when clicking on user name
+  const handleUserNameClick = () => {
+    navigate("/profile");
+  };
+
   if (!shouldShowNavbar) {
     return null;
   }
@@ -106,38 +111,36 @@ const Navbar = ({ user, onLogout }) => {
 
           {/* User Menu & Logout */}
           <div className="hidden lg:flex items-center space-x-3 space-x-reverse">
-            {/* User Dropdown */}
-            <div className="relative group">
-              <button className="flex items-center space-x-3 bg-gray-50 hover:bg-emerald-50 rounded-xl px-3 py-2 transition-all duration-300">
-                <div className={`rounded-full p-1.5 ml-4 ${user?.user?.role === 'admin' ? 'bg-purple-500' : 'bg-emerald-500'}`}>
-                  {user?.user?.role === 'admin' ? (
-                    <Shield className="w-3.5 h-3.5 text-white" />
-                  ) : (
-                    <User className="w-3.5 h-3.5 text-white" />
-                  )}
-                </div>
-                <div className="text-right mr-3">
-                  <span className="text-gray-700 font-medium text-sm block">
-                    {user?.user?.fullName || user?.fullName || user?.name || 'משתמש'}
-                  </span>
-                  {user?.user?.role === 'admin' && (
-                    <span className="text-purple-600 text-xs font-medium">מנהל מערכת</span>
-                  )}
-                </div>
-                <Settings className="w-3.5 h-3.5 text-gray-500 ml-1" />
-              </button>
-              
-              {/* Dropdown Menu */}
-              <div className="absolute left-0 mt-2 w-40 bg-white rounded-xl shadow-xl border border-emerald-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
-                <Link
-                  to="/profile"
-                  className="flex items-center space-x-2 px-3 py-2.5 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl transition-colors text-sm"
-                >
-                  <Settings className="w-4 h-4 ml-2" />
-                  <span>ניהול פרופיל</span>
-                </Link>
+            {/* User Profile Button - Clickable */}
+            <button 
+              onClick={handleUserNameClick}
+              className={`flex items-center space-x-3 rounded-xl px-3 py-2 transition-all duration-300 cursor-pointer ${
+                isActivePage('/profile') 
+                  ? 'bg-emerald-100 hover:bg-emerald-200' 
+                  : 'bg-gray-50 hover:bg-emerald-50'
+              }`}
+            >
+              <div className={`rounded-full p-1.5 ml-4 ${user?.user?.role === 'admin' ? 'bg-purple-500' : 'bg-emerald-500'}`}>
+                {user?.user?.role === 'admin' ? (
+                  <Shield className="w-3.5 h-3.5 text-white" />
+                ) : (
+                  <User className="w-3.5 h-3.5 text-white" />
+                )}
               </div>
-            </div>
+              <div className="text-right mr-3">
+                <span className={`font-medium text-sm block ${
+                  isActivePage('/profile') ? 'text-emerald-700' : 'text-gray-700'
+                }`}>
+                  {user?.user?.fullName || user?.fullName || user?.name || 'משתמש'}
+                </span>
+                {user?.user?.role === 'admin' && (
+                  <span className="text-purple-600 text-xs font-medium">מנהל מערכת</span>
+                )}
+              </div>
+              <Settings className={`w-3.5 h-3.5 ml-1 ${
+                isActivePage('/profile') ? 'text-emerald-600' : 'text-gray-500'
+              }`} />
+            </button>
 
             {/* Logout Button */}
             <button
@@ -169,8 +172,18 @@ const Navbar = ({ user, onLogout }) => {
           <div className="md:hidden border-t border-emerald-100 bg-white/95 backdrop-blur-md">
             <div className="px-2 pt-2 pb-3 space-y-2" dir="rtl">
               
-              {/* User Info Mobile */}
-              <div className="flex items-center space-x-3 bg-emerald-50 rounded-xl px-4 py-3 mb-4">
+              {/* User Info Mobile - Clickable */}
+              <button
+                onClick={() => {
+                  handleUserNameClick();
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center space-x-3 rounded-xl px-4 py-3 mb-4 transition-all duration-300 ${
+                  isActivePage('/profile')
+                    ? 'bg-emerald-100'
+                    : 'bg-emerald-50 hover:bg-emerald-100'
+                }`}
+              >
                 <div className={`rounded-full p-2 ${user?.user?.role === 'admin' ? 'bg-purple-500' : 'bg-emerald-500'}`}>
                   {user?.user?.role === 'admin' ? (
                     <Shield className="w-5 h-5 text-white" />
@@ -178,15 +191,18 @@ const Navbar = ({ user, onLogout }) => {
                     <User className="w-5 h-5 text-white" />
                   )}
                 </div>
-                <div className="text-right mr-3">
-                  <span className="text-emerald-700 font-medium block">
+                <div className="text-right mr-3 flex-1">
+                  <span className={`font-medium block ${
+                    isActivePage('/profile') ? 'text-emerald-700' : 'text-emerald-700'
+                  }`}>
                     שלום, {user?.user?.fullName || user?.fullName || user?.name || 'משתמש'}
                   </span>
                   {user?.user?.role === 'admin' && (
                     <span className="text-purple-600 text-sm font-medium">מנהל מערכת</span>
                   )}
                 </div>
-              </div>
+                <Settings className="w-4 h-4 text-emerald-600" />
+              </button>
 
               {/* Navigation Items */}
               {navItems.map((item) => {
@@ -209,20 +225,6 @@ const Navbar = ({ user, onLogout }) => {
                   </Link>
                 );
               })}
-
-              {/* Profile Link Mobile */}
-              <Link
-                to="/profile"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-300 ${
-                  isActivePage('/profile')
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50'
-                }`}
-              >
-                <Settings className="w-5 h-5 ml-3" />
-                <span>ניהול פרופיל</span>
-              </Link>
 
               {/* Logout Button Mobile */}
               <button

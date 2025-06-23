@@ -105,7 +105,7 @@ const CourseDetailsModal = ({ course, onClose }) => {
 
             {/* Lecturers Display - Compact and Centered */}
             {allLecturers.length > 0 && (
-              <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-xl p-4 max-w-md mx-auto">
+              <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2 max-w-md mx-auto">
                 <div className="flex items-center justify-center gap-2 mb-3">
                   <div className="bg-white/20 rounded-lg p-1.5">
                     <Users className="w-4 h-4 text-white" />
@@ -115,19 +115,15 @@ const CourseDetailsModal = ({ course, onClose }) => {
                   </h3>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   {allLecturers.map((lecturer, index) => (
                     <div key={index} className="text-center">
                       <div className="font-semibold text-white text-base">
                         {getLecturerName(lecturer)}
                       </div>
-                      {getLecturerDepartment(lecturer) && (
-                        <div className="text-white/80 text-sm">
-                          {getLecturerDepartment(lecturer)}
-                        </div>
-                      )}
                     </div>
                   ))}
+
                 </div>
               </div>
             )}

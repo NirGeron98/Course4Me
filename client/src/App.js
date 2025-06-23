@@ -15,6 +15,7 @@ import AdminPanel from "./pages/AdminPanel";
 import CoursePage from "./pages/CoursePage";
 import LecturerPage from "./pages/LecturerPage";
 import LecturersPage from "./pages/TrackedLecturers";
+import ProfileManagement from "./pages/ProfileManagement"; 
 
 function App() {
   const [user, setUser] = useState(null);
@@ -120,6 +121,12 @@ function App() {
             path="/tracked-courses"
             element={
               user ? <TrackedCourses user={user} /> : <Navigate to="/login" />
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              user ? <ProfileManagement user={user} /> : <Navigate to="/login" />
             }
           />
 

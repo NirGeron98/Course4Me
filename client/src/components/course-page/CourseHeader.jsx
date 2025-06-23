@@ -44,100 +44,88 @@ const CourseHeader = ({ course, stats }) => {
             <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800"></div>
 
             <div className="relative max-w-7xl mx-auto px-6 py-12">
-                <div className="flex flex-col items-center text-center gap-6">
-                    {/* Main Content - 9 columns */}
-                    <div className="lg:col-span-9">
-                        <div className="flex items-start gap-6">
-                            {/* Course Icon */}
-                            <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl p-4 shadow-lg">
-                                <BookOpen className="w-10 h-10 text-white" />
+                <div className="flex flex-col lg:flex-row items-start gap-8">
+                    {/* Course Icon */}
+                    <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl p-4 shadow-lg">
+                        <BookOpen className="w-10 h-10 text-white" />
+                    </div>
+
+                    {/* Course Details */}
+                    <div className="flex-1 min-w-0">
+                        <h1 className="text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight text-center lg:text-right">
+                            {course.title}
+                        </h1>
+
+                        {/* Course Meta - Compact Pills */}
+                        <div className="flex flex-wrap gap-2 mb-6 justify-center lg:justify-start">
+                            <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
+                                <Hash className="w-3.5 h-3.5" />
+                                {course.courseNumber}
                             </div>
-
-                            {/* Course Details */}
-                            <div className="flex-1 min-w-0 flex flex-col justify-center">
-                                <h1 className="text-3xl lg:text-4xl font-bold text-white mb-3 leading-tight text-center lg:text-right">
-                                    {course.title}
-                                </h1>
-
-                                {/* Course Meta - Compact Pills */}
-                                <div className="flex flex-wrap gap-2 mb-6">
-                                    <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
-                                        <Hash className="w-3.5 h-3.5" />
-                                        {course.courseNumber}
-                                    </div>
-                                    <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
-                                        <Award className="w-3.5 h-3.5" />
-                                        {course.credits} נק"ז
-                                    </div>
-                                    <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
-                                        <Building className="w-3.5 h-3.5" />
-                                        {course.academicInstitution}
-                                    </div>
-                                    {course.department && (
-                                        <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
-                                            <BookMarked className="w-3.5 h-3.5" />
-                                            {course.department}
-                                        </div>
-                                    )}
+                            <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
+                                <Award className="w-3.5 h-3.5" />
+                                {course.credits} נק"ז
+                            </div>
+                            <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
+                                <Building className="w-3.5 h-3.5" />
+                                {course.academicInstitution}
+                            </div>
+                            {course.department && (
+                                <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
+                                    <BookMarked className="w-3.5 h-3.5" />
+                                    {course.department}
                                 </div>
+                            )}
+                        </div>
 
-                                {/* Lecturers and Rating Section */}
-                                <div className="flex justify-center gap-6 flex-wrap">
-                                    {/* Lecturers Section */}
-                                    {course.lecturers && course.lecturers.length > 0 && (
-                                        <div className="lg:col-span-2 bg-white/15 backdrop-blur-md border border-white/20 rounded-xl p-5 shadow-lg">
-                                            <div className="flex items-center gap-3 mb-4">
-                                                <div className="bg-white/20 rounded-lg p-2">
-                                                    <Users className="w-4 h-4 text-white" />
-                                                </div>
-                                                <h3 className="font-semibold text-white text-lg">
-                                                    {course.lecturers.length > 1 ? 'מרצים' : 'מרצה'}
-                                                </h3>
-                                            </div>
-
-                                            <div className="space-y-3">
-                                                {course.lecturers.map((lecturer, index) => (
-                                                    <div key={index} className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-lg p-4 hover:bg-white/15 transition-all duration-200">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="font-semibold text-white text-lg mb-1">
-                                                                    {lecturer.name}
-                                                                </div>
-                                                                {lecturer.department && (
-                                                                    <div className="text-white/80 text-sm">
-                                                                        {lecturer.department}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
+                        {/* Lecturers Section - Inline */}
+                        {course.lecturers && course.lecturers.length > 0 && (
+                            <div className="mb-6">
+                                <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-xl p-4 shadow-lg inline-block">
+                                    <div className="flex items-center gap-4">
+                                        {/* Lecturers Label */}
+                                        <div className="flex items-center gap-2 text-white font-semibold whitespace-nowrap">
+                                            <Users className="w-4 h-4" />
+                                            <span>{course.lecturers.length > 1 ? 'מרצים:' : 'מרצה:'}</span>
                                         </div>
-                                    )}
 
-                                    {/* Rating Section */}
-                                    {displayRating && (
-                                        <div className="lg:col-span-1">
-                                            <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl p-5 shadow-lg h-full">
-                                                <div className="text-center">
-                                                    <div className="text-3xl font-bold text-white mb-3">
-                                                        {displayRating.toFixed(1)}
-                                                    </div>
-                                                    <div className="flex justify-center gap-1 mb-3">
-                                                        {renderStars(displayRating, 'w-5 h-5')}
-                                                    </div>
-                                                    <div className="text-white/90 text-sm font-medium">
-                                                        מבוסס על {reviewsCount} ביקורות
-                                                    </div>
+                                        {/* Lecturers List */}
+                                        <div className="flex gap-3">
+                                            {course.lecturers.map((lecturer, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-2 hover:bg-white/25 transition-all duration-200 whitespace-nowrap"
+                                                >
+                                                    <span className="text-white font-medium">
+                                                        {lecturer.name}
+                                                    </span>
                                                 </div>
-                                            </div>
+                                            ))}
                                         </div>
-                                    )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Rating Section */}
+                    {displayRating && (
+                        <div className="flex-shrink-0">
+                            <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl p-6 shadow-lg">
+                                <div className="text-center">
+                                    <div className="text-3xl font-bold text-white mb-3">
+                                        {displayRating.toFixed(1)}
+                                    </div>
+                                    <div className="flex justify-center gap-1 mb-3">
+                                        {renderStars(displayRating, 'w-5 h-5')}
+                                    </div>
+                                    <div className="text-white/90 text-sm font-medium">
+                                        מבוסס על {reviewsCount} ביקורות
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
         </div>

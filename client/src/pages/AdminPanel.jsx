@@ -2,19 +2,17 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import CourseManagement from "../components/admin/CourseManagement";
 import LecturerManagement from "../components/admin/LecturerManagement";
-import { AlertCircle, BookOpen, Users, CheckCircle, X } from "lucide-react";
-
+import DepartmentManagement from "../components/admin/DepartmentManagement";
+import { AlertCircle, BookOpen, Users, Building, CheckCircle, X } from "lucide-react";
 
 const AdminPanel = ({ user }) => {
   const [activeTab, setActiveTab] = useState("courses");
-  const [lecturers, setLecturers] = useState([]); // State for lecturers
+  const [lecturers, setLecturers] = useState([]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  // Check if user is admin
   const isAdmin = user?.user?.role === "admin";
-  
-  // Fetch lecturers when the component mounts
+
   useEffect(() => {
     const fetchLecturers = async () => {
       try {
@@ -22,14 +20,14 @@ const AdminPanel = ({ user }) => {
         const response = await axios.get("http://localhost:5000/api/lecturers", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setLecturers(response.data); // Store lecturers in state
+        setLecturers(response.data);
       } catch (err) {
         console.error("Error fetching lecturers:", err);
         setLecturers([]);
       }
     };
     fetchLecturers();
-  }, []); // Empty dependency array ensures this runs only once
+  }, []);
 
   if (!isAdmin) {
     return (
@@ -45,24 +43,20 @@ const AdminPanel = ({ user }) => {
     );
   }
 
-  // Handlers for child components
   const handleMessage = (msg) => {
     setMessage(msg);
     setError("");
-    // Auto-hide message after 5 seconds
     setTimeout(() => setMessage(""), 5000);
   };
 
   const handleError = (err) => {
     setError(err);
     setMessage("");
-    // Auto-hide error after 7 seconds
     setTimeout(() => setError(""), 7000);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-100" dir="rtl">
-      {/* Header */}
       <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white py-8 px-6">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold mb-2">פאנל ניהול מערכת</h1>
@@ -70,7 +64,6 @@ const AdminPanel = ({ user }) => {
         </div>
       </div>
 
-      {/* Tab Navigation */}
       <div className="max-w-7xl mx-auto px-6 py-6">
         <div className="bg-white rounded-2xl shadow-lg border border-emerald-100">
           <div className="flex border-b border-gray-200">
@@ -79,7 +72,7 @@ const AdminPanel = ({ user }) => {
               className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${activeTab === "courses"
                 ? "text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50"
                 : "text-gray-600 hover:text-emerald-600"
-                }`}
+              }`}
             >
               <BookOpen className="w-5 h-5 inline-block ml-2" />
               ניהול קורסים
@@ -89,14 +82,23 @@ const AdminPanel = ({ user }) => {
               className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${activeTab === "lecturers"
                 ? "text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50"
                 : "text-gray-600 hover:text-emerald-600"
-                }`}
+              }`}
             >
               <Users className="w-5 h-5 inline-block ml-2" />
               ניהול מרצים
             </button>
+            <button
+              onClick={() => setActiveTab("departments")}
+              className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${activeTab === "departments"
+                ? "text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50"
+                : "text-gray-600 hover:text-emerald-600"
+              }`}
+            >
+              <Building className="w-5 h-5 inline-block ml-2" />
+              ניהול מחלקות
+            </button>
           </div>
 
-          {/* Messages */}
           {message && (
             <div className="m-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center animate-fade-in">
               <CheckCircle className="w-5 h-5 text-emerald-500 ml-3" />
@@ -123,7 +125,6 @@ const AdminPanel = ({ user }) => {
             </div>
           )}
 
-          {/* Content - Render appropriate component based on active tab */}
           {activeTab === "courses" && (
             <CourseManagement
               lecturers={lecturers}
@@ -136,7 +137,14 @@ const AdminPanel = ({ user }) => {
             <LecturerManagement
               onMessage={handleMessage}
               onError={handleError}
-              onLecturersUpdate={setLecturers} // Update lecturers in AdminPanel state
+              onLecturersUpdate={setLecturers}
+            />
+          )}
+
+          {activeTab === "departments" && (
+            <DepartmentManagement
+              onMessage={handleMessage}
+              onError={handleError}
             />
           )}
         </div>

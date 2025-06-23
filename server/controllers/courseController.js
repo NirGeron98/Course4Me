@@ -20,7 +20,10 @@ exports.getAllCourses = async (req, res) => {
 exports.getCourseById = async (req, res) => {
   try {
     const course = await Course.findById(req.params.id)
-      .populate("lecturers", "name email department")
+      .populate({
+        path: "lecturers",
+        select: "-__v -createdAt -updatedAt -ratingsCount",
+      })
       .populate("createdBy", "fullName email");
 
     if (!course) {
@@ -224,6 +227,42 @@ exports.searchCourses = async (req, res) => {
     res.status(200).json(courses);
   } catch (err) {
     console.error("Error searching courses:", err);
+    res.status(500).json({ message: "שגיאת שרת פנימית" });
+  }
+};
+
+// GET /api/courses/:id/full
+exports.getCourseWithLecturers = async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id)
+      .populate({
+        path: "lecturers",
+        select: "-__v -createdAt -updatedAt",
+      })
+      .populate("createdBy", "fullName email");
+
+    if (!course) {
+      return res.status(404).json({ message: "קורס לא נמצא" });
+    }
+
+    res.status(200).json(course);
+  } catch (err) {
+    console.error("Error fetching course:", err);
+    res.status(500).json({ message: "שגיאת שרת פנימית" });
+  }
+};
+
+// GET /api/courses/by-lecturer/:lecturerId
+exports.getCoursesByLecturer = async (req, res) => {
+  try {
+    const courses = await Course.find({ lecturers: req.params.lecturerId })
+      .populate("lecturers", "name email department")
+      .populate("createdBy", "fullName email")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(courses);
+  } catch (err) {
+    console.error("Error fetching courses by lecturer:", err);
     res.status(500).json({ message: "שגיאת שרת פנימית" });
   }
 };
