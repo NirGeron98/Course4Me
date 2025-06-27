@@ -38,7 +38,7 @@ const LecturerQuickStatsCard = ({ stats, reviewsCount, coursesCount }) => {
               דירוג כללי
             </span>
             <span className="font-bold text-purple-600">
-              {stats.overallRating}/5
+              {stats.overallRating}/5.0
             </span>
           </div>
         )}

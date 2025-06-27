@@ -63,7 +63,6 @@ const TrackedCourses = () => {
 
   // Open course details modal
   const handleViewCourseDetails = (course) => {
-    console.log("Opening modal for course:", course);
     setSelectedCourse(course);
     setIsModalOpen(true);
   };

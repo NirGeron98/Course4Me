@@ -1,0 +1,58 @@
+import React from 'react';
+import { BookOpen, MessageSquare, TrendingUp, Users } from 'lucide-react';
+
+const StatsCards = ({ stats, allCoursesCount, lecturersCount }) => {
+  return (
+    <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="bg-white rounded-2xl p-6 shadow-lg border border-emerald-100 hover:shadow-xl transition-shadow">
+        <div className="flex items-center gap-4">
+          <div className="bg-emerald-100 rounded-full p-3">
+            <BookOpen className="w-6 h-6 text-emerald-600" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold text-gray-800">{stats.coursesCount}</h3>
+            <p className="text-gray-600">קורסים במעקב</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl p-6 shadow-lg border border-red-100 hover:shadow-xl transition-shadow">
+        <div className="flex items-center gap-4">
+          <div className="bg-red-100 rounded-full p-3">
+            <MessageSquare className="w-6 h-6 text-red-600" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold text-gray-800">{stats.reviewsCount}</h3>
+            <p className="text-gray-600">ביקורות שכתבתי</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl p-6 shadow-lg border border-blue-100 hover:shadow-xl transition-shadow">
+        <div className="flex items-center gap-4">
+          <div className="bg-blue-100 rounded-full p-3">
+            <TrendingUp className="w-6 h-6 text-blue-600" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold text-gray-800">{allCoursesCount}</h3>
+            <p className="text-gray-600">קורסים במערכת</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl p-6 shadow-lg border border-purple-100 hover:shadow-xl transition-shadow">
+        <div className="flex items-center gap-4">
+          <div className="bg-purple-100 rounded-full p-3">
+            <Users className="w-6 h-6 text-purple-600" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold text-gray-800">{lecturersCount}</h3>
+            <p className="text-gray-600">מרצים במערכת</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default StatsCards;

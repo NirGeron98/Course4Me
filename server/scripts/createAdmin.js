@@ -7,14 +7,10 @@ const createAdminUser = async () => {
   try {
     // Connect to database
     await mongoose.connect(process.env.MONGO_URI);
-    console.log("Connected to MongoDB");
 
     // Check if admin already exists
     const existingAdmin = await User.findOne({ email: "admin@afeka.ac.il" });
     if (existingAdmin) {
-      console.log("Admin user already exists");
-      console.log("Email: admin@afeka.ac.il");
-      console.log("You can update the role manually or delete the user and run this script again");
       return;
     }
 
@@ -27,18 +23,11 @@ const createAdminUser = async () => {
     });
 
     await adminUser.save();
-    console.log("✅ Admin user created successfully!");
-    console.log("📧 Email: admin@afeka.ac.il");
-    console.log("🔑 Password: admin123456");
-    console.log("👑 Role: admin");
-    console.log("");
-    console.log("🚀 You can now login with these credentials to access the admin panel!");
-
+ 
   } catch (error) {
     console.error("❌ Error creating admin user:", error);
   } finally {
     await mongoose.connection.close();
-    console.log("Database connection closed");
   }
 };
 

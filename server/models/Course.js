@@ -75,13 +75,20 @@ const courseSchema = new mongoose.Schema(
 
 // Virtual field to display credits in Hebrew format
 courseSchema.virtual("creditsDisplay").get(function () {
-  return `${this.credits.toFixed(1)} נק"ז`;
+  const credits = this.credits;
+  if (credits === null || credits === undefined || isNaN(credits)) {
+    return "לא מוגדר";
+  }
+  return `${credits.toFixed(1)} נק"ז`;
 });
 
-// Virtual field to display rating with stars
+// Virtual field to display rating with stars 
 courseSchema.virtual("ratingDisplay").get(function () {
-  if (!this.averageRating) return "לא דורג";
-  return `${this.averageRating.toFixed(1)} ⭐`;
+  const rating = this.averageRating;
+  if (!rating || rating === null || rating === undefined || isNaN(rating) || typeof rating !== 'number') {
+    return "לא דורג";
+  }
+  return `${rating.toFixed(1)} ⭐`;
 });
 
 // Virtual field to display lecturer name (when populated)
@@ -96,5 +103,4 @@ courseSchema.virtual("lecturerName").get(function () {
 courseSchema.set("toJSON", { virtuals: true });
 courseSchema.set("toObject", { virtuals: true });
 
-module.exports =
-  mongoose.models.Course || mongoose.model("Course", courseSchema);
+module.exports = mongoose.models.Course || mongoose.model("Course", courseSchema);

@@ -6,7 +6,7 @@ import LecturerDetailsModal from "./LecturerDetailsModal";
 
 const AddLecturerPopup = ({ onClose, onLecturerAdded }) => {
   const [allLecturers, setAllLecturers] = useState([]);
-  const [trackedLecturerIds, setTrackedLecturerIds] = useState([]);
+  const [, setTrackedLecturerIds] = useState([]);
   const [filteredLecturers, setFilteredLecturers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState("");

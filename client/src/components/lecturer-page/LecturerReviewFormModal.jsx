@@ -23,11 +23,11 @@ const LecturerReviewFormModal = ({
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [formData, setFormData] = useState({
     course: '',
-    clarity: 5,
-    responsiveness: 5,
+    clarity: 3,
+    responsiveness: 3,
     availability: 3,
-    organization: 5,
-    knowledge: 5,
+    organization: 3,
+    knowledge: 3,
     comment: '',
   });
   const [submitting, setSubmitting] = useState(false);
@@ -36,7 +36,7 @@ const LecturerReviewFormModal = ({
   useEffect(() => {
     if (existingReview) {
       setFormData({
-        course: existingReview.course._id,
+        course: existingReview.course?._id || '',
         clarity: existingReview.clarity,
         responsiveness: existingReview.responsiveness,
         availability: existingReview.availability,
@@ -50,6 +50,7 @@ const LecturerReviewFormModal = ({
   useEffect(() => {
     const fetchCourses = async () => {
       try {
+        
         const response = await fetch('http://localhost:5000/api/courses', {
           headers: {
             Authorization: `Bearer ${user.token}`,
@@ -57,37 +58,56 @@ const LecturerReviewFormModal = ({
           },
         });
 
+
         if (response.ok) {
           const allCourses = await response.json();
+          
           const lecturerCourses = allCourses.filter(
             (course) =>
               course.lecturers &&
               course.lecturers.some((lec) => lec._id === lecturerId)
           );
+          
           setCourses(lecturerCourses);
         } else {
-          throw new Error('Failed to fetch courses');
+          const errorData = await response.json();
+          console.error('Failed to fetch courses:', errorData);
+          throw new Error(errorData.message || 'Failed to fetch courses');
         }
       } catch (err) {
-        setError('שגיאה בטעינת רשימת הקורסים');
         console.error('Error fetching courses:', err);
+        setError('שגיאה בטעינת רשימת הקורסים');
       } finally {
         setLoadingCourses(false);
       }
     };
 
-    fetchCourses();
-  }, [lecturerId, user.token]);
+    if (!existingReview) {
+      fetchCourses();
+    } else {
+      setLoadingCourses(false);
+    }
+  }, [lecturerId, user.token, existingReview]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     setError('');
 
-    if (!formData.course && !existingReview) {
+    if (!existingReview && !formData.course) {
       setError('יש לבחור קורס');
       setSubmitting(false);
       return;
+    }
+
+    // Validate ratings
+    const requiredRatings = ['clarity', 'responsiveness', 'availability', 'organization', 'knowledge'];
+    for (const rating of requiredRatings) {
+      if (!formData[rating] || formData[rating] < 1 || formData[rating] > 5) {
+        setError(`הערכה עבור ${rating} חייבת להיות בין 1 ל-5`);
+        setSubmitting(false);
+        return;
+      }
     }
 
     try {
@@ -97,9 +117,30 @@ const LecturerReviewFormModal = ({
 
       const method = existingReview ? 'PUT' : 'POST';
 
-      const requestData = existingReview
-        ? { ...formData, lecturer: undefined, course: undefined }
-        : { ...formData, lecturer: lecturerId };
+      let requestData;
+      if (existingReview) {
+        // For updates, don't send lecturer and course IDs
+        requestData = {
+          clarity: parseInt(formData.clarity),
+          responsiveness: parseInt(formData.responsiveness),
+          availability: parseInt(formData.availability),
+          organization: parseInt(formData.organization),
+          knowledge: parseInt(formData.knowledge),
+          comment: formData.comment?.trim() || ''
+        };
+      } else {
+        // For new reviews, include lecturer and course IDs
+        requestData = {
+          lecturer: lecturerId,
+          course: formData.course,
+          clarity: parseInt(formData.clarity),
+          responsiveness: parseInt(formData.responsiveness),
+          availability: parseInt(formData.availability),
+          organization: parseInt(formData.organization),
+          knowledge: parseInt(formData.knowledge),
+          comment: formData.comment?.trim() || ''
+        };
+      }
 
       const response = await fetch(url, {
         method,
@@ -112,13 +153,15 @@ const LecturerReviewFormModal = ({
 
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('Server error response:', errorData);
         throw new Error(errorData.message || 'שגיאה בשליחת הביקורת');
       }
 
       const newReview = await response.json();
       onReviewSubmitted(newReview);
     } catch (err) {
-      setError(err.message);
+      console.error('Error submitting review:', err);
+      setError(err.message || 'שגיאה בשליחת הביקורת');
     } finally {
       setSubmitting(false);
     }
@@ -146,7 +189,7 @@ const LecturerReviewFormModal = ({
           </button>
         ))}
         <span className="mr-3 text-gray-600 font-medium">
-          {formData[field]}/5
+          {formData[field]}/5.0
         </span>
       </div>
     </div>
@@ -173,7 +216,7 @@ const LecturerReviewFormModal = ({
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(95vh - 140px)' }}>
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-              {error}
+              <strong>שגיאה:</strong> {error}
             </div>
           )}
 
@@ -189,7 +232,7 @@ const LecturerReviewFormModal = ({
                   <span className="mr-2 text-gray-600">טוען קורסים...</span>
                 </div>
               ) : courses.length === 0 ? (
-                <div className="text-center py-4 text-gray-500">
+                <div className="text-center py-4 text-gray-500 bg-gray-50 rounded-lg">
                   לא נמצאו קורסים עבור מרצה זה
                 </div>
               ) : (
@@ -209,6 +252,17 @@ const LecturerReviewFormModal = ({
                   ))}
                 </select>
               )}
+            </div>
+          )}
+
+          {existingReview && (
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center gap-2 text-blue-700">
+                <Award className="w-5 h-5" />
+                <span className="font-medium">
+                  קורס: {existingReview.course?.title} ({existingReview.course?.courseNumber})
+                </span>
+              </div>
             </div>
           )}
 
@@ -247,8 +301,8 @@ const LecturerReviewFormModal = ({
             </button>
             <button
               type="submit"
-              disabled={submitting || (!formData.course && !existingReview)}
-              className="flex-1 bg-purple-500 hover:bg-purple-600 text-white py-3 rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              disabled={submitting || (!existingReview && !formData.course)}
+              className="flex-1 bg-purple-500 hover:bg-purple-600 text-white py-3 rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? (
                 <>

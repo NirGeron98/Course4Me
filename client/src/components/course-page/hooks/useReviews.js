@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 export const useReviews = (courseId, token) => {
     const [reviews, setReviews] = useState([]);
@@ -7,63 +7,73 @@ export const useReviews = (courseId, token) => {
     const [filterRating, setFilterRating] = useState('all');
     const [sortBy, setSortBy] = useState('newest');
 
-    // Fetch reviews
-    useEffect(() => {
-        const fetchReviews = async () => {
-            try {
-                const response = await fetch(`http://localhost:5000/api/reviews/course/${courseId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
+    const fetchReviews = async () => {
+        try {
+            const response = await fetch(`http://localhost:5000/api/reviews/course/${courseId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
 
-                if (!response.ok) {
-                    throw new Error('שגיאה בטעינת הביקורות');
-                }
-
-                const data = await response.json();
-                setReviews(data);
-            } catch (err) {
-                console.error('Error fetching reviews:', err);
-                setReviews([]);
-            } finally {
-                setReviewsLoading(false);
+            if (!response.ok) {
+                throw new Error('Failed to fetch reviews');
             }
-        };
 
+            const data = await response.json();
+            setReviews(data);
+        } catch (err) {
+            console.error('Error fetching reviews:', err);
+            setReviews([]);
+        } finally {
+            setReviewsLoading(false);
+        }
+    };
+
+    useEffect(() => {
         if (courseId && token) {
             fetchReviews();
         }
     }, [courseId, token]);
 
-    // Calculate statistics
-    const calculateStats = () => {
+    const addReview = (newReview) => {
+        setReviews(prev => {
+            const existingIndex = prev.findIndex(r => r._id === newReview._id);
+            if (existingIndex >= 0) {
+                const updated = [...prev];
+                updated[existingIndex] = newReview;
+                return updated;
+            }
+            return [newReview, ...prev];
+        });
+    };
+
+    const removeReview = (reviewId) => {
+        setReviews(prev => prev.filter(r => r._id !== reviewId));
+    };
+
+    const stats = useMemo(() => {
         if (!reviews.length) return null;
 
         const total = reviews.length;
-        const avgInterest = reviews.reduce((sum, r) => sum + r.interest, 0) / total;
-        const avgDifficulty = reviews.reduce((sum, r) => sum + r.difficulty, 0) / total;
-        const avgWorkload = reviews.reduce((sum, r) => sum + r.workload, 0) / total;
-        const avgInvestment = reviews.reduce((sum, r) => sum + r.investment, 0) / total;
-        const avgTeachingQuality = reviews.reduce((sum, r) => sum + r.teachingQuality, 0) / total;
+        const avg = (key) => reviews.reduce((sum, r) => sum + (r[key] || 0), 0) / total;
 
         return {
             total,
-            avgInterest: avgInterest.toFixed(1),
-            avgDifficulty: avgDifficulty.toFixed(1),
-            avgWorkload: avgWorkload.toFixed(1),
-            avgInvestment: avgInvestment.toFixed(1),
-            avgTeachingQuality: avgTeachingQuality.toFixed(1),
-            overallRating: ((avgInterest + avgTeachingQuality + avgInvestment) / 3).toFixed(1)
+            avgInterest: avg('interest').toFixed(1),
+            avgDifficulty: avg('difficulty').toFixed(1),
+            avgWorkload: avg('workload').toFixed(1),
+            avgInvestment: avg('investment').toFixed(1),
+            avgTeachingQuality: avg('teachingQuality').toFixed(1),
+            overallRating: (
+                (avg('interest') + avg('teachingQuality') + avg('investment')) / 3
+            ).toFixed(1)
         };
-    };
+    }, [reviews]);
 
-    // Filter and sort reviews
     const getFilteredReviews = () => {
         let filtered = [...reviews];
 
-        // Filter by rating
         if (filterRating !== 'all') {
             const minRating = parseInt(filterRating);
             filtered = filtered.filter(review => {
@@ -72,21 +82,19 @@ export const useReviews = (courseId, token) => {
             });
         }
 
-        // Sort reviews
         filtered.sort((a, b) => {
+            const avgA = (a.interest + a.teachingQuality + a.investment) / 3;
+            const avgB = (b.interest + b.teachingQuality + b.investment) / 3;
+
             switch (sortBy) {
                 case 'newest':
                     return new Date(b.createdAt) - new Date(a.createdAt);
                 case 'oldest':
                     return new Date(a.createdAt) - new Date(b.createdAt);
                 case 'highest':
-                    const avgA = (a.interest + a.teachingQuality + a.investment) / 3;
-                    const avgB = (b.interest + b.teachingQuality + b.investment) / 3;
                     return avgB - avgA;
                 case 'lowest':
-                    const avgA2 = (a.interest + a.teachingQuality + a.investment) / 3;
-                    const avgB2 = (b.interest + b.teachingQuality + b.investment) / 3;
-                    return avgA2 - avgB2;
+                    return avgA - avgB;
                 default:
                     return 0;
             }
@@ -95,16 +103,12 @@ export const useReviews = (courseId, token) => {
         return filtered;
     };
 
-    const addReview = (newReview) => {
-        setReviews([newReview, ...reviews]);
-        setShowReviewForm(false);
-    };
-
-    const stats = calculateStats();
     const filteredReviews = getFilteredReviews();
 
     return {
         reviews,
+        filteredReviews,
+        stats,
         reviewsLoading,
         showReviewForm,
         setShowReviewForm,
@@ -112,8 +116,8 @@ export const useReviews = (courseId, token) => {
         setFilterRating,
         sortBy,
         setSortBy,
-        filteredReviews,
-        stats,
-        addReview
+        addReview,
+        removeReview,
+        refetchReviews: fetchReviews
     };
 };

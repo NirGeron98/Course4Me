@@ -1,6 +1,130 @@
 const LecturerReview = require("../models/LecturerReview");
 const Lecturer = require("../models/Lecturer");
 
+// Get all reviews for a specific lecturer
+exports.getReviewsByLecturer = async (req, res) => {
+  try {
+    const { lecturerId } = req.params;
+    const { courseId } = req.query;
+
+    // Validate lecturer ID format
+    if (!lecturerId || !lecturerId.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        message: "מזהה מרצה לא תקין",
+      });
+    }
+
+    let query = { lecturer: lecturerId };
+    if (courseId) {
+      if (!courseId.match(/^[0-9a-fA-F]{24}$/)) {
+        return res.status(400).json({
+          message: "מזהה קורס לא תקין",
+        });
+      }
+      query.course = courseId;
+    }
+
+
+    // Check if lecturer exists first
+    let lecturerExists;
+    try {
+      lecturerExists = await Lecturer.findById(lecturerId);
+    } catch (lecturerError) {
+      console.error("Error finding lecturer:", lecturerError);
+      return res.status(500).json({
+        message: "שגיאה בבדיקת קיום המרצה",
+        error: process.env.NODE_ENV === "development" ? lecturerError.message : "Internal server error",
+      });
+    }
+
+    if (!lecturerExists) {
+      return res.status(404).json({
+        message: "מרצה לא נמצא",
+      });
+    }
+
+
+    // Find reviews with improved error handling
+    let reviews;
+    try {
+      reviews = await LecturerReview.find(query)
+        .populate("user", "fullName _id")
+        .populate("course", "title courseNumber")
+        .populate("lecturer", "name")
+        .sort({ createdAt: -1 });
+    } catch (reviewsError) {
+      console.error("Error finding reviews:", reviewsError);
+      console.error("Review error details:", reviewsError.stack);
+      
+      // If populate fails, try without populate
+      try {
+        reviews = await LecturerReview.find(query).sort({ createdAt: -1 });
+      } catch (basicError) {
+        console.error("Basic review query also failed:", basicError);
+        return res.status(500).json({
+          message: "שגיאה בחיפוש ביקורות",
+          error: process.env.NODE_ENV === "development" ? reviewsError.message : "Internal server error",
+        });
+      }
+    }
+
+
+    // If we have reviews, try to manually populate if needed
+    if (reviews && reviews.length > 0 && !reviews[0].user?.fullName) {
+      try {
+        reviews = await LecturerReview.find(query)
+          .populate("user", "fullName _id")
+          .populate("course", "title courseNumber")
+          .populate("lecturer", "name")
+          .sort({ createdAt: -1 });
+      } catch (populateError) {
+        console.warn("Manual populate failed, returning reviews without population:", populateError.message);
+      }
+    }
+
+    // Return reviews with calculated overall rating for each
+    const reviewsWithOverall = (reviews || []).map((review) => {
+      const overall = (
+        (review.clarity +
+          review.responsiveness +
+          review.availability +
+          review.organization +
+          review.knowledge) /
+        5
+      ).toFixed(1);
+      return {
+        ...review.toObject(),
+        overallRating: parseFloat(overall),
+      };
+    });
+
+    res.status(200).json(reviewsWithOverall);
+  } catch (err) {
+    console.error("=== Critical Error fetching lecturer reviews ===");
+    console.error("Error name:", err.name);
+    console.error("Error message:", err.message);
+    console.error("Error stack:", err.stack);
+
+    if (err.name === "CastError") {
+      return res.status(400).json({
+        message: "מזהה לא תקין",
+      });
+    }
+
+    if (err.name === "MongooseError" || err.name === "MongoError") {
+      return res.status(503).json({
+        message: "שגיאת חיבור למסד נתונים",
+        error: process.env.NODE_ENV === "development" ? err.message : "Database unavailable",
+      });
+    }
+
+    res.status(500).json({
+      message: "שגיאת שרת בקבלת הביקורות",
+      error: process.env.NODE_ENV === "development" ? err.message : "Internal server error",
+    });
+  }
+};
+
 // Create a new lecturer review
 exports.createLecturerReview = async (req, res) => {
   try {
@@ -15,6 +139,49 @@ exports.createLecturerReview = async (req, res) => {
       comment,
     } = req.body;
 
+    // Validate required fields
+    if (!lecturer || !course) {
+      return res.status(400).json({
+        message: "מרצה וקורס הם שדות חובה",
+      });
+    }
+
+    // Validate that lecturer and course are valid ObjectIds
+    if (!lecturer.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        message: "מזהה מרצה לא תקין",
+      });
+    }
+
+    if (!course.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        message: "מזהה קורס לא תקין",
+      });
+    }
+
+    // Validate ratings
+    const ratings = {
+      clarity,
+      responsiveness,
+      availability,
+      organization,
+      knowledge,
+    };
+    for (const [field, value] of Object.entries(ratings)) {
+      if (!value || value < 1 || value > 5) {
+        return res.status(400).json({
+          message: `הערכה עבור ${field} חייבת להיות בין 1 ל-5`,
+        });
+      }
+    }
+
+    // Check if user is authenticated
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({
+        message: "משתמש לא מאומת",
+      });
+    }
+
     // Check if review already exists for this lecturer-course-user combination
     const existing = await LecturerReview.findOne({
       lecturer,
@@ -28,17 +195,25 @@ exports.createLecturerReview = async (req, res) => {
       });
     }
 
+    // Verify lecturer exists
+    const lecturerExists = await Lecturer.findById(lecturer);
+    if (!lecturerExists) {
+      return res.status(404).json({
+        message: "מרצה לא נמצא",
+      });
+    }
+
     // Create review using the authenticated user's ID
     const review = new LecturerReview({
       lecturer,
       course,
       user: req.user._id,
-      clarity,
-      responsiveness,
-      availability,
-      organization,
-      knowledge,
-      comment,
+      clarity: parseInt(clarity),
+      responsiveness: parseInt(responsiveness),
+      availability: parseInt(availability),
+      organization: parseInt(organization),
+      knowledge: parseInt(knowledge),
+      comment: comment?.trim() || "",
     });
 
     await review.save();
@@ -46,62 +221,63 @@ exports.createLecturerReview = async (req, res) => {
     // Update the lecturer's average rating
     const allReviews = await LecturerReview.find({ lecturer });
 
-    const avg =
-      allReviews.reduce((sum, r) => {
-        const averageScore =
-          (r.clarity + r.responsiveness + r.availability + r.organization + r.knowledge) / 5;
-        return sum + averageScore;
-      }, 0) / allReviews.length;
+    if (allReviews.length > 0) {
+      const avg =
+        allReviews.reduce((sum, r) => {
+          const averageScore =
+            (r.clarity +
+              r.responsiveness +
+              r.availability +
+              r.organization +
+              r.knowledge) /
+            5;
+          return sum + averageScore;
+        }, 0) / allReviews.length;
 
-    await Lecturer.findByIdAndUpdate(lecturer, {
-      averageRating: avg.toFixed(2),
-      ratingsCount: allReviews.length,
-    });
+      await Lecturer.findByIdAndUpdate(lecturer, {
+        averageRating: avg.toFixed(2),
+        ratingsCount: allReviews.length,
+      });
+    }
 
     // Return the review with populated fields
     const populatedReview = await LecturerReview.findById(review._id)
-      .populate('user', 'fullName')
-      .populate('course', 'title courseNumber')
-      .populate('lecturer', 'name');
+      .populate("user", "fullName")
+      .populate("course", "title courseNumber")
+      .populate("lecturer", "name"); // תיקון: השתמשנו ב-name
 
     res.status(201).json(populatedReview);
   } catch (err) {
-    console.error("Error creating lecturer review:", err);
+    console.error("=== Error creating lecturer review ===");
+    console.error("Error message:", err.message);
+    console.error("Error stack:", err.stack);
+    console.error("Error details:", err);
+
     if (err.code === 11000) {
       return res.status(400).json({
         message: "כבר כתבת ביקורת עבור מרצה זה בקורס זה",
       });
     }
-    res.status(500).json({ 
-      message: "שגיאת שרת ביצירת הביקורת", 
-      error: err.message 
-    });
-  }
-};
 
-// Get all reviews for a specific lecturer
-exports.getReviewsByLecturer = async (req, res) => {
-  try {
-    const { lecturerId } = req.params;
-    const { courseId } = req.query; // Optional filter by course
-
-    let query = { lecturer: lecturerId };
-    if (courseId) {
-      query.course = courseId;
+    if (err.name === "ValidationError") {
+      return res.status(400).json({
+        message: "שגיאת validation",
+        details: Object.values(err.errors).map((e) => e.message),
+      });
     }
 
-    const reviews = await LecturerReview.find(query)
-      .populate("user", "fullName _id")
-      .populate("course", "title courseNumber")
-      .populate("lecturer", "name")
-      .sort({ createdAt: -1 });
-    
-    res.status(200).json(reviews);
-  } catch (err) {
-    console.error("Error fetching lecturer reviews:", err);
-    res.status(500).json({ 
-      message: "שגיאת שרת בקבלת הביקורות", 
-      error: err.message 
+    if (err.name === "CastError") {
+      return res.status(400).json({
+        message: "ID לא תקין",
+      });
+    }
+
+    res.status(500).json({
+      message: "שגיאת שרת ביצירת הביקורת",
+      error:
+        process.env.NODE_ENV === "development"
+          ? err.message
+          : "Internal server error",
     });
   }
 };
@@ -110,15 +286,21 @@ exports.getReviewsByLecturer = async (req, res) => {
 exports.getAllLecturerReviews = async (req, res) => {
   try {
     const reviews = await LecturerReview.find()
-      .populate('user', 'fullName')
-      .populate('course', 'title courseNumber')
-      .populate('lecturer', 'name')
+      .populate("user", "fullName")
+      .populate("course", "title courseNumber")
+      .populate("lecturer", "name") 
       .sort({ createdAt: -1 });
-    
+
     res.status(200).json(reviews);
   } catch (err) {
     console.error("Error fetching all lecturer reviews:", err);
-    res.status(500).json({ message: "שגיאת שרת פנימית" });
+    res.status(500).json({
+      message: "שגיאת שרת פנימית",
+      error:
+        process.env.NODE_ENV === "development"
+          ? err.message
+          : "Internal server error",
+    });
   }
 };
 
@@ -126,6 +308,7 @@ exports.getAllLecturerReviews = async (req, res) => {
 exports.updateLecturerReview = async (req, res) => {
   try {
     const { reviewId } = req.params;
+
     const {
       clarity,
       responsiveness,
@@ -151,25 +334,32 @@ exports.updateLecturerReview = async (req, res) => {
     const updatedReview = await LecturerReview.findByIdAndUpdate(
       reviewId,
       {
-        clarity,
-        responsiveness,
-        availability,
-        organization,
-        knowledge,
-        comment,
+        clarity: parseInt(clarity),
+        responsiveness: parseInt(responsiveness),
+        availability: parseInt(availability),
+        organization: parseInt(organization),
+        knowledge: parseInt(knowledge),
+        comment: comment?.trim() || "",
       },
       { new: true, runValidators: true }
     )
-    .populate('user', 'fullName')
-    .populate('course', 'title courseNumber')
-    .populate('lecturer', 'name');
+      .populate("user", "fullName")
+      .populate("course", "title courseNumber")
+      .populate("lecturer", "name"); 
 
     // Recalculate lecturer's average rating
-    const allReviews = await LecturerReview.find({ lecturer: existingReview.lecturer });
+    const allReviews = await LecturerReview.find({
+      lecturer: existingReview.lecturer,
+    });
     const avg =
       allReviews.reduce((sum, r) => {
         const averageScore =
-          (r.clarity + r.responsiveness + r.availability + r.organization + r.knowledge) / 5;
+          (r.clarity +
+            r.responsiveness +
+            r.availability +
+            r.organization +
+            r.knowledge) /
+          5;
         return sum + averageScore;
       }, 0) / allReviews.length;
 
@@ -181,9 +371,12 @@ exports.updateLecturerReview = async (req, res) => {
     res.status(200).json(updatedReview);
   } catch (err) {
     console.error("Error updating lecturer review:", err);
-    res.status(500).json({ 
-      message: "שגיאת שרת בעדכון הביקורת", 
-      error: err.message 
+    res.status(500).json({
+      message: "שגיאת שרת בעדכון הביקורת",
+      error:
+        process.env.NODE_ENV === "development"
+          ? err.message
+          : "Internal server error",
     });
   }
 };
@@ -211,13 +404,20 @@ exports.deleteLecturerReview = async (req, res) => {
     await LecturerReview.findByIdAndDelete(reviewId);
 
     // Recalculate lecturer's average rating
-    const allReviews = await LecturerReview.find({ lecturer: existingReview.lecturer });
-    
+    const allReviews = await LecturerReview.find({
+      lecturer: existingReview.lecturer,
+    });
+
     if (allReviews.length > 0) {
       const avg =
         allReviews.reduce((sum, r) => {
           const averageScore =
-            (r.clarity + r.responsiveness + r.availability + r.organization + r.knowledge) / 5;
+            (r.clarity +
+              r.responsiveness +
+              r.availability +
+              r.organization +
+              r.knowledge) /
+            5;
           return sum + averageScore;
         }, 0) / allReviews.length;
 
@@ -236,9 +436,12 @@ exports.deleteLecturerReview = async (req, res) => {
     res.status(200).json({ message: "ביקורת נמחקה בהצלחה" });
   } catch (err) {
     console.error("Error deleting lecturer review:", err);
-    res.status(500).json({ 
-      message: "שגיאת שרת במחיקת הביקורת", 
-      error: err.message 
+    res.status(500).json({
+      message: "שגיאת שרת במחיקת הביקורת",
+      error:
+        process.env.NODE_ENV === "development"
+          ? err.message
+          : "Internal server error",
     });
   }
 };

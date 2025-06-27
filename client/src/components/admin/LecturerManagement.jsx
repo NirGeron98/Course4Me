@@ -41,9 +41,7 @@ const LecturerManagement = ({ onMessage, onError, onLecturersUpdate }) => {
 
   const fetchDepartments = async () => {
     try {
-      console.log('Fetching departments...');
       const response = await axios.get("http://localhost:5000/api/departments");
-      console.log('Departments loaded:', response.data);
       setDepartments(response.data);
     } catch (err) {
       console.error("Error fetching departments:", err);

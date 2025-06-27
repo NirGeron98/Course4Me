@@ -81,7 +81,7 @@ const TrackedCourseCard = ({ course, onRemove, onViewDetails }) => {
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-medium text-gray-700">דירוג</span>
                         <span className="text-lg font-bold text-yellow-600">
-                            {course.averageRating}/5
+                            {course.averageRating}/5.0
                         </span>
                     </div>
                     <div className="flex items-center justify-between">

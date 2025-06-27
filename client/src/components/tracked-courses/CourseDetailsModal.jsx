@@ -15,12 +15,6 @@ const CourseDetailsModal = ({ course, onClose }) => {
     return null;
   };
 
-  // Helper function to get lecturer department
-  const getLecturerDepartment = (lecturer) => {
-    if (!lecturer || typeof lecturer !== 'object') return null;
-    return lecturer.department;
-  };
-
   // Helper function to get multiple lecturers if array
   const getAllLecturers = (lecturers) => {
     if (!lecturers) return [];

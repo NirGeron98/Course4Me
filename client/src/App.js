@@ -4,6 +4,7 @@ import {
   Route,
   Routes,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 import Navbar from "./components/common/Navbar";
 import Signup from "./pages/Signup";
@@ -15,7 +16,16 @@ import AdminPanel from "./pages/AdminPanel";
 import CoursePage from "./pages/CoursePage";
 import LecturerPage from "./pages/LecturerPage";
 import LecturersPage from "./pages/TrackedLecturers";
-import ProfileManagement from "./pages/ProfileManagement"; 
+import ProfileManagement from "./pages/ProfileManagement";
+
+const ProtectedRoute = ({ user, children }) => {
+  const location = useLocation();
+  return user ? (
+    children
+  ) : (
+    <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} />
+  );
+};
 
 function App() {
   const [user, setUser] = useState(null);
@@ -60,7 +70,6 @@ function App() {
       <div className="App">
         <Navbar user={user} onLogout={handleLogout} />
         <Routes>
-          {/* Public Routes */}
           <Route
             path="/"
             element={
@@ -69,13 +78,7 @@ function App() {
           />
           <Route
             path="/login"
-            element={
-              user ? (
-                <Navigate to="/dashboard" />
-              ) : (
-                <Login onLogin={handleLogin} />
-              )
-            }
+            element={<Login onLogin={handleLogin} user={user} />}
           />
           <Route
             path="/signup"
@@ -92,45 +95,54 @@ function App() {
             element={user ? <Navigate to="/dashboard" /> : <ForgotPassword />}
           />
 
-          {/* Protected Routes */}
           <Route
             path="/dashboard"
             element={
-              user ? <Dashboard user={user} /> : <Navigate to="/login" />
+              <ProtectedRoute user={user}>
+                <Dashboard user={user} />
+              </ProtectedRoute>
             }
           />
           <Route
             path="/course/:id"
             element={
-              user ? <CoursePage user={user} /> : <Navigate to="/login" />
+              <ProtectedRoute user={user}>
+                <CoursePage user={user} />
+              </ProtectedRoute>
             }
           />
           <Route
             path="/lecturer/:id"
             element={
-              user ? <LecturerPage user={user} /> : <Navigate to="/login" />
+              <ProtectedRoute user={user}>
+                <LecturerPage user={user} />
+              </ProtectedRoute>
             }
           />
           <Route
             path="/lecturers"
             element={
-              user ? <LecturersPage user={user} /> : <Navigate to="/login" />
+              <ProtectedRoute user={user}>
+                <LecturersPage user={user} />
+              </ProtectedRoute>
             }
           />
           <Route
             path="/tracked-courses"
             element={
-              user ? <TrackedCourses user={user} /> : <Navigate to="/login" />
+              <ProtectedRoute user={user}>
+                <TrackedCourses user={user} />
+              </ProtectedRoute>
             }
           />
           <Route
             path="/profile"
             element={
-              user ? <ProfileManagement user={user} /> : <Navigate to="/login" />
+              <ProtectedRoute user={user}>
+                <ProfileManagement user={user} />
+              </ProtectedRoute>
             }
           />
-
-          {/* Admin Routes */}
           <Route
             path="/admin"
             element={
@@ -141,8 +153,6 @@ function App() {
               )
             }
           />
-
-          {/* Catch all route */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>

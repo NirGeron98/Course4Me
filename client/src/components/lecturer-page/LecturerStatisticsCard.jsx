@@ -1,67 +1,49 @@
 import React from 'react';
-import { Eye, Users, Clock, Zap, Award, Star } from 'lucide-react';
+import { BarChart3, Eye, Users, Clock, Zap, Award } from 'lucide-react';
 
-const LecturerStatisticsCard = ({ stats, renderStars }) => {
-  const metrics = [
-    {
-      label: 'Clarity of Teaching',
-      value: stats.avgClarity,
-      icon: <Eye className="w-4 h-4 text-blue-500" />,
-      color: 'blue-500',
-    },
-    {
-      label: 'Student Consideration',
-      value: stats.avgResponsiveness,
-      icon: <Users className="w-4 h-4 text-green-500" />,
-      color: 'green-500',
-    },
-    {
-      label: 'Availability',
-      value: stats.avgAvailability,
-      icon: <Clock className="w-4 h-4 text-orange-500" />,
-      color: 'orange-500',
-    },
-    {
-      label: 'Lesson Organization',
-      value: stats.avgOrganization,
-      icon: <Zap className="w-4 h-4 text-red-500" />,
-      color: 'red-500',
-    },
-    {
-      label: 'Depth of Knowledge',
-      value: stats.avgKnowledge,
-      icon: <Award className="w-4 h-4 text-yellow-500" />,
-      color: 'yellow-500',
-    },
-  ];
+const LecturerStatisticsCard = ({ stats }) => {
+    const colors = {
+        clarity: 'blue-500',
+        responsiveness: 'green-500',
+        availability: 'orange-500',
+        organization: 'red-500',
+        knowledge: 'yellow-500'
+    };
 
-  return (
-    <div className="bg-white rounded-2xl shadow-lg p-6">
-      <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-        <Star className="w-5 h-5 text-yellow-500" />
-        Rating Breakdown
-      </h3>
-
-      <div className="space-y-4">
-        {metrics.map((metric, idx) => (
-          <div key={idx} className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {metric.icon}
-              <span className="text-sm font-medium">{metric.label}</span>
+    const renderStat = (Icon, label, value, color) => (
+        <div className="flex items-center gap-3">
+            <Icon className={`w-5 h-5 text-${color}`} />
+            <div className="flex-1">
+                <div className="flex justify-between">
+                    <span className="text-gray-600">{label}</span>
+                    <span className={`font-bold text-${color}`}>{value}</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                    <div
+                        className={`bg-${color} h-2 rounded-full`}
+                        style={{ width: `${(value / 5) * 100}%` }}
+                    ></div>
+                </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="flex gap-1">
-                {renderStars(parseFloat(metric.value), 'w-3 h-3')}
-              </div>
-              <span className={`text-sm font-bold text-${metric.color}`}>
-                {metric.value}
-              </span>
+        </div>
+    );
+
+    return (
+        <div className="bg-white rounded-2xl shadow-lg p-6" dir="rtl">
+            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-purple-500" />
+                סטטיסטיקות
+            </h3>
+
+            <div className="space-y-4">
+                {renderStat(Eye, 'בהירות הוראה', stats.avgClarity, colors.clarity)}
+                {renderStat(Users, 'התחשבות בסטודנטים', stats.avgResponsiveness, colors.responsiveness)}
+                {renderStat(Clock, 'זמינות', stats.avgAvailability, colors.availability)}
+                {renderStat(Zap, 'ארגון השיעור', stats.avgOrganization, colors.organization)}
+                {renderStat(Award, 'עומק הידע', stats.avgKnowledge, colors.knowledge)}
             </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+        </div>
+    );
 };
 
 export default LecturerStatisticsCard;

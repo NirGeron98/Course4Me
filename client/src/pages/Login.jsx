@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, CheckCircle, AlertCircle, LogIn } from "lucide-react";
 
-const Login = ({ onLogin }) => {
+const Login = ({ onLogin, user }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -16,6 +16,21 @@ const Login = ({ onLogin }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const redirectPath = urlParams.get("redirect");
+
+    if (user !== null) {
+      if (user && redirectPath) {
+        navigate(decodeURIComponent(redirectPath));
+      } else if (user) {
+        navigate("/dashboard");
+      }
+    }
+  }, [user, location, navigate]);
+
+
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -23,29 +38,26 @@ const Login = ({ onLogin }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setMessage(""); // Clear previous messages
-    
+    setMessage("");
+
     try {
       const res = await axios.post("http://localhost:5000/api/auth/login", formData);
-      
-      // Store user data in localStorage
+
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userFullName", res.data.user.fullName);
       localStorage.setItem("userRole", res.data.user.role);
-      
-      // Call onLogin with the complete response data (includes both user and token)
+
       onLogin(res.data);
 
-      // Navigate to dashboard or redirect URL
       const urlParams = new URLSearchParams(location.search);
-      const redirectPath = urlParams.get('redirect');
+      const redirectPath = urlParams.get("redirect");
 
       if (redirectPath) {
         navigate(decodeURIComponent(redirectPath));
       } else {
         navigate("/dashboard");
       }
-      
+
     } catch (err) {
       console.error("Login error:", err);
       setMessage(err.response?.data?.message || "התחברות נכשלה");
@@ -57,7 +69,6 @@ const Login = ({ onLogin }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-500 rounded-full mb-4 shadow-lg">
             <LogIn className="w-8 h-8 text-white" />
@@ -66,10 +77,8 @@ const Login = ({ onLogin }) => {
           <p className="text-gray-600">ברוך הבא חזרה</p>
         </div>
 
-        {/* Form Card */}
         <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl border border-emerald-100 p-8" dir="rtl">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Input */}
             <div className="relative">
               <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-emerald-500">
                 <Mail className="w-5 h-5" />
@@ -85,7 +94,6 @@ const Login = ({ onLogin }) => {
               />
             </div>
 
-            {/* Password Input */}
             <div className="relative">
               <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-emerald-500">
                 <Lock className="w-5 h-5" />
@@ -108,7 +116,6 @@ const Login = ({ onLogin }) => {
               </button>
             </div>
 
-            {/* Forgot Password Link */}
             <div className="text-left">
               <Link
                 to="/forgot-password"
@@ -118,7 +125,6 @@ const Login = ({ onLogin }) => {
               </Link>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
@@ -135,7 +141,6 @@ const Login = ({ onLogin }) => {
             </button>
           </form>
 
-          {/* Message Display */}
           {message && (
             <div className={`mt-6 p-4 rounded-2xl flex items-center space-x-3 ${message.includes('בהצלחה')
               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
@@ -150,7 +155,6 @@ const Login = ({ onLogin }) => {
             </div>
           )}
 
-          {/* Signup Link */}
           <div className="mt-8 text-center">
             <p className="text-gray-600">
               עוד לא נרשמת?{" "}

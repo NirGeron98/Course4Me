@@ -5,7 +5,7 @@ import LecturerReviewFormModal from '../components/lecturer-page/LecturerReviewF
 import LecturerHeader from '../components/lecturer-page/LecturerHeader';
 import LecturerReviewsSection from '../components/lecturer-page/LecturerReviewsSection';
 import LecturerStatisticsCard from '../components/lecturer-page/LecturerStatisticsCard';
-import LecturerQuickStatsCard from '../components/lecturer-page/LecturerQuickStatsCard';
+import LecturerQuickActions from '../components/lecturer-page/LecturerQuickActions';
 
 const LecturerPage = ({ user }) => {
     const { id } = useParams();
@@ -21,87 +21,163 @@ const LecturerPage = ({ user }) => {
     const [filterCourse, setFilterCourse] = useState('all');
     const [sortBy, setSortBy] = useState('newest');
 
-    // Fetch lecturer data
+    const refreshLecturerRating = async () => {
+        try {
+            const response = await fetch(`http://localhost:5000/api/lecturers/${id}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(user?.token && { 'Authorization': `Bearer ${user.token}` })
+                }
+            });
+
+            if (response.ok) {
+                const updatedLecturer = await response.json();
+                setLecturer(updatedLecturer);
+            }
+        } catch (error) {
+            console.error('Error refreshing lecturer rating:', error);
+        }
+    };
+
+    const handleReviewDeleted = async (reviewId) => {
+        setReviews(prev => prev.filter(r => r._id !== reviewId));
+        await refreshLecturerRating();
+    };
+
     useEffect(() => {
         const fetchLecturer = async () => {
+
             try {
+                if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+                    throw new Error('מזהה מרצה לא תקין');
+                }
+
+                const headers = {
+                    'Content-Type': 'application/json',
+                };
+
+                if (user?.token) {
+                    headers.Authorization = `Bearer ${user.token}`;
+                }
+
+
                 const response = await fetch(`http://localhost:5000/api/lecturers/${id}`, {
-                    headers: {
-                        'Authorization': `Bearer ${user?.token}`,
-                        'Content-Type': 'application/json',
-                    },
+                    headers
                 });
 
                 if (!response.ok) {
-                    throw new Error('שגיאה בטעינת המרצה');
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || 'שגיאה בטעינת המרצה');
                 }
 
                 const data = await response.json();
                 setLecturer(data);
             } catch (err) {
+                console.error('Error fetching lecturer:', err);
                 setError(err.message);
             } finally {
                 setLoading(false);
             }
         };
 
-        if (id && user?.token) {
+        if (id) {
             fetchLecturer();
         }
     }, [id, user?.token]);
 
-    // Fetch reviews and courses
     useEffect(() => {
         const fetchReviewsAndCourses = async () => {
             try {
-                // Fetch reviews
-                const reviewsResponse = await fetch(`http://localhost:5000/api/lecturer-reviews/lecturer/${id}`, {
+                setReviewsLoading(true);
+
+                if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+                    console.error('Invalid lecturer ID format:', id);
+                    setError('מזהה מרצה לא תקין');
+                    return;
+                }
+
+                const reviewsUrl = `http://localhost:5000/api/lecturer-reviews/lecturer/${id}`;
+
+                const reviewsResponse = await fetch(reviewsUrl, {
+                    method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${user?.token}`,
                         'Content-Type': 'application/json',
-                    },
+                    }
                 });
 
                 if (reviewsResponse.ok) {
                     const reviewsData = await reviewsResponse.json();
                     setReviews(reviewsData);
+                } else {
+                    const responseText = await reviewsResponse.text();
+                    console.error('❌ Reviews API failed:');
+                    console.error('Status:', reviewsResponse.status);
+                    console.error('Response:', responseText);
+
+                    try {
+                        const errorData = JSON.parse(responseText);
+                        console.error('Error data:', errorData);
+                    } catch (e) {
+                        console.error('Could not parse error response as JSON');
+                    }
+
+                    setReviews([]);
                 }
 
-                // Fetch courses taught by this lecturer
-                const coursesResponse = await fetch('http://localhost:5000/api/courses', {
-                    headers: {
-                        'Authorization': `Bearer ${user?.token}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-
-                if (coursesResponse.ok) {
-                    const allCourses = await coursesResponse.json();
-                    const lecturerCourses = allCourses.filter(course =>
-                        course.lecturers && course.lecturers.some(lec => lec._id === id)
+                if (user?.token) {
+                    const coursesResponse = await fetch(
+                        'http://localhost:5000/api/courses',
+                        {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': `Bearer ${user.token}`,
+                                'Content-Type': 'application/json',
+                            }
+                        }
                     );
-                    setCourses(lecturerCourses);
+
+                    if (coursesResponse.ok) {
+                        const allCourses = await coursesResponse.json();
+                        const lecturerCourses = allCourses.filter(course =>
+                            course.lecturers &&
+                            course.lecturers.some(lec => lec._id === id)
+                        );
+                        setCourses(lecturerCourses);
+                    } else {
+                        console.warn('Could not fetch courses - user may not be authenticated');
+                        setCourses([]);
+                    }
+                } else {
+                    setCourses([]);
                 }
+
             } catch (err) {
-                console.error('Error fetching data:', err);
+                console.error('=== Error in fetchReviewsAndCourses ===');
+                console.error('Error type:', err.constructor.name);
+                console.error('Error message:', err.message);
+                console.error('Error stack:', err.stack);
+                setReviews([]);
             } finally {
                 setReviewsLoading(false);
             }
         };
 
-        if (id && user?.token) {
+        if (id) {
             fetchReviewsAndCourses();
         }
     }, [id, user?.token]);
 
-    // Calculate statistics
     const calculateStats = () => {
-        if (!reviews.length) return null;
+        if (!reviews.length) {
+            return null;
+        }
 
         const filteredReviews = getFilteredReviews();
         const total = filteredReviews.length;
 
-        if (total === 0) return null;
+        if (total === 0) {
+            return null;
+        }
 
         const avgClarity = filteredReviews.reduce((sum, r) => sum + r.clarity, 0) / total;
         const avgResponsiveness = filteredReviews.reduce((sum, r) => sum + r.responsiveness, 0) / total;
@@ -109,7 +185,7 @@ const LecturerPage = ({ user }) => {
         const avgOrganization = filteredReviews.reduce((sum, r) => sum + r.organization, 0) / total;
         const avgKnowledge = filteredReviews.reduce((sum, r) => sum + r.knowledge, 0) / total;
 
-        return {
+        const stats = {
             total,
             avgClarity: avgClarity.toFixed(1),
             avgResponsiveness: avgResponsiveness.toFixed(1),
@@ -118,18 +194,17 @@ const LecturerPage = ({ user }) => {
             avgKnowledge: avgKnowledge.toFixed(1),
             overallRating: ((avgClarity + avgResponsiveness + avgAvailability + avgOrganization + avgKnowledge) / 5).toFixed(1)
         };
+
+        return stats;
     };
 
-    // Filter and sort reviews
     const getFilteredReviews = () => {
         let filtered = [...reviews];
 
-        // Filter by course
         if (filterCourse !== 'all') {
-            filtered = filtered.filter(review => review.course._id === filterCourse);
+            filtered = filtered.filter(review => review.course?._id === filterCourse);
         }
 
-        // Sort reviews
         filtered.sort((a, b) => {
             switch (sortBy) {
                 case 'newest':
@@ -137,9 +212,13 @@ const LecturerPage = ({ user }) => {
                 case 'oldest':
                     return new Date(a.createdAt) - new Date(b.createdAt);
                 case 'highest':
-                    return b.overallRating - a.overallRating;
+                    const aRating = a.overallRating || ((a.clarity + a.responsiveness + a.availability + a.organization + a.knowledge) / 5);
+                    const bRating = b.overallRating || ((b.clarity + b.responsiveness + b.availability + b.organization + b.knowledge) / 5);
+                    return bRating - aRating;
                 case 'lowest':
-                    return a.overallRating - b.overallRating;
+                    const aRating2 = a.overallRating || ((a.clarity + a.responsiveness + a.availability + a.organization + a.knowledge) / 5);
+                    const bRating2 = b.overallRating || ((b.clarity + b.responsiveness + b.availability + b.organization + b.knowledge) / 5);
+                    return aRating2 - bRating2;
                 default:
                     return 0;
             }
@@ -148,16 +227,17 @@ const LecturerPage = ({ user }) => {
         return filtered;
     };
 
-    const handleReviewSubmitted = (review) => {
+    const handleReviewSubmitted = async (review) => {
+
         if (editingReview) {
-            // Update existing review
             setReviews(prev => prev.map(r => r._id === review._id ? review : r));
             setEditingReview(null);
         } else {
-            // Add new review
             setReviews(prev => [review, ...prev]);
         }
+
         setShowReviewForm(false);
+        await refreshLecturerRating();
     };
 
     const handleEditReview = (review) => {
@@ -167,8 +247,9 @@ const LecturerPage = ({ user }) => {
 
     const renderStars = (rating, size = 'w-4 h-4') => {
         const stars = [];
-        const fullStars = Math.floor(rating);
-        const hasHalfStar = rating % 1 >= 0.5;
+        const numRating = parseFloat(rating) || 0;
+        const fullStars = Math.floor(numRating);
+        const hasHalfStar = numRating % 1 >= 0.5;
 
         for (let i = 0; i < fullStars; i++) {
             stars.push(<Star key={i} className={`${size} fill-yellow-400 text-yellow-400`} />);
@@ -178,7 +259,7 @@ const LecturerPage = ({ user }) => {
             stars.push(<Star key="half" className={`${size} fill-yellow-200 text-yellow-400`} />);
         }
 
-        const emptyStars = 5 - Math.ceil(rating);
+        const emptyStars = 5 - Math.ceil(numRating);
         for (let i = 0; i < emptyStars; i++) {
             stars.push(<Star key={`empty-${i}`} className={`${size} text-gray-300`} />);
         }
@@ -238,17 +319,12 @@ const LecturerPage = ({ user }) => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100" dir="rtl">
-            {/* Lecturer Header */}
-            <LecturerHeader lecturer={lecturer} courses={courses} stats={stats} renderStars={renderStars} />
+            <LecturerHeader lecturer={lecturer} courses={courses} reviews={reviews} renderStars={renderStars} />
 
-
-            {/* Main Content */}
             <div className="max-w-7xl mx-auto px-4 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-                    {/* Left Column - Reviews */}
                     <div className="lg:col-span-2 space-y-6">
-                        {/* Reviews Section */}
+
                         <LecturerReviewsSection
                             reviews={reviews}
                             courses={courses}
@@ -261,29 +337,29 @@ const LecturerPage = ({ user }) => {
                             onWriteReview={() => setShowReviewForm(true)}
                             onEditReview={handleEditReview}
                             user={user}
+                            lecturerId={id}
+                            onReviewDeleted={handleReviewDeleted}
                         />
-
                     </div>
 
-                    {/* Right Column - Stats */}
                     <div className="space-y-6">
-                        {/* Rating Breakdown */}
                         {stats && (
                             <LecturerStatisticsCard stats={stats} renderStars={renderStars} />
                         )}
 
-
-                        {/* Quick Stats */}
-                        <LecturerQuickStatsCard
-                            stats={stats}
-                            reviewsCount={reviews.length}
-                            coursesCount={courses.length}
+                        <LecturerQuickActions
+                            onShowReviewForm={() => setShowReviewForm(true)}
+                            lecturerId={id}
+                            lecturerName={lecturer?.name}
+                            user={user}
+                            reviews={reviews}
+                            onEditReview={handleEditReview}
                         />
+
                     </div>
                 </div>
             </div>
 
-            {/* Review Form Modal */}
             {showReviewForm && (
                 <LecturerReviewFormModal
                     lecturerId={id}

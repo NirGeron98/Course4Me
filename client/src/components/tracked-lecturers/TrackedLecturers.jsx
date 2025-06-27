@@ -63,7 +63,6 @@ const TrackedLecturers = () => {
 
   // Open lecturer details modal
   const handleViewLecturerDetails = (lecturer) => {
-    console.log("Opening modal for lecturer:", lecturer);
     setSelectedLecturer(lecturer);
     setIsModalOpen(true);
   };

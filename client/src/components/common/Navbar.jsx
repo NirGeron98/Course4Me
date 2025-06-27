@@ -95,7 +95,7 @@ const Navbar = ({ user, onLogout }) => {
                     to={item.path}
                     className={`flex items-center space-x-2 px-3 py-2 rounded-xl font-medium transition-all duration-300 whitespace-nowrap ${
                       isActivePage(item.path)
-                        ? 'bg-emerald-100 text-emerald-700 shadow-md'
+                        ? 'bg-gray-200 text-gray-800 shadow-md'
                         : item.path === '/admin' 
                           ? 'text-purple-600 hover:text-purple-700 hover:bg-purple-50'
                           : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50'
@@ -116,7 +116,7 @@ const Navbar = ({ user, onLogout }) => {
               onClick={handleUserNameClick}
               className={`flex items-center space-x-3 rounded-xl px-3 py-2 transition-all duration-300 cursor-pointer ${
                 isActivePage('/profile') 
-                  ? 'bg-emerald-100 hover:bg-emerald-200' 
+                  ? 'bg-gray-200 hover:bg-gray-300' 
                   : 'bg-gray-50 hover:bg-emerald-50'
               }`}
             >
@@ -129,7 +129,7 @@ const Navbar = ({ user, onLogout }) => {
               </div>
               <div className="text-right mr-3">
                 <span className={`font-medium text-sm block ${
-                  isActivePage('/profile') ? 'text-emerald-700' : 'text-gray-700'
+                  isActivePage('/profile') ? 'text-gray-800' : 'text-gray-700'
                 }`}>
                   {user?.user?.fullName || user?.fullName || user?.name || 'משתמש'}
                 </span>
@@ -138,7 +138,7 @@ const Navbar = ({ user, onLogout }) => {
                 )}
               </div>
               <Settings className={`w-3.5 h-3.5 ml-1 ${
-                isActivePage('/profile') ? 'text-emerald-600' : 'text-gray-500'
+                isActivePage('/profile') ? 'text-gray-600' : 'text-gray-500'
               }`} />
             </button>
 
@@ -180,7 +180,7 @@ const Navbar = ({ user, onLogout }) => {
                 }}
                 className={`w-full flex items-center space-x-3 rounded-xl px-4 py-3 mb-4 transition-all duration-300 ${
                   isActivePage('/profile')
-                    ? 'bg-emerald-100'
+                    ? 'bg-gray-200'
                     : 'bg-emerald-50 hover:bg-emerald-100'
                 }`}
               >
@@ -193,7 +193,7 @@ const Navbar = ({ user, onLogout }) => {
                 </div>
                 <div className="text-right mr-3 flex-1">
                   <span className={`font-medium block ${
-                    isActivePage('/profile') ? 'text-emerald-700' : 'text-emerald-700'
+                    isActivePage('/profile') ? 'text-gray-800' : 'text-emerald-700'
                   }`}>
                     שלום, {user?.user?.fullName || user?.fullName || user?.name || 'משתמש'}
                   </span>
@@ -201,7 +201,7 @@ const Navbar = ({ user, onLogout }) => {
                     <span className="text-purple-600 text-sm font-medium">מנהל מערכת</span>
                   )}
                 </div>
-                <Settings className="w-4 h-4 text-emerald-600" />
+                <Settings className={`w-4 h-4 ${isActivePage('/profile') ? 'text-gray-600' : 'text-emerald-600'}`} />
               </button>
 
               {/* Navigation Items */}
@@ -214,7 +214,7 @@ const Navbar = ({ user, onLogout }) => {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-300 ${
                       isActivePage(item.path)
-                        ? 'bg-emerald-100 text-emerald-700'
+                        ? 'bg-gray-200 text-gray-800'
                         : item.path === '/admin'
                           ? 'text-purple-600 hover:text-purple-700 hover:bg-purple-50'
                           : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50'

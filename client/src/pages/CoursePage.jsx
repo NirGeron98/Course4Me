@@ -1,33 +1,49 @@
 import { useCourseData } from '../components/course-page/hooks/useCourseData';
 import { useReviews } from '../components/course-page/hooks/useReviews';
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { BookOpen, AlertCircle, Loader2 } from 'lucide-react';
 import CourseDescription from '../components/course-page/CourseDescription';
 import CourseHeader from '../components/course-page/CourseHeader';
-import QuickActions from '../components/course-page/QuickActions';
+import QuickActions from '../components/course-page/CourseQuickActions';
 import CourseReviewFormModal from '../components/course-page/CourseReviewFormModal';
 import CourseReviewsSection from '../components/course-page/CourseReviewsSection';
-import StatisticsCard from '../components/course-page/StatisticsCard';
-
+import CourseStatisticsCard from '../components/course-page/CourseStatisticsCard';
 
 const CoursePage = ({ user }) => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { course, loading, error } = useCourseData(id, user?.token);
     const {
-        reviews,
-        reviewsLoading,
         showReviewForm,
         setShowReviewForm,
-        filterRating,
-        setFilterRating,
-        sortBy,
-        setSortBy,
-        filteredReviews,
         stats,
-        addReview
+        addReview,
+        reviews,
+        refetchReviews
     } = useReviews(id, user?.token);
+
+
+    const [editingReview, setEditingReview] = useState(null);
+
+    const handleShowReviewForm = (existingReview = null) => {
+        if (existingReview) {
+            setEditingReview(existingReview);
+        } else {
+            setEditingReview(null);
+        }
+        setShowReviewForm(true);
+    };
+
+    const handleCloseReviewForm = () => {
+        setShowReviewForm(false);
+        setEditingReview(null);
+    };
+
+    const handleReviewSubmitted = async (reviewData) => {
+        await refetchReviews();
+        handleCloseReviewForm();
+    };
 
     if (loading) {
         return (
@@ -78,36 +94,24 @@ const CoursePage = ({ user }) => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-100" dir="rtl">
-            {/* Course Header */}
-            <CourseHeader course={course} stats={stats} />
+            <CourseHeader course={course} stats={stats} reviews={reviews} />
 
-            {/* Main Content */}
             <div className="max-w-7xl mx-auto px-4 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-                    {/* Left Column - Course Description & Reviews */}
                     <div className="lg:col-span-2 space-y-6">
                         <CourseDescription course={course} />
-
                         <CourseReviewsSection
-                            courseId={id} // <- הוספתי את זה!
-                            reviews={reviews}
-                            reviewsLoading={reviewsLoading}
-                            filteredReviews={filteredReviews}
-                            filterRating={filterRating}
-                            setFilterRating={setFilterRating}
-                            sortBy={sortBy}
-                            setSortBy={setSortBy}
-                            onShowReviewForm={() => setShowReviewForm(true)}
+                            courseId={id}
+                            courseTitle={course.title}
                             user={user}
+                            onShowReviewForm={handleShowReviewForm}
                         />
                     </div>
 
-                    {/* Right Column - Sidebar */}
                     <div className="space-y-6">
-                        {stats && <StatisticsCard stats={stats} />}
+                        {stats && <CourseStatisticsCard stats={stats} />}
                         <QuickActions
-                            onShowReviewForm={() => setShowReviewForm(true)}
+                            onShowReviewForm={handleShowReviewForm}
                             courseId={id}
                             courseName={course.title}
                             user={user}
@@ -116,14 +120,14 @@ const CoursePage = ({ user }) => {
                 </div>
             </div>
 
-            {/* Review Form Modal */}
             {showReviewForm && (
                 <CourseReviewFormModal
                     courseId={id}
-                    courseName={course.title}
+                    courseTitle={course.title}
                     user={user}
-                    onClose={() => setShowReviewForm(false)}
-                    onReviewSubmitted={addReview}
+                    existingReview={editingReview}
+                    onClose={handleCloseReviewForm}
+                    onReviewSubmitted={handleReviewSubmitted}
                 />
             )}
         </div>

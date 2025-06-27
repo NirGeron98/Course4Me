@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Heart, Zap, Clock, TrendingUp, Award, MessageCircle, Loader2, User } from 'lucide-react';
+import ExistingReviewModal from '../common/ExistingReviewModal';
 
 const CourseReviewFormModal = ({
     courseId,
@@ -11,17 +12,31 @@ const CourseReviewFormModal = ({
 }) => {
     const [lecturers, setLecturers] = useState([]);
     const [loadingLecturers, setLoadingLecturers] = useState(true);
+    const [allReviews, setAllReviews] = useState([]);
+    const [showExistingReviewModal, setShowExistingReviewModal] = useState(false);
+    const [userExistingReview, setUserExistingReview] = useState(null);
     const [formData, setFormData] = useState({
         lecturer: '',
-        interest: 5,
+        interest: 3,
         difficulty: 3,
         workload: 3,
-        investment: 5,
-        teachingQuality: 5,
+        investment: 3,
+        teachingQuality: 3,
         comment: ''
     });
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
+
+    // Check for existing review when lecturer is selected
+    const checkForExistingReview = (selectedLecturerId) => {
+        if (!user?.user || !selectedLecturerId) return null;
+        
+        return allReviews.find(review => 
+            review.user && review.user._id === user.user._id &&
+            ((typeof review.lecturer === 'object' && review.lecturer._id === selectedLecturerId) ||
+             (typeof review.lecturer === 'string' && review.lecturer === selectedLecturerId))
+        );
+    };
 
     useEffect(() => {
         if (existingReview) {
@@ -40,8 +55,9 @@ const CourseReviewFormModal = ({
     }, [existingReview]);
 
     useEffect(() => {
-        const fetchLecturers = async () => {
+        const fetchData = async () => {
             try {
+                // Fetch course lecturers
                 const courseResponse = await fetch(`http://localhost:5000/api/courses/${courseId}`, {
                     headers: {
                         'Authorization': `Bearer ${user.token}`,
@@ -55,16 +71,63 @@ const CourseReviewFormModal = ({
                 } else {
                     throw new Error('Failed to fetch course lecturers');
                 }
+
+                // Fetch existing reviews for this course to check for duplicates
+                const reviewsResponse = await fetch(`http://localhost:5000/api/reviews/course/${courseId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${user.token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (reviewsResponse.ok) {
+                    const reviewsData = await reviewsResponse.json();
+                    setAllReviews(reviewsData);
+                }
             } catch (err) {
-                setError('שגיאה בטעינת רשימת המרצים');
-                console.error('Error fetching lecturers:', err);
+                setError('שגיאה בטעינת המידע');
+                console.error('Error fetching data:', err);
             } finally {
                 setLoadingLecturers(false);
             }
         };
 
-        fetchLecturers();
+        fetchData();
     }, [courseId, user.token]);
+
+    const handleLecturerChange = (selectedLecturerId) => {
+        // If we're editing an existing review, don't check for duplicates
+        if (existingReview) {
+            setFormData({ ...formData, lecturer: selectedLecturerId });
+            return;
+        }
+
+        const existingUserReview = checkForExistingReview(selectedLecturerId);
+        
+        if (existingUserReview) {
+            setUserExistingReview(existingUserReview);
+            setShowExistingReviewModal(true);
+        } else {
+            setFormData({ ...formData, lecturer: selectedLecturerId });
+        }
+    };
+
+    const handleEditExistingReview = () => {
+        setShowExistingReviewModal(false);
+        // Close this modal and signal to parent to edit the existing review
+        onClose();
+        // Call onReviewSubmitted with edit flag
+        if (onReviewSubmitted) {
+            onReviewSubmitted(userExistingReview, 'edit');
+        }
+    };
+
+    const handleCancelExistingReview = () => {
+        setShowExistingReviewModal(false);
+        setUserExistingReview(null);
+        // Reset lecturer selection
+        setFormData({ ...formData, lecturer: '' });
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -142,111 +205,122 @@ const CourseReviewFormModal = ({
     );
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4" dir="rtl">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-bold">
-                            {existingReview ? 'עריכת ביקורת קורס' : 'כתיבת ביקורת קורס'}
-                        </h2>
-                        <button
-                            onClick={onClose}
-                            className="text-white hover:text-blue-200 transition-colors bg-white/20 rounded-full p-2 hover:bg-white/30"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
-                    </div>
-                    <p className="text-blue-100 mt-2">{courseTitle}</p>
-                </div>
-
-                <form onSubmit={handleSubmit} className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(95vh - 140px)' }}>
-                    {error && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-                            {error}
-                        </div>
-                    )}
-
-                    <div className="mb-6">
-                        <label className="block text-gray-700 font-medium mb-2 flex items-center gap-2">
-                            <User className="w-5 h-5 text-blue-500" />
-                            בחר מרצה *
-                        </label>
-                        {loadingLecturers ? (
-                            <div className="flex items-center justify-center py-4">
-                                <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
-                                <span className="mr-2 text-gray-600">טוען מרצים...</span>
-                            </div>
-                        ) : lecturers.length === 0 ? (
-                            <div className="text-center py-4 text-gray-500">
-                                לא נמצאו מרצים עבור קורס זה
-                            </div>
-                        ) : (
-                            <select
-                                value={formData.lecturer}
-                                onChange={(e) => setFormData({ ...formData, lecturer: e.target.value })}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                required
+        <>
+            <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4" dir="rtl">
+                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden">
+                    <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white p-6">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-2xl font-bold">
+                                {existingReview ? 'עריכת ביקורת קורס' : 'כתיבת ביקורת קורס'}
+                            </h2>
+                            <button
+                                onClick={onClose}
+                                className="text-white hover:text-emerald-200 transition-colors bg-white/20 rounded-full p-2 hover:bg-white/30"
                             >
-                                <option value="">בחר מרצה...</option>
-                                {lecturers.map((lecturer) => (
-                                    <option key={lecturer._id} value={lecturer._id}>
-                                        {lecturer.name}
-                                    </option>
-                                ))}
-                            </select>
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <p className="text-emerald-100 mt-2">{courseTitle}</p>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(95vh - 140px)' }}>
+                        {error && (
+                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+                                {error}
+                            </div>
                         )}
-                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-
-                        {renderRatingInput('עד כמה הקורס מעניין?', 'interest', <Heart className="w-5 h-5 text-red-500" />, 'red')}
-                        {renderRatingInput('עד כמה הקורס קשה?', 'difficulty', <Zap className="w-5 h-5 text-yellow-500" />, 'yellow')}
-                        {renderRatingInput('כמה זמן השקעת בקורס?', 'workload', <Clock className="w-5 h-5 text-orange-500" />, 'orange')}
-                        {renderRatingInput('עד כמה השקעת בקורס?', 'investment', <TrendingUp className="w-5 h-5 text-green-500" />, 'green')}
-                        {renderRatingInput('איכות ההוראה', 'teachingQuality', <Award className="w-5 h-5 text-purple-500" />, 'purple')}
-                    </div>
-
-                    <div className="mb-6">
-                        <label className="block text-gray-700 font-medium mb-2 flex items-center gap-2">
-                            <MessageCircle className="w-5 h-5 text-gray-500" />
-                            הערות נוספות (אופציונלי)
-                        </label>
-                        <textarea
-                            value={formData.comment}
-                            onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                            rows="4"
-                            placeholder="שתף את החוויה שלך מהקורס..."
-                        />
-                    </div>
-
-                    <div className="flex gap-3">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-xl transition-colors"
-                            disabled={submitting}
-                        >
-                            ביטול
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={submitting || (!formData.lecturer && !existingReview)}
-                            className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                        >
-                            {submitting ? (
-                                <>
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                    {existingReview ? 'מעדכן...' : 'שולח...'}
-                                </>
+                        <div className="mb-6">
+                            <label className="block text-gray-700 font-medium mb-2 flex items-center gap-2">
+                                <User className="w-5 h-5 text-emerald-500" />
+                                בחר מרצה *
+                            </label>
+                            {loadingLecturers ? (
+                                <div className="flex items-center justify-center py-4">
+                                    <Loader2 className="w-5 h-5 animate-spin text-emerald-500" />
+                                    <span className="mr-2 text-gray-600">טוען מרצים...</span>
+                                </div>
+                            ) : lecturers.length === 0 ? (
+                                <div className="text-center py-4 text-gray-500">
+                                    לא נמצאו מרצים עבור קורס זה
+                                </div>
                             ) : (
-                                existingReview ? 'עדכן ביקורת' : 'שלח ביקורת'
+                                <select
+                                    value={formData.lecturer}
+                                    onChange={(e) => handleLecturerChange(e.target.value)}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    required
+                                >
+                                    <option value="">בחר מרצה...</option>
+                                    {lecturers.map((lecturer) => (
+                                        <option key={lecturer._id} value={lecturer._id}>
+                                            {lecturer.name}
+                                        </option>
+                                    ))}
+                                </select>
                             )}
-                        </button>
-                    </div>
-                </form>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            {renderRatingInput('עד כמה הקורס מעניין?', 'interest', <Heart className="w-5 h-5 text-red-500" />, 'red')}
+                            {renderRatingInput('עד כמה הקורס קשה?', 'difficulty', <Zap className="w-5 h-5 text-yellow-500" />, 'yellow')}
+                            {renderRatingInput('כמה זמן השקעת בקורס?', 'workload', <Clock className="w-5 h-5 text-orange-500" />, 'orange')}
+                            {renderRatingInput('עד כמה השקעת בקורס?', 'investment', <TrendingUp className="w-5 h-5 text-emerald-500" />, 'emerald')}
+                            {renderRatingInput('איכות ההוראה', 'teachingQuality', <Award className="w-5 h-5 text-purple-500" />, 'purple')}
+                        </div>
+
+                        <div className="mb-6">
+                            <label className="block text-gray-700 font-medium mb-2 flex items-center gap-2">
+                                <MessageCircle className="w-5 h-5 text-gray-500" />
+                                הערות נוספות (אופציונלי)
+                            </label>
+                            <textarea
+                                value={formData.comment}
+                                onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                                rows="4"
+                                placeholder="שתף את החוויה שלך מהקורס..."
+                            />
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-xl transition-colors"
+                                disabled={submitting}
+                            >
+                                ביטול
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={submitting || (!formData.lecturer && !existingReview)}
+                                className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                            >
+                                {submitting ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        {existingReview ? 'מעדכן...' : 'שולח...'}
+                                    </>
+                                ) : (
+                                    existingReview ? 'עדכן ביקורת' : 'שלח ביקורת'
+                                )}
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </div>
+
+            {/* Existing Review Modal */}
+            {showExistingReviewModal && userExistingReview && (
+                <ExistingReviewModal
+                    onEdit={handleEditExistingReview}
+                    onCancel={handleCancelExistingReview}
+                    existingReview={userExistingReview}
+                    reviewType="course"
+                />
+            )}
+        </>
     );
 };
 
