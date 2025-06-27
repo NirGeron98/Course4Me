@@ -18,7 +18,6 @@ const CoursePage = ({ user }) => {
         showReviewForm,
         setShowReviewForm,
         stats,
-        addReview,
         reviews,
         refetchReviews
     } = useReviews(id, user?.token);

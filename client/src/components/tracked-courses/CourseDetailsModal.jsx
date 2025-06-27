@@ -110,7 +110,9 @@ const CourseDetailsModal = ({ course, onClose }) => {
                 </div>
 
                 <div className="space-y-1">
-                  {allLecturers.map((lecturer, index) => (
+
+                  {/* Display up to 3 lecturers in a vertical list */}
+                  {allLecturers.slice(0, 3).map((lecturer, index) => (
                     <div key={index} className="text-center">
                       <div className="font-semibold text-white text-base">
                         {getLecturerName(lecturer)}
@@ -118,7 +120,18 @@ const CourseDetailsModal = ({ course, onClose }) => {
                     </div>
                   ))}
 
+                  {/* Show "+X נוספים" in a separate box */}
+                  {allLecturers.length > 3 && (
+                    <div className="mt-3 px-3 py-1.5 bg-white/10 border border-white/20 rounded-xl text-center">
+                      <span className="text-white text-sm font-medium">
+                        +{allLecturers.length - 3} נוספים
+                      </span>
+                    </div>
+                  )}
                 </div>
+
+
+
               </div>
             )}
           </div>

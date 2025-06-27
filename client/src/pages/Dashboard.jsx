@@ -22,24 +22,28 @@ const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [courseCarouselIndex, setCourseCarouselIndex] = useState(0);
   const [lecturerCarouselIndex, setLecturerCarouselIndex] = useState(0);
+  const [trackedCarouselIndex, setTrackedCarouselIndex] = useState(0);
 
-  const getLecturerName = (lecturer) => {
-    if (!lecturer) return "לא זמין";
-    if (typeof lecturer === 'string') return lecturer;
-    if (typeof lecturer === 'object') return lecturer.name || "לא זמין";
-    return "לא זמין";
-  };
-
-  const formatLecturersDisplay = (lecturers) => {
+  const formatLecturersDisplay = (lecturers, max = 3, badgeClassName = "bg-blue-200 text-blue-800") => {
     if (!Array.isArray(lecturers) || lecturers.length === 0) return "לא זמין";
-    const lecturerNames = lecturers.map(getLecturerName);
-    const displayedLecturers = lecturerNames.slice(0, 3);
-    const remainingCount = lecturerNames.length - 3;
-    let displayText = displayedLecturers.join(", ");
-    if (remainingCount > 0) {
-      displayText += ` +${remainingCount}`;
-    }
-    return displayText;
+
+    const lecturerNames = lecturers
+      .map(l => typeof l === "string" ? l : l?.name || "")
+      .filter(Boolean);
+
+    const displayed = lecturerNames.slice(0, max).join(", ");
+    const remaining = lecturerNames.length - max;
+
+    return (
+      <span className="flex items-center gap-2 flex-wrap">
+        <span>{displayed}</span>
+        {remaining > 0 && (
+          <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap ${badgeClassName}`}>
+            +{remaining} מרצים נוספים
+          </span>
+        )}
+      </span>
+    );
   };
 
   const handleCourseClick = (course) => {
@@ -54,10 +58,27 @@ const Dashboard = () => {
     }
   };
 
+  const filterReviewsByUser = (reviews, userId) => {
+    console.log("Reviews received:", reviews);
+    console.log("UserId for filtering:", userId, typeof userId);
+
+    const filtered = reviews.filter(review => {
+      console.log("Review user:", review.user, typeof review.user);
+      return (typeof review.user === "string" && review.user === userId) ||
+        (typeof review.user === "object" && review.user._id === userId);
+    });
+
+    console.log("Filtered reviews:", filtered);
+    return filtered;
+  };
+
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
+        const userId = localStorage.getItem("userId");
+        console.log("userId from localStorage:", userId);
         if (!token) return;
 
         const userFullName = localStorage.getItem("userFullName") || "User";
@@ -77,22 +98,26 @@ const Dashboard = () => {
         setLecturers(lecturersRes.data);
 
         let totalReviews = 0;
-        
+
         try {
-          const courseReviewsRes = await axios.get("http://localhost:5000/api/course-reviews", {
+          const courseReviewsRes = await axios.get("http://localhost:5000/api/reviews", {
             headers: { Authorization: `Bearer ${token}` },
           });
-          const userCourseReviews = courseReviewsRes.data.filter(review => review.user === localStorage.getItem("userId"));
+
+          const userCourseReviews = filterReviewsByUser(courseReviewsRes.data, userId);
+
           totalReviews += userCourseReviews.length;
         } catch (error) {
           console.log("No course reviews endpoint or error:", error);
         }
 
+
         try {
           const lecturerReviewsRes = await axios.get("http://localhost:5000/api/lecturer-reviews", {
             headers: { Authorization: `Bearer ${token}` },
           });
-          const userLecturerReviews = lecturerReviewsRes.data.filter(review => review.user === localStorage.getItem("userId"));
+          const userLecturerReviews = filterReviewsByUser(lecturerReviewsRes.data, userId);
+
           totalReviews += userLecturerReviews.length;
         } catch (error) {
           console.log("No lecturer reviews endpoint or error:", error);
@@ -161,6 +186,19 @@ const Dashboard = () => {
 
   const visibleCourses = allCourses.slice(courseCarouselIndex, courseCarouselIndex + 3);
   const visibleLecturers = lecturers.slice(lecturerCarouselIndex, lecturerCarouselIndex + 3);
+  const visibleTrackedCourses = trackedCourses.slice(trackedCarouselIndex, trackedCarouselIndex + 3);
+
+  const handleTrackedPrev = () => {
+    setTrackedCarouselIndex(prev =>
+      prev <= 0 ? Math.max(0, trackedCourses.length - 3) : prev - 1
+    );
+  };
+
+  const handleTrackedNext = () => {
+    setTrackedCarouselIndex(prev =>
+      prev >= trackedCourses.length - 3 ? 0 : prev + 1
+    );
+  };
 
   if (isLoading) {
     return <LoadingSpinner message="טוען נתונים" />;
@@ -170,16 +208,22 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50" dir="rtl">
       <WelcomeHeader userName={userName} />
       <div className="max-w-6xl mx-auto p-6 space-y-8">
-        <StatsCards 
+        <StatsCards
           stats={stats}
           allCoursesCount={allCourses.length}
           lecturersCount={lecturers.length}
         />
         <TrackedCoursesList
           trackedCourses={trackedCourses}
+          visibleCourses={visibleTrackedCourses}
+          carouselIndex={trackedCarouselIndex}
+          setCarouselIndex={setTrackedCarouselIndex}
+          onPrev={handleTrackedPrev}
+          onNext={handleTrackedNext}
           onCourseClick={handleTrackedCourseClick}
           formatLecturersDisplay={formatLecturersDisplay}
         />
+
         <CourseCarousel
           courses={allCourses}
           visibleCourses={visibleCourses}
