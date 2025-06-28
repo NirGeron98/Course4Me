@@ -8,9 +8,17 @@ dotenv.config();
 
 const app = express();
 
-// CORS configuration (dynamic based on env)
+// Allowed origins from env
+const allowedOrigins = process.env.CLIENT_URL?.split(",") || [];
+
 const corsOptions = {
-  origin: process.env.CLIENT_URL?.split(",") || ["http://localhost:3000"],
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
   optionsSuccessStatus: 200,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
@@ -23,6 +31,7 @@ const corsOptions = {
   ]
 };
 
+// Middleware
 app.use(cors(corsOptions));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
@@ -46,7 +55,7 @@ app.get("/", (req, res) => {
   });
 });
 
-// 404
+// 404 handler
 app.use((req, res) => {
   res.status(404).json({
     message: "נתיב לא נמצא",
@@ -55,8 +64,9 @@ app.use((req, res) => {
   });
 });
 
-// Error handler
+// Global error handler
 app.use((err, req, res, next) => {
+  console.error("❌ Error:", err.message);
   res.status(err.status || 500).json({
     message: err.message || "משהו השתבש!",
     ...(process.env.NODE_ENV !== "production" && {
@@ -68,7 +78,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// DB connect
+// DB connection
 mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
@@ -80,12 +90,13 @@ mongoose
     process.exit(1);
   });
 
-// Shutdown handler
+// Graceful shutdown
 process.on("SIGINT", async () => {
   await mongoose.connection.close();
   process.exit(0);
 });
 
+// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);

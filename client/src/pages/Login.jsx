@@ -4,7 +4,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, CheckCircle, AlertCircle, LogIn } from "lucide-react";
 
 const Login = ({ onLogin, user }) => {
-  console.log("API Base URL:", process.env.REACT_APP_API_BASE_URL);
 
   const navigate = useNavigate();
   const location = useLocation();
