@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { User, AlertCircle, Loader2, Star } from 'lucide-react';
+import { resolveLecturerBySlug } from '../utils/slugUtils';
 import LecturerReviewFormModal from '../components/lecturer-page/LecturerReviewFormModal';
 import LecturerHeader from '../components/lecturer-page/LecturerHeader';
 import LecturerReviewsSection from '../components/lecturer-page/LecturerReviewsSection';
@@ -71,30 +72,10 @@ const LecturerPage = ({ user }) => {
         const fetchLecturer = async () => {
             try {
                 setLecturerLoading(true);
-                
-                if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
-                    throw new Error('מזהה מרצה לא תקין');
-                }
+                setError(null);
 
-                const headers = {
-                    'Content-Type': 'application/json',
-                };
-
-                if (user?.token) {
-                    headers.Authorization = `Bearer ${user.token}`;
-                }
-
-                const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/lecturers/${id}`, {
-                    headers
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.message || 'שגיאה בטעינת המרצה');
-                }
-
-                const data = await response.json();
-                setLecturer(data);
+                const lecturerData = await resolveLecturerBySlug(id, user?.token);
+                setLecturer(lecturerData);
             } catch (err) {
                 console.error('Error fetching lecturer:', err);
                 setError(err.message);
@@ -114,13 +95,12 @@ const LecturerPage = ({ user }) => {
             try {
                 setReviewsLoading(true);
 
-                if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
-                    console.error('Invalid lecturer ID format:', id);
-                    setError('מזהה מרצה לא תקין');
+                if (!lecturer?._id) {
+                    setReviewsLoading(false);
                     return;
                 }
 
-                const reviewsUrl = `${process.env.REACT_APP_API_BASE_URL}/api/lecturer-reviews/lecturer/${id}`;
+                const reviewsUrl = `${process.env.REACT_APP_API_BASE_URL}/api/lecturer-reviews/lecturer/${lecturer._id}`;
 
                 const reviewsResponse = await fetch(reviewsUrl, {
                     method: 'GET',
@@ -158,10 +138,10 @@ const LecturerPage = ({ user }) => {
             }
         };
 
-        if (id) {
+        if (lecturer?._id) {
             fetchReviews();
         }
-    }, [id]);
+    }, [lecturer?._id]);
 
     // Fetch courses data
     useEffect(() => {
@@ -185,7 +165,7 @@ const LecturerPage = ({ user }) => {
                         const allCourses = await coursesResponse.json();
                         const lecturerCourses = allCourses.filter(course =>
                             course.lecturers &&
-                            course.lecturers.some(lec => lec._id === id)
+                            course.lecturers.some(lec => lec._id === lecturer._id)
                         );
                         setCourses(lecturerCourses);
                     } else {
@@ -206,10 +186,10 @@ const LecturerPage = ({ user }) => {
             }
         };
 
-        if (id) {
+        if (lecturer?._id) {
             fetchCourses();
         }
-    }, [id, user?.token]);
+    }, [lecturer?._id, user?.token]);
 
     const calculateStats = () => {
         if (!reviews.length) {
@@ -382,7 +362,7 @@ const LecturerPage = ({ user }) => {
                             onWriteReview={() => setShowReviewForm(true)}
                             onEditReview={handleEditReview}
                             user={user}
-                            lecturerId={id}
+                            lecturerId={lecturer?._id}
                             onReviewDeleted={handleReviewDeleted}
                         />
                     </div>
@@ -404,10 +384,10 @@ const LecturerPage = ({ user }) => {
                 </div>
             </div>
 
-            {showReviewForm && (
+            {showReviewForm && lecturer?._id && (
                 <LecturerReviewFormModal
-                    lecturerId={id}
-                    lecturerName={lecturer.name}
+                    lecturerId={lecturer?._id}
+                    lecturerName={lecturer?.name}
                     user={user}
                     existingReview={editingReview}
                     onClose={() => {

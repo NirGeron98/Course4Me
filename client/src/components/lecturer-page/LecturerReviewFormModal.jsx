@@ -301,7 +301,7 @@ const LecturerReviewFormModal = ({
           )}
 
           {!existingReview && (
-            <div className="mb-6">
+            <div className="mb-3">
               <label className="block text-gray-700 font-medium mb-2 flex items-center gap-2">
                 <Award className="w-5 h-5 text-purple-500" />
                 בחר קורס *
@@ -368,7 +368,7 @@ const LecturerReviewFormModal = ({
                 setFormData({ ...formData, comment: e.target.value })
               }
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-              rows="4"
+              rows="2"
               placeholder="שתף את החוויה שלך מהמרצה..."
             />
           </div>

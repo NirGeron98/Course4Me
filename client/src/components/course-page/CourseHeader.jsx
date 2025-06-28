@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, Hash, Award, Building, BookMarked, Users, Star, X } from 'lucide-react';
+import { createLecturerSlug } from '../../utils/slugUtils';
 
 const CourseHeader = ({ course, stats }) => {
     const [showAllLecturers, setShowAllLecturers] = useState(false);
@@ -53,61 +54,68 @@ const CourseHeader = ({ course, stats }) => {
             <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800"></div>
 
             <div className="relative max-w-7xl mx-auto px-6 py-12">
-                <div className="flex flex-col items-center lg:flex-row lg:items-start gap-6 sm:gap-10 text-center lg:text-right">
+                {/* Course Name and Icon - Centered at top */}
+                <div className="flex items-center justify-center gap-4 mb-8">
+                    <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl p-3 shadow-lg">
+                        <BookOpen className="w-8 h-8 text-white" />
+                    </div>
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight">
+                        {course.title}
+                    </h1>
+                </div>
 
-                    <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-center lg:justify-start gap-3 mb-4">
-                            <div className="bg-white/20 p-2 rounded-xl">
-                                <BookOpen className="w-6 h-6 text-white" />
-                            </div>
-                            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight">
-                                {course.title}
-                            </h1>
-                        </div>
-
-
-                        <div className="flex flex-wrap gap-2 mb-6 justify-center lg:justify-start text-sm sm:text-base">
-                            <div className="bg-white/25 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
+                {/* Content below - course details with rating on the side */}
+                <div className="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-8">
+                    {/* Course Details - Centered */}
+                    <div className="flex flex-col items-center text-center flex-1">
+                        {/* Course Meta - Compact Pills */}
+                        <div className="flex flex-wrap gap-2 mb-6 justify-center">
+                            <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
                                 <Hash className="w-3.5 h-3.5" />
                                 {course.courseNumber}
                             </div>
-                            <div className="bg-white/25 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
+                            <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
                                 <Award className="w-3.5 h-3.5" />
                                 {course.credits} נק"ז
                             </div>
-                            <div className="bg-white/25 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
+                            <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
                                 <Building className="w-3.5 h-3.5" />
                                 {course.academicInstitution}
                             </div>
                             {course.department && (
-                                <div className="bg-white/25 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
+                                <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
                                     <BookMarked className="w-3.5 h-3.5" />
                                     {course.department}
                                 </div>
                             )}
                         </div>
 
+                        {/* Lecturers Section - Centered */}
                         {lecturersToShow.length > 0 && (
                             <div className="mb-6">
                                 <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-xl p-4 shadow-lg">
-                                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4 text-sm sm:text-base">
-                                        <div className="flex items-center gap-2 text-white font-semibold whitespace-nowrap">
+                                    <div className="flex flex-col items-center gap-4">
+                                        {/* Lecturers Label */}
+                                        <div className="flex items-center gap-2 text-white font-semibold">
                                             <Users className="w-4 h-4" />
                                             <span>{course.lecturers.length > 1 ? 'מרצים:' : 'מרצה:'}</span>
                                         </div>
 
-                                        <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
-                                            {lecturersToShow.map((lecturer, index) => (
-                                                <Link
-                                                    key={index}
-                                                    to={`/lecturer/${lecturer._id}`}
-                                                    className="bg-white/20 rounded-lg px-4 py-2 hover:bg-white/30 hover:scale-105 transition-all"
-                                                >
-                                                    <span className="text-white font-medium">
-                                                        {lecturer.name}
-                                                    </span>
-                                                </Link>
-                                            ))}
+                                        {/* Lecturers Grid */}
+                                        <div className="flex flex-col gap-3 items-center">
+                                            <div className="flex flex-wrap gap-3 justify-center max-w-2xl">
+                                                {lecturersToShow.map((lecturer, index) => (
+                                                    <Link
+                                                        key={index}
+                                                        to={`/lecturer/${createLecturerSlug(lecturer)}`}
+                                                        className="bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-2 hover:bg-white/30 hover:scale-105 transition-all duration-200 group cursor-pointer"
+                                                    >
+                                                        <span className="text-white font-medium group-hover:text-white/90">
+                                                            {lecturer.name}
+                                                        </span>
+                                                    </Link>
+                                                ))}
+                                            </div>
 
                                             {remainingLecturers > 0 && (
                                                 <button
@@ -126,8 +134,9 @@ const CourseHeader = ({ course, stats }) => {
                         )}
                     </div>
 
+                    {/* Rating Section - On the left side */}
                     {displayRating && (
-                        <div className="w-full sm:w-auto mt-6 lg:mt-0 flex justify-center lg:justify-start">
+                        <div className="flex-shrink-0 order-first lg:order-last">
                             <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl p-6 shadow-lg">
                                 <div className="text-center">
                                     <div className="text-3xl font-bold text-white mb-3">
@@ -170,7 +179,7 @@ const CourseHeader = ({ course, stats }) => {
                                 {course.lecturers?.map((lecturer, index) => (
                                     <Link
                                         key={index}
-                                        to={`/lecturer/${lecturer._id}`}
+                                        to={`/lecturer/${createLecturerSlug(lecturer)}`}
                                         onClick={() => setShowAllLecturers(false)}
                                         className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-4 hover:shadow-lg hover:scale-105 transition-all duration-200 group"
                                     >

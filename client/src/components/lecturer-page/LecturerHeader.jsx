@@ -36,6 +36,14 @@ const LecturerHeader = ({ lecturer, courses, reviews = [], renderStars }) => {
     const coursesToShow = courses.slice(0, maxCoursesToShow);
     const remainingCourses = courses.length > maxCoursesToShow ? courses.length - maxCoursesToShow : 0;
 
+    // Determine grid columns based on number of courses to show
+    const getGridCols = (count) => {
+        if (count === 1) return 'grid-cols-1 max-w-sm mx-auto';
+        if (count === 2) return 'grid-cols-1 sm:grid-cols-2 max-w-lg mx-auto';
+        if (count === 3) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-2xl mx-auto';
+        return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 max-w-4xl mx-auto';
+    };
+
     return (
         <div className="relative overflow-hidden">
             {/* Background gradient */}
@@ -80,8 +88,8 @@ const LecturerHeader = ({ lecturer, courses, reviews = [], renderStars }) => {
 
                         {/* Courses Section - Centered */}
                         {coursesToShow.length > 0 && (
-                            <div className="mb-6">
-                                <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-xl p-4 shadow-lg">
+                            <div className="mb-6 w-full">
+                                <div className={`bg-white/15 backdrop-blur-md border border-white/20 rounded-xl p-4 shadow-lg w-full ${getGridCols(coursesToShow.length)}`}>
                                     <div className="flex flex-col items-center gap-4">
                                         {/* Courses Label */}
                                         <div className="flex items-center gap-2 text-white font-semibold">
@@ -89,19 +97,19 @@ const LecturerHeader = ({ lecturer, courses, reviews = [], renderStars }) => {
                                             <span>קורסים:</span>
                                         </div>
 
-                                        {/* Courses Grid */}
-                                        <div className="flex flex-col gap-3 items-center">
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl">
+                                        {/* Courses Grid - Always centered */}
+                                        <div className="flex flex-col gap-3 items-center w-full">
+                                            <div className={`grid gap-3 w-full ${getGridCols(coursesToShow.length)}`}>
                                                 {coursesToShow.map((course) => (
                                                     <Link
                                                         key={course._id}
                                                         to={`/course/${course._id}`}
-                                                        className="bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3 hover:bg-white/30 hover:scale-105 transition-all duration-200 group cursor-pointer"
+                                                        className="bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3 hover:bg-white/30 hover:scale-105 transition-all duration-200 group cursor-pointer w-full"
                                                     >
-                                                        <div className="font-semibold text-white text-sm mb-1 group-hover:text-white/90">
+                                                        <div className="font-semibold text-white text-sm mb-1 group-hover:text-white/90 text-center">
                                                             {course.title}
                                                         </div>
-                                                        <div className="text-white/80 text-xs group-hover:text-white/70 flex items-center gap-2">
+                                                        <div className="text-white/80 text-xs group-hover:text-white/70 flex items-center justify-center gap-2 flex-wrap">
                                                             <span className="flex items-center gap-1">
                                                                 <Hash className="w-3 h-3" />
                                                                 {course.courseNumber}
@@ -119,7 +127,7 @@ const LecturerHeader = ({ lecturer, courses, reviews = [], renderStars }) => {
                                             {remainingCourses > 0 && (
                                                 <button
                                                     onClick={() => setShowAllCourses(true)}
-                                                    className="bg-purple-500/80 backdrop-blur-md border border-purple-400/50 rounded-lg px-4 py-2 shadow-lg hover:bg-purple-400/80 hover:scale-105 transition-all cursor-pointer"
+                                                    className="bg-purple-500/80 backdrop-blur-md border border-purple-400/50 rounded-lg px-4 py-2 shadow-lg hover:bg-purple-400/80 hover:scale-105 transition-all cursor-pointer mt-2"
                                                 >
                                                     <span className="text-white font-semibold text-sm">
                                                         +{remainingCourses} קורסים נוספים
