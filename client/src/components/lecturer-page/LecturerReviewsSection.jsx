@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { MessageCircle, Star, Plus, Loader2, User, Filter, SortAsc } from 'lucide-react';
+import { MessageCircle, Star, Plus, Loader2, User, Filter, SortAsc, Shield } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen, faTrash } from '@fortawesome/free-solid-svg-icons';
-import ExistingReviewModal from '../common/ExistingReviewModal'; 
+import ExistingReviewModal from '../common/ExistingReviewModal';
+import DeleteConfirmationModal from '../common/DeleteConfirmationModal'; 
 
 const LecturerReviewsSection = ({
     reviews,
@@ -16,10 +17,16 @@ const LecturerReviewsSection = ({
     onWriteReview,
     onEditReview,
     user,
-    lecturerId 
+    lecturerId,
+    onReviewDeleted 
 }) => {
     const [showExistingReviewModal, setShowExistingReviewModal] = useState(false);
     const [userExistingReview, setUserExistingReview] = useState(null);
+    
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [reviewToDelete, setReviewToDelete] = useState(null);
+
+    const isAdmin = user?.user?.role === 'admin';
 
     const checkForExistingReview = () => {
         if (!user?.user) return null;
@@ -55,11 +62,16 @@ const LecturerReviewsSection = ({
         setUserExistingReview(null);
     };
 
-    const handleDeleteReview = async (reviewId) => {
-        if (!window.confirm("האם אתה בטוח שברצונך למחוק את הביקורת?")) return;
+    const handleDeleteClick = (review) => {
+        setReviewToDelete(review);
+        setShowDeleteModal(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!reviewToDelete) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/lecturer-reviews/${reviewId}`, {
+            const response = await fetch(`http://localhost:5000/api/lecturer-reviews/${reviewToDelete._id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${user.token}`
@@ -68,11 +80,30 @@ const LecturerReviewsSection = ({
 
             if (!response.ok) throw new Error("שגיאה במחיקת הביקורת");
 
-            // Refresh reviews after deletion
-            window.location.reload(); // Simple refresh - you can implement a better state update
+            if (onReviewDeleted) {
+                onReviewDeleted(reviewToDelete._id);
+            } else {
+                window.location.reload(); // fallback
+            }
+            
+            setShowDeleteModal(false);
+            setReviewToDelete(null);
         } catch (error) {
             alert(error.message);
         }
+    };
+
+    const handleCancelDelete = () => {
+        setShowDeleteModal(false);
+        setReviewToDelete(null);
+    };
+
+    const canEditReview = (review) => {
+        return review.user && user?.user && review.user._id === user.user._id;
+    };
+
+    const canDeleteReview = (review) => {
+        return isAdmin || canEditReview(review);
     };
 
     const renderStars = (rating, size = 'w-4 h-4') => {
@@ -115,6 +146,12 @@ const LecturerReviewsSection = ({
                     <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
                         <MessageCircle className="w-6 h-6 text-purple-500" />
                         ביקורות סטודנטים ({reviews.length})
+                        {isAdmin && (
+                            <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full flex items-center gap-1">
+                                <Shield className="w-3 h-3" />
+                                אדמין
+                            </span>
+                        )}
                     </h2>
 
                     {user && (
@@ -216,8 +253,8 @@ const LecturerReviewsSection = ({
                                                 </span>
                                             </div>
                                         </div>
-                                        {review.user && user?.user && review.user._id === user.user._id && (
-                                            <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-3">
+                                            {canEditReview(review) && (
                                                 <button
                                                     onClick={() => onEditReview(review)}
                                                     className="text-purple-500 hover:text-purple-600"
@@ -225,16 +262,18 @@ const LecturerReviewsSection = ({
                                                 >
                                                     <FontAwesomeIcon icon={faPen} className="h-5 w-5" />
                                                 </button>
+                                            )}
 
+                                            {canDeleteReview(review) && (
                                                 <button
-                                                    onClick={() => handleDeleteReview(review._id)}
+                                                    onClick={() => handleDeleteClick(review)}
                                                     className="text-red-500 hover:text-red-600"
-                                                    title="מחק ביקורת"
+                                                    title={isAdmin && !canEditReview(review) ? "מחק ביקורת (אדמין)" : "מחק ביקורת"}
                                                 >
                                                     <FontAwesomeIcon icon={faTrash} className="h-5 w-5" />
                                                 </button>
-                                            </div>
-                                        )}
+                                            )}
+                                        </div>
                                     </div>
 
                                     {/* Rating Details */}
@@ -285,6 +324,21 @@ const LecturerReviewsSection = ({
                     onEdit={handleEditExistingReview}
                     onCancel={handleCancelExistingReview}
                     reviewType="lecturer"
+                />
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && reviewToDelete && (
+                <DeleteConfirmationModal
+                    isOpen={showDeleteModal}
+                    onConfirm={handleConfirmDelete}
+                    onCancel={handleCancelDelete}
+                    title="מחיקת ביקורת מרצה"
+                    message={
+                        isAdmin && !canEditReview(reviewToDelete)
+                            ? `האם אתה בטוח שברצונך למחוק את הביקורת של ${reviewToDelete.user?.fullName || 'משתמש אנונימי'} על הקורס ${reviewToDelete.course?.title || 'לא ידוע'}? פעולה זו אינה ניתנת לביטול.`
+                            : "האם אתה בטוח שברצונך למחוק את הביקורת? פעולה זו אינה ניתנת לביטול."
+                    }
                 />
             )}
         </>

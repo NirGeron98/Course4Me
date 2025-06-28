@@ -19,7 +19,7 @@ const CourseStatisticsCard = ({ stats }) => {
                 <div className="flex-1">
                     <div className="flex justify-between">
                         <span className="text-gray-600">{label}</span>
-                        <span className={`font-bold text-${color}`}>{value}</span>
+                        <span className={`font-bold text-${color}`}>{parseFloat(value).toFixed(1)}/5.0</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
                         <div

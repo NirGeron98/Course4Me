@@ -61,7 +61,7 @@ const TrackedCourseCard = ({ course, onRemove, onViewDetails }) => {
                         </div>
                     )}
                 </div>
-                
+
                 {/* Remove Button */}
                 <button
                     onClick={(e) => {
@@ -81,7 +81,7 @@ const TrackedCourseCard = ({ course, onRemove, onViewDetails }) => {
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-medium text-gray-700">דירוג</span>
                         <span className="text-lg font-bold text-yellow-600">
-                            {course.averageRating}/5.0
+                            {course.averageRating.toFixed(1)}/5.0
                         </span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -103,8 +103,8 @@ const TrackedCourseCard = ({ course, onRemove, onViewDetails }) => {
             {course.description && (
                 <div className="mb-4">
                     <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed">
-                        {course.description.length > 100 
-                            ? course.description.substring(0, 100) + "..." 
+                        {course.description.length > 100
+                            ? course.description.substring(0, 100) + "..."
                             : course.description}
                     </p>
                 </div>
@@ -116,7 +116,7 @@ const TrackedCourseCard = ({ course, onRemove, onViewDetails }) => {
                     <Eye className="w-4 h-4" />
                     צפה בפרטים
                 </button>
-                
+
                 {/* Additional Info */}
                 <div className="text-xs text-gray-500">
                     {course.academicInstitution || 'מכללת אפקה'}

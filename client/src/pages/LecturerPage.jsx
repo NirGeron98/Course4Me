@@ -14,12 +14,20 @@ const LecturerPage = ({ user }) => {
     const [reviews, setReviews] = useState([]);
     const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [lecturerLoading, setLecturerLoading] = useState(true);
     const [reviewsLoading, setReviewsLoading] = useState(true);
+    const [coursesLoading, setCoursesLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showReviewForm, setShowReviewForm] = useState(false);
     const [editingReview, setEditingReview] = useState(null);
     const [filterCourse, setFilterCourse] = useState('all');
     const [sortBy, setSortBy] = useState('newest');
+
+    // Check if all components are ready
+    useEffect(() => {
+        const allDataLoaded = !lecturerLoading && !reviewsLoading && !coursesLoading;
+        setLoading(!allDataLoaded);
+    }, [lecturerLoading, reviewsLoading, coursesLoading]);
 
     const refreshLecturerRating = async () => {
         try {
@@ -44,10 +52,12 @@ const LecturerPage = ({ user }) => {
         await refreshLecturerRating();
     };
 
+    // Fetch lecturer data
     useEffect(() => {
         const fetchLecturer = async () => {
-
             try {
+                setLecturerLoading(true);
+                
                 if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
                     throw new Error('מזהה מרצה לא תקין');
                 }
@@ -59,7 +69,6 @@ const LecturerPage = ({ user }) => {
                 if (user?.token) {
                     headers.Authorization = `Bearer ${user.token}`;
                 }
-
 
                 const response = await fetch(`http://localhost:5000/api/lecturers/${id}`, {
                     headers
@@ -76,7 +85,7 @@ const LecturerPage = ({ user }) => {
                 console.error('Error fetching lecturer:', err);
                 setError(err.message);
             } finally {
-                setLoading(false);
+                setLecturerLoading(false);
             }
         };
 
@@ -85,8 +94,9 @@ const LecturerPage = ({ user }) => {
         }
     }, [id, user?.token]);
 
+    // Fetch reviews data
     useEffect(() => {
-        const fetchReviewsAndCourses = async () => {
+        const fetchReviews = async () => {
             try {
                 setReviewsLoading(true);
 
@@ -123,6 +133,27 @@ const LecturerPage = ({ user }) => {
 
                     setReviews([]);
                 }
+            } catch (err) {
+                console.error('=== Error in fetchReviews ===');
+                console.error('Error type:', err.constructor.name);
+                console.error('Error message:', err.message);
+                console.error('Error stack:', err.stack);
+                setReviews([]);
+            } finally {
+                setReviewsLoading(false);
+            }
+        };
+
+        if (id) {
+            fetchReviews();
+        }
+    }, [id]);
+
+    // Fetch courses data
+    useEffect(() => {
+        const fetchCourses = async () => {
+            try {
+                setCoursesLoading(true);
 
                 if (user?.token) {
                     const coursesResponse = await fetch(
@@ -150,20 +181,19 @@ const LecturerPage = ({ user }) => {
                 } else {
                     setCourses([]);
                 }
-
             } catch (err) {
-                console.error('=== Error in fetchReviewsAndCourses ===');
+                console.error('=== Error in fetchCourses ===');
                 console.error('Error type:', err.constructor.name);
                 console.error('Error message:', err.message);
                 console.error('Error stack:', err.stack);
-                setReviews([]);
+                setCourses([]);
             } finally {
-                setReviewsLoading(false);
+                setCoursesLoading(false);
             }
         };
 
         if (id) {
-            fetchReviewsAndCourses();
+            fetchCourses();
         }
     }, [id, user?.token]);
 
@@ -228,7 +258,6 @@ const LecturerPage = ({ user }) => {
     };
 
     const handleReviewSubmitted = async (review) => {
-
         if (editingReview) {
             setReviews(prev => prev.map(r => r._id === review._id ? review : r));
             setEditingReview(null);
@@ -267,12 +296,15 @@ const LecturerPage = ({ user }) => {
         return stars;
     };
 
+    // Show loading screen until all data is ready
     if (loading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100 flex items-center justify-center">
                 <div className="text-center">
-                    <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
-                    <p className="text-gray-600">טוען מידע על המרצה...</p>
+                    <Loader2 className="w-16 h-16 text-purple-500 animate-spin mx-auto mb-6" />
+                    <div className="space-y-3">
+                        <h2 className="text-xl font-semibold text-gray-700">טוען מידע על המרצה</h2>
+                    </div>
                 </div>
             </div>
         );
@@ -324,7 +356,6 @@ const LecturerPage = ({ user }) => {
             <div className="max-w-7xl mx-auto px-4 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 space-y-6">
-
                         <LecturerReviewsSection
                             reviews={reviews}
                             courses={courses}
@@ -333,7 +364,7 @@ const LecturerPage = ({ user }) => {
                             sortBy={sortBy}
                             setSortBy={setSortBy}
                             filteredReviews={filteredReviews}
-                            reviewsLoading={reviewsLoading}
+                            reviewsLoading={false} // Always false since we wait for all data
                             onWriteReview={() => setShowReviewForm(true)}
                             onEditReview={handleEditReview}
                             user={user}
@@ -355,7 +386,6 @@ const LecturerPage = ({ user }) => {
                             reviews={reviews}
                             onEditReview={handleEditReview}
                         />
-
                     </div>
                 </div>
             </div>

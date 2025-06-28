@@ -4,6 +4,7 @@ import ExistingReviewModal from '../common/ExistingReviewModal';
 
 const LecturerQuickActions = ({ onShowReviewForm, lecturerId, lecturerName, user, reviews, onEditReview }) => {
     const [isFollowing, setIsFollowing] = useState(false);
+    const [followStatusLoading, setFollowStatusLoading] = useState(!!user?.token); // Start loading immediately if user is logged in
     const [isLoading, setIsLoading] = useState(false);
     const [copySuccess, setCopySuccess] = useState(false);
     const [showExistingReviewModal, setShowExistingReviewModal] = useState(false);
@@ -11,9 +12,13 @@ const LecturerQuickActions = ({ onShowReviewForm, lecturerId, lecturerName, user
 
     useEffect(() => {
         const checkFollowStatus = async () => {
-            if (!user?.token || !lecturerId) return;
+            if (!user?.token || !lecturerId) {
+                setFollowStatusLoading(false);
+                return;
+            }
 
             try {
+                setFollowStatusLoading(true);
                 const response = await fetch(`http://localhost:5000/api/tracked-lecturers`, {
                     headers: {
                         'Authorization': `Bearer ${user.token}`,
@@ -27,6 +32,8 @@ const LecturerQuickActions = ({ onShowReviewForm, lecturerId, lecturerName, user
                 }
             } catch (error) {
                 console.error('Error checking follow status:', error);
+            } finally {
+                setFollowStatusLoading(false);
             }
         };
 
@@ -38,7 +45,6 @@ const LecturerQuickActions = ({ onShowReviewForm, lecturerId, lecturerName, user
             return null;
         }
     
-        
         const existingReview = reviews.find(review => 
             review.user && review.user._id === user.user._id
         );
@@ -47,7 +53,6 @@ const LecturerQuickActions = ({ onShowReviewForm, lecturerId, lecturerName, user
     };
 
     const handleReviewClick = () => {
-        
         if (!user) {
             alert('יש להתחבר כדי לכתוב ביקורת');
             return;
@@ -115,7 +120,6 @@ const LecturerQuickActions = ({ onShowReviewForm, lecturerId, lecturerName, user
             setIsLoading(false);
         }
     };
-    
 
     const handleShare = async () => {
         const currentUrl = window.location.href;
@@ -145,7 +149,16 @@ const LecturerQuickActions = ({ onShowReviewForm, lecturerId, lecturerName, user
                 <div className="space-y-3">
                     {user && (
                         <>
-                            {!isFollowing && (
+                            {/* Follow/Unfollow Button */}
+                            {followStatusLoading ? (
+                                <button 
+                                    disabled
+                                    className="w-full bg-gray-300 text-gray-500 py-3 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-not-allowed"
+                                >
+                                    <div className="w-5 h-5 border-2 border-gray-500 border-t-transparent rounded-full animate-spin"></div>
+                                    בודק סטטוס מעקב...
+                                </button>
+                            ) : !isFollowing ? (
                                 <button 
                                     onClick={handleFollowToggle}
                                     disabled={isLoading}
@@ -163,9 +176,7 @@ const LecturerQuickActions = ({ onShowReviewForm, lecturerId, lecturerName, user
                                         </>
                                     )}
                                 </button>
-                            )}
-
-                            {isFollowing && (
+                            ) : (
                                 <button 
                                     onClick={handleFollowToggle}
                                     disabled={isLoading}

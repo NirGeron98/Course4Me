@@ -167,33 +167,61 @@ const LecturerReviewFormModal = ({
     }
   };
 
-  const renderRatingInput = (label, field, icon, color) => (
-    <div>
-      <label className="block text-gray-700 font-medium mb-2 flex items-center gap-2">
-        {icon}
-        {label}
-      </label>
-      <div className="flex items-center gap-2">
-        {[1, 2, 3, 4, 5].map((value) => (
-          <button
-            key={value}
-            type="button"
-            onClick={() => setFormData({ ...formData, [field]: value })}
-            className={`w-10 h-10 rounded-full border-2 font-bold transition-all ${
-              formData[field] >= value
-                ? `bg-${color}-500 border-${color}-500 text-white`
-                : `border-gray-300 text-${color}-500 hover:border-${color}-300`
-            }`}
-          >
-            {value}
-          </button>
-        ))}
-        <span className="mr-3 text-gray-600 font-medium">
-          {formData[field]}/5.0
-        </span>
+  const renderRatingInput = (label, field, icon, colorType) => {
+    // Define color classes for each type
+    const colorClasses = {
+      blue: {
+        selected: 'bg-blue-500 border-blue-500 text-white',
+        unselected: 'border-gray-300 text-blue-500 hover:border-blue-300'
+      },
+      green: {
+        selected: 'bg-green-500 border-green-500 text-white',
+        unselected: 'border-gray-300 text-green-500 hover:border-green-300'
+      },
+      orange: {
+        selected: 'bg-orange-500 border-orange-500 text-white',
+        unselected: 'border-gray-300 text-orange-500 hover:border-orange-300'
+      },
+      red: {
+        selected: 'bg-red-500 border-red-500 text-white',
+        unselected: 'border-gray-300 text-red-500 hover:border-red-300'
+      },
+      yellow: {
+        selected: 'bg-yellow-500 border-yellow-500 text-white',
+        unselected: 'border-gray-300 text-yellow-500 hover:border-yellow-300'
+      }
+    };
+
+    const colors = colorClasses[colorType];
+
+    return (
+      <div>
+        <label className="block text-gray-700 font-medium mb-2 flex items-center gap-2">
+          {icon}
+          {label}
+        </label>
+        <div className="flex items-center gap-2">
+          {[1, 2, 3, 4, 5].map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setFormData({ ...formData, [field]: value })}
+              className={`w-10 h-10 rounded-full border-2 font-bold transition-all ${
+                formData[field] >= value
+                  ? colors.selected
+                  : colors.unselected
+              }`}
+            >
+              {value}
+            </button>
+          ))}
+          <span className="mr-3 text-gray-600 font-medium">
+            {formData[field]}/5.0
+          </span>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4" dir="rtl">
