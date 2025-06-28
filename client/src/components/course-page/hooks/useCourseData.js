@@ -8,7 +8,7 @@ export const useCourseData = (courseId, token) => {
     useEffect(() => {
         const fetchCourse = async () => {
             try {
-                const response = await fetch(`http://localhost:5000/api/courses/${courseId}`, {
+                const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/courses/${courseId}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',

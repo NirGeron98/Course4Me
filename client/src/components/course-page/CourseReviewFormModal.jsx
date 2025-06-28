@@ -58,7 +58,7 @@ const CourseReviewFormModal = ({
         const fetchData = async () => {
             try {
                 // Fetch course lecturers
-                const courseResponse = await fetch(`http://localhost:5000/api/courses/${courseId}`, {
+                const courseResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/courses/${courseId}`, {
                     headers: {
                         'Authorization': `Bearer ${user.token}`,
                         'Content-Type': 'application/json',
@@ -73,7 +73,7 @@ const CourseReviewFormModal = ({
                 }
 
                 // Fetch existing reviews for this course to check for duplicates
-                const reviewsResponse = await fetch(`http://localhost:5000/api/reviews/course/${courseId}`, {
+                const reviewsResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/reviews/course/${courseId}`, {
                     headers: {
                         'Authorization': `Bearer ${user.token}`,
                         'Content-Type': 'application/json',
@@ -142,8 +142,8 @@ const CourseReviewFormModal = ({
 
         try {
             const url = existingReview
-                ? `http://localhost:5000/api/reviews/${existingReview._id}`
-                : 'http://localhost:5000/api/reviews';
+                ? `${process.env.REACT_APP_API_BASE_URL}/api/reviews/${existingReview._id}`
+                : `${process.env.REACT_APP_API_BASE_URL}/api/reviews`;
 
             const method = existingReview ? 'PUT' : 'POST';
 

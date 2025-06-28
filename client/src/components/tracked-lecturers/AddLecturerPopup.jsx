@@ -21,10 +21,10 @@ const AddLecturerPopup = ({ onClose, onLecturerAdded }) => {
         
         // Fetch all lecturers and tracked lecturers in parallel
         const [lecturersRes, trackedRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/lecturers", {
+          axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/lecturers`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get("http://localhost:5000/api/tracked-lecturers", {
+          axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-lecturers`, {
             headers: { Authorization: `Bearer ${token}` },
           })
         ]);
@@ -72,7 +72,7 @@ const AddLecturerPopup = ({ onClose, onLecturerAdded }) => {
       setIsAdding(lecturerId);
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:5000/api/tracked-lecturers",
+        `${process.env.REACT_APP_API_BASE_URL}/api/tracked-lecturers`,
         { lecturerId },
         { headers: { Authorization: `Bearer ${token}` } }
       );

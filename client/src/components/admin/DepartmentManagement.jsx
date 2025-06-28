@@ -19,7 +19,7 @@ const DepartmentManagement = ({ onMessage, onError }) => {
 
   const fetchDepartments = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/departments");
+      const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/departments`);
       setDepartments(res.data);
     } catch (err) {
       onError("שגיאה בטעינת המחלקות");
@@ -91,14 +91,14 @@ const DepartmentManagement = ({ onMessage, onError }) => {
 
       if (isEditing) {
         await axios.put(
-          `http://localhost:5000/api/departments/${editId}`,
+          `${process.env.REACT_APP_API_BASE_URL}/api/departments/${editId}`,
           formData,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         onMessage("מחלקה עודכנה בהצלחה!");
       } else {
         await axios.post(
-          "http://localhost:5000/api/departments",
+          `${process.env.REACT_APP_API_BASE_URL}/api/departments`,
           formData,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -132,7 +132,7 @@ const DepartmentManagement = ({ onMessage, onError }) => {
     if (!window.confirm("האם למחוק את המחלקה הזו?")) return;
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5000/api/departments/${id}`, {
+      await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/departments/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       onMessage("המחלקה נמחקה בהצלחה!");

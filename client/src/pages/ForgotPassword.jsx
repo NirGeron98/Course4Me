@@ -37,7 +37,7 @@ const ForgotPassword = () => {
 
         try {
             // eslint-disable-next-line no-unused-vars
-            const res = await axios.post("http://localhost:5000/api/auth/forgot-password", {
+            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/auth/forgot-password`, {
                 email: formData.email
             });
             setMessage("קוד אימות נשלח לאימייל שלך");
@@ -56,7 +56,7 @@ const ForgotPassword = () => {
 
         try {
             // eslint-disable-next-line no-unused-vars
-            const res = await axios.post("http://localhost:5000/api/auth/verify-reset-code", {
+            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/auth/verify-reset-code`, {
                 email: formData.email,
                 code: formData.verificationCode
             });
@@ -90,7 +90,7 @@ const ForgotPassword = () => {
 
         try {
             // eslint-disable-next-line no-unused-vars
-            const res = await axios.post("http://localhost:5000/api/auth/reset-password", {
+            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/auth/reset-password`, {
                 email: formData.email,
                 code: formData.verificationCode,
                 newPassword: formData.newPassword

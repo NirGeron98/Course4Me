@@ -31,7 +31,7 @@ const LecturerPage = ({ user }) => {
 
     const refreshLecturerRating = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/api/lecturers/${id}`, {
+            const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/lecturers/${id}`, {
                 headers: {
                     'Content-Type': 'application/json',
                     ...(user?.token && { 'Authorization': `Bearer ${user.token}` })
@@ -70,7 +70,7 @@ const LecturerPage = ({ user }) => {
                     headers.Authorization = `Bearer ${user.token}`;
                 }
 
-                const response = await fetch(`http://localhost:5000/api/lecturers/${id}`, {
+                const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/lecturers/${id}`, {
                     headers
                 });
 
@@ -106,7 +106,7 @@ const LecturerPage = ({ user }) => {
                     return;
                 }
 
-                const reviewsUrl = `http://localhost:5000/api/lecturer-reviews/lecturer/${id}`;
+                const reviewsUrl = `${process.env.REACT_APP_API_BASE_URL}/api/lecturer-reviews/lecturer/${id}`;
 
                 const reviewsResponse = await fetch(reviewsUrl, {
                     method: 'GET',
@@ -157,7 +157,7 @@ const LecturerPage = ({ user }) => {
 
                 if (user?.token) {
                     const coursesResponse = await fetch(
-                        'http://localhost:5000/api/courses',
+                        `${process.env.REACT_APP_API_BASE_URL}/api/courses`,
                         {
                             method: 'GET',
                             headers: {

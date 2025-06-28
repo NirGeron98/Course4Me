@@ -17,7 +17,7 @@ const AdminPanel = ({ user }) => {
     const fetchLecturers = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get("http://localhost:5000/api/lecturers", {
+        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/lecturers`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setLecturers(response.data);

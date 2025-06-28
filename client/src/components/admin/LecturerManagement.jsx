@@ -41,7 +41,7 @@ const LecturerManagement = ({ onMessage, onError, onLecturersUpdate }) => {
 
   const fetchDepartments = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/departments");
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/departments`);
       setDepartments(response.data);
     } catch (err) {
       console.error("Error fetching departments:", err);
@@ -62,7 +62,7 @@ const LecturerManagement = ({ onMessage, onError, onLecturersUpdate }) => {
   const fetchLecturers = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:5000/api/lecturers", {
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/lecturers`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setLecturers(response.data);
@@ -114,7 +114,7 @@ const LecturerManagement = ({ onMessage, onError, onLecturersUpdate }) => {
 
       if (isEditing) {
         await axios.put(
-          `http://localhost:5000/api/lecturers/${editId}`,
+          `${process.env.REACT_APP_API_BASE_URL}/api/lecturers/${editId}`,
           lecturerForm,
           {
             headers: {
@@ -126,7 +126,7 @@ const LecturerManagement = ({ onMessage, onError, onLecturersUpdate }) => {
         setPopupType("success");
         onMessage("מרצה עודכן בהצלחה!");
       } else {
-        await axios.post("http://localhost:5000/api/lecturers", lecturerForm, {
+        await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/lecturers`, lecturerForm, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -232,7 +232,7 @@ const LecturerManagement = ({ onMessage, onError, onLecturersUpdate }) => {
   const handleDeleteLecturer = async () => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5000/api/lecturers/${lecturerToDelete._id}`, {
+      await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/lecturers/${lecturerToDelete._id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setPopupType("success");

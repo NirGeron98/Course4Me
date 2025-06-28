@@ -84,15 +84,15 @@ const Dashboard = () => {
         const userFullName = localStorage.getItem("userFullName") || "User";
         setUserName(userFullName);
 
-        const trackedRes = await axios.get("http://localhost:5000/api/tracked-courses", {
+        const trackedRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-courses`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setTrackedCourses(trackedRes.data);
 
-        const coursesRes = await axios.get("http://localhost:5000/api/courses");
+        const coursesRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/courses`);
         setAllCourses(coursesRes.data);
 
-        const lecturersRes = await axios.get("http://localhost:5000/api/lecturers", {
+        const lecturersRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/lecturers`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setLecturers(lecturersRes.data);
@@ -100,7 +100,7 @@ const Dashboard = () => {
         let totalReviews = 0;
 
         try {
-          const courseReviewsRes = await axios.get("http://localhost:5000/api/reviews", {
+          const courseReviewsRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/reviews`, {
             headers: { Authorization: `Bearer ${token}` },
           });
 
@@ -113,7 +113,7 @@ const Dashboard = () => {
 
 
         try {
-          const lecturerReviewsRes = await axios.get("http://localhost:5000/api/lecturer-reviews", {
+          const lecturerReviewsRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/lecturer-reviews`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           const userLecturerReviews = filterReviewsByUser(lecturerReviewsRes.data, userId);

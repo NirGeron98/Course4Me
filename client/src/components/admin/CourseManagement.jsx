@@ -52,7 +52,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
 
     const fetchCourses = async () => {
         try {
-            const response = await axios.get("http://localhost:5000/api/courses");
+            const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/courses`);
             setCourses(response.data);
             setFilteredCourses(response.data);
         } catch (err) {
@@ -91,12 +91,12 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
 
             let response;
             if (isEditing) {
-                response = await axios.put(`http://localhost:5000/api/courses/${editId}`, courseData, {
+                response = await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/courses/${editId}`, courseData, {
                     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
                 });
                 onMessage("הקורס עודכן בהצלחה!");
             } else {
-                response = await axios.post("http://localhost:5000/api/courses", courseData, {
+                response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/courses`, courseData, {
                     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
                 });
                 onMessage("קורס נוסף בהצלחה!");
@@ -135,7 +135,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
         if (!window.confirm("האם אתה בטוח שברצונך למחוק את הקורס?")) return;
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.delete(`http://localhost:5000/api/courses/${courseId}`, {
+            const response = await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/courses/${courseId}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (response.status === 200) {

@@ -24,7 +24,7 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
 
     const fetchData = async () => {
         try {
-            const courseResponse = await fetch(`http://localhost:5000/api/courses/${courseId}`, {
+            const courseResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/courses/${courseId}`, {
                 headers: {
                     'Authorization': `Bearer ${user.token}`,
                     'Content-Type': 'application/json',
@@ -39,7 +39,7 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
                 setLecturers(lecturersList);
             }
 
-            const reviewsResponse = await fetch(`http://localhost:5000/api/reviews/course/${courseId}`, {
+            const reviewsResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/reviews/course/${courseId}`, {
                 headers: {
                     'Authorization': `Bearer ${user.token}`,
                     'Content-Type': 'application/json',
@@ -147,7 +147,7 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
         if (!reviewToDelete) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/reviews/${reviewToDelete._id}`, {
+            const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/reviews/${reviewToDelete._id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${user.token}`

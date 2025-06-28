@@ -28,10 +28,10 @@ const AddCoursePopup = ({ onClose, onCourseAdded, user }) => {
         const token = localStorage.getItem("token");
         
         // Fetch all courses
-        const coursesRes = await axios.get("http://localhost:5000/api/courses");
+        const coursesRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/courses`);
         
         // Fetch user's tracked courses
-        const trackedRes = await axios.get("http://localhost:5000/api/tracked-courses", {
+        const trackedRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-courses`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         
@@ -92,7 +92,7 @@ const AddCoursePopup = ({ onClose, onCourseAdded, user }) => {
       
       // Add course to tracked courses
       await axios.post(
-        "http://localhost:5000/api/tracked-courses",
+        `${process.env.REACT_APP_API_BASE_URL}/api/tracked-courses`,
         { courseId: course._id },
         { headers: { Authorization: `Bearer ${token}` } }
       );

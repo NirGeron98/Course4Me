@@ -9,7 +9,7 @@ export const useReviews = (courseId, token) => {
 
     const fetchReviews = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/api/reviews/course/${courseId}`, {
+            const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/reviews/course/${courseId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',

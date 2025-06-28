@@ -16,7 +16,7 @@ const TrackedLecturers = () => {
     try {
       setIsLoading(true);
       const token = localStorage.getItem("token");
-      const res = await axios.get("http://localhost:5000/api/tracked-lecturers", {
+      const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-lecturers`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setTrackedLecturers(res.data);
@@ -47,7 +47,7 @@ const TrackedLecturers = () => {
     try {
       const token = localStorage.getItem("token");
       // Send DELETE request to API
-      await axios.delete(`http://localhost:5000/api/tracked-lecturers/${lecturerId}`, {
+      await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-lecturers/${lecturerId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

@@ -51,7 +51,7 @@ const LecturerReviewFormModal = ({
     const fetchCourses = async () => {
       try {
         
-        const response = await fetch('http://localhost:5000/api/courses', {
+        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/courses`, {
           headers: {
             Authorization: `Bearer ${user.token}`,
             'Content-Type': 'application/json',
@@ -112,8 +112,8 @@ const LecturerReviewFormModal = ({
 
     try {
       const url = existingReview
-        ? `http://localhost:5000/api/lecturer-reviews/${existingReview._id}`
-        : 'http://localhost:5000/api/lecturer-reviews';
+        ? `${process.env.REACT_APP_API_BASE_URL}/api/lecturer-reviews/${existingReview._id}`
+        : `${process.env.REACT_APP_API_BASE_URL}/api/lecturer-reviews`;
 
       const method = existingReview ? 'PUT' : 'POST';
 

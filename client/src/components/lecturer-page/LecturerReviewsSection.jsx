@@ -71,7 +71,7 @@ const LecturerReviewsSection = ({
         if (!reviewToDelete) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/lecturer-reviews/${reviewToDelete._id}`, {
+            const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/lecturer-reviews/${reviewToDelete._id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${user.token}`

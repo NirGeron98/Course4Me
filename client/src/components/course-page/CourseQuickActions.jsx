@@ -15,7 +15,7 @@ const CourseQuickActions = ({ onShowReviewForm, courseId, courseName, user }) =>
             if (!user?.token || !courseId) return;
 
             try {
-                const response = await fetch(`http://localhost:5000/api/tracked-courses`, {
+                const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-courses`, {
                     headers: {
                         'Authorization': `Bearer ${user.token}`,
                         'Content-Type': 'application/json',
@@ -35,7 +35,7 @@ const CourseQuickActions = ({ onShowReviewForm, courseId, courseName, user }) =>
             if (!user?.token || !courseId) return;
 
             try {
-                const reviewsResponse = await fetch(`http://localhost:5000/api/reviews/course/${courseId}`, {
+                const reviewsResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/reviews/course/${courseId}`, {
                     headers: {
                         'Authorization': `Bearer ${user.token}`,
                         'Content-Type': 'application/json',
@@ -102,7 +102,7 @@ const CourseQuickActions = ({ onShowReviewForm, courseId, courseName, user }) =>
             let response;
     
             if (isFollowing) {
-                response = await fetch(`http://localhost:5000/api/tracked-courses/${courseId}`, {
+                response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-courses/${courseId}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${user.token}`,
@@ -110,7 +110,7 @@ const CourseQuickActions = ({ onShowReviewForm, courseId, courseName, user }) =>
                 });
             } else {
                 // הוספה למעקב
-                response = await fetch(`http://localhost:5000/api/tracked-courses`, {
+                response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-courses`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${user.token}`,

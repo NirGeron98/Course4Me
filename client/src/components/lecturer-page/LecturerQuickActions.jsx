@@ -19,7 +19,7 @@ const LecturerQuickActions = ({ onShowReviewForm, lecturerId, lecturerName, user
 
             try {
                 setFollowStatusLoading(true);
-                const response = await fetch(`http://localhost:5000/api/tracked-lecturers`, {
+                const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-lecturers`, {
                     headers: {
                         'Authorization': `Bearer ${user.token}`,
                         'Content-Type': 'application/json',
@@ -89,14 +89,14 @@ const LecturerQuickActions = ({ onShowReviewForm, lecturerId, lecturerName, user
             let response;
     
             if (isFollowing) {
-                response = await fetch(`http://localhost:5000/api/tracked-lecturers/${lecturerId}`, {
+                response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-lecturers/${lecturerId}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${user.token}`,
                     },
                 });
             } else {
-                response = await fetch(`http://localhost:5000/api/tracked-lecturers`, {
+                response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-lecturers`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${user.token}`,

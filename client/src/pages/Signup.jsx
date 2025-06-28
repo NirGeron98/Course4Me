@@ -47,7 +47,7 @@ const Signup = ({ onLogin }) => {
 
     try {
       const { confirmPassword, ...dataToSend } = formData;
-      const res = await axios.post("http://localhost:5000/api/auth/signup", dataToSend);
+      const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/auth/signup`, dataToSend);
       
       // Store user data in localStorage
       localStorage.setItem("token", res.data.token);

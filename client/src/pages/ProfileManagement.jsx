@@ -68,7 +68,7 @@ const ProfileManagement = () => {
           return;
         }
 
-        const response = await axios.get("http://localhost:5000/api/user/profile", {
+        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/user/profile`, {
           headers: { Authorization: `Bearer ${token}` },
           timeout: 5000
         });
@@ -122,7 +122,7 @@ const ProfileManagement = () => {
       } else {
         const token = localStorage.getItem("token");
         const response = await axios.put(
-          "http://localhost:5000/api/user/profile",
+          `${process.env.REACT_APP_API_BASE_URL}/api/user/profile`,
           editedProfile,
           { 
             headers: { Authorization: `Bearer ${token}` },
@@ -189,7 +189,7 @@ const ProfileManagement = () => {
       } else {
         const token = localStorage.getItem("token");
         await axios.put(
-          "http://localhost:5000/api/user/password",
+          `${process.env.REACT_APP_API_BASE_URL}/api/user/password`,
           {
             currentPassword: passwords.currentPassword,
             newPassword: passwords.newPassword
