@@ -74,14 +74,34 @@ exports.createReview = async (req, res) => {
       .populate("user", "fullName _id")
       .populate("lecturer", "name");
 
+    console.log('Populated review before processing:', {
+      id: populatedReview._id,
+      isAnonymous: populatedReview.isAnonymous,
+      userName: populatedReview.user?.fullName
+    });
+
     // Process the returned review to handle anonymity
     const reviewObj = populatedReview.toObject();
+    
+    console.log('Review object after toObject:', {
+      id: reviewObj._id,
+      isAnonymous: reviewObj.isAnonymous,
+      userName: reviewObj.user?.fullName
+    });
+    
     if (reviewObj.isAnonymous) {
       reviewObj.user = {
         _id: reviewObj.user._id, // Keep ID for edit/delete permissions
         fullName: 'משתמש אנונימי'
       };
+      console.log('Made anonymous, final user name:', reviewObj.user.fullName);
     }
+
+    console.log('Final review object being sent:', {
+      id: reviewObj._id,
+      isAnonymous: reviewObj.isAnonymous,
+      userName: reviewObj.user?.fullName
+    });
 
     res.status(201).json(reviewObj);
   } catch (err) {
@@ -118,9 +138,10 @@ exports.getReviewsByCourse = async (req, res) => {
     const processedReviews = reviews.map(review => {
       const reviewObj = review.toObject();
       
-      console.log('Processing review:', {
+      console.log('Processing review in getReviewsByCourse:', {
         id: reviewObj._id,
         isAnonymous: reviewObj.isAnonymous,
+        isAnonymousType: typeof reviewObj.isAnonymous,
         originalUserName: reviewObj.user?.fullName
       });
       
@@ -130,7 +151,7 @@ exports.getReviewsByCourse = async (req, res) => {
           _id: reviewObj.user._id, // Keep ID for edit/delete permissions
           fullName: 'משתמש אנונימי'
         };
-        console.log('Made anonymous:', reviewObj.user.fullName);
+        console.log('Made anonymous in getReviewsByCourse:', reviewObj.user.fullName);
       }
       
       return reviewObj;
@@ -220,6 +241,15 @@ exports.updateReview = async (req, res) => {
       .populate("user", "fullName _id")
       .populate("lecturer", "name");
 
+    // Process the updated review to handle anonymity
+    const reviewObj = updatedReview.toObject();
+    if (reviewObj.isAnonymous) {
+      reviewObj.user = {
+        _id: reviewObj.user._id, // Keep ID for edit/delete permissions
+        fullName: 'משתמש אנונימי'
+      };
+    }
+
     // Recalculate course's average rating
     const allReviews = await CourseReview.find({
       course: existingReview.course,
@@ -241,7 +271,7 @@ exports.updateReview = async (req, res) => {
       ratingsCount: allReviews.length,
     });
 
-    res.status(200).json(updatedReview);
+    res.status(200).json(reviewObj);
   } catch (err) {
     console.error("Error updating review:", err);
     res.status(500).json({
