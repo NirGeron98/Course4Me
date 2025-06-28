@@ -80,11 +80,11 @@ const Navbar = ({ user, onLogout }) => {
       {/* Make container wider */}
       <div className="max-w-8xl mx-auto px-3 sm:px-4 lg:px-6">
         <div className="flex items-center justify-between h-16" dir="rtl">
-          
+
           {/* Logo - Updated with neutral colors */}
           <div className="flex-shrink-0">
-            <Link 
-              to="/dashboard" 
+            <Link
+              to="/dashboard"
               className="flex items-center space-x-3 group"
             >
               <div className="bg-gradient-to-r from-slate-600 to-slate-700 rounded-xl p-2 shadow-lg group-hover:shadow-xl transition-all duration-300 ml-2">
@@ -98,22 +98,21 @@ const Navbar = ({ user, onLogout }) => {
 
           {/* Desktop Navigation - Updated with neutral colors */}
           <div className="hidden lg:block flex-1 max-w-4xl mx-8">
-            <div className="flex items-center justify-center space-x-4 xl:space-x-6 space-x-reverse">
+            <div className="flex items-center justify-center gap-x-6">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-xl font-medium transition-all duration-300 whitespace-nowrap text-sm xl:text-base ${
-                      isActivePage(item.path)
+                    className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-xl font-medium transition-all duration-300 whitespace-nowrap text-sm xl:text-base ${isActivePage(item.path)
                         ? 'bg-slate-100 text-slate-800 shadow-md'
-                        : item.path === '/admin' 
+                        : item.path === '/admin'
                           ? 'text-purple-600 hover:text-purple-700 hover:bg-purple-50'
                           : item.path === '/search'
                             ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
                             : 'text-gray-600 hover:text-slate-700 hover:bg-slate-50'
-                    }`}
+                      }`}
                     title={item.fullLabel} // Tooltip with full label
                   >
                     <Icon className="w-4 h-4 ml-1.5" />
@@ -134,15 +133,14 @@ const Navbar = ({ user, onLogout }) => {
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300 ${
-                      isActivePage(item.path)
+                    className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300 ${isActivePage(item.path)
                         ? 'bg-slate-100 text-slate-800 shadow-md'
-                        : item.path === '/admin' 
+                        : item.path === '/admin'
                           ? 'text-purple-600 hover:text-purple-700 hover:bg-purple-50'
                           : item.path === '/search'
                             ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
                             : 'text-gray-600 hover:text-slate-700 hover:bg-slate-50'
-                    }`}
+                      }`}
                     title={item.fullLabel}
                   >
                     <Icon className="w-5 h-5" />
@@ -155,13 +153,12 @@ const Navbar = ({ user, onLogout }) => {
           {/* User Menu & Logout - Updated with neutral colors */}
           <div className="hidden md:flex items-center space-x-2 lg:space-x-3 space-x-reverse">
             {/* User Profile Button - More compact */}
-            <button 
+            <button
               onClick={handleUserNameClick}
-              className={`flex items-center space-x-2 lg:space-x-3 rounded-xl px-2 lg:px-3 py-2 transition-all duration-300 cursor-pointer ${
-                isActivePage('/profile') 
-                  ? 'bg-slate-100 hover:bg-slate-200' 
+              className={`flex items-center space-x-2 lg:space-x-3 rounded-xl px-2 lg:px-3 py-2 transition-all duration-300 cursor-pointer ${isActivePage('/profile')
+                  ? 'bg-slate-100 hover:bg-slate-200'
                   : 'bg-gray-50 hover:bg-slate-50'
-              }`}
+                }`}
             >
               <div className={`rounded-full p-1.5 ml-2 lg:ml-3 ${user?.user?.role === 'admin' ? 'bg-purple-500' : 'bg-slate-600'}`}>
                 {user?.user?.role === 'admin' ? (
@@ -171,18 +168,16 @@ const Navbar = ({ user, onLogout }) => {
                 )}
               </div>
               <div className="text-right mr-2 lg:mr-3 hidden lg:block">
-                <span className={`font-medium text-sm block ${
-                  isActivePage('/profile') ? 'text-slate-800' : 'text-gray-700'
-                }`}>
+                <span className={`font-medium text-sm block ${isActivePage('/profile') ? 'text-slate-800' : 'text-gray-700'
+                  }`}>
                   {(user?.user?.fullName || user?.fullName || user?.name || 'משתמש').split(' ')[0]}
                 </span>
                 {user?.user?.role === 'admin' && (
                   <span className="text-purple-600 text-xs font-medium">מנהל</span>
                 )}
               </div>
-              <Settings className={`w-3.5 h-3.5 ml-1 ${
-                isActivePage('/profile') ? 'text-slate-600' : 'text-gray-500'
-              }`} />
+              <Settings className={`w-3.5 h-3.5 ml-1 ${isActivePage('/profile') ? 'text-slate-600' : 'text-gray-500'
+                }`} />
             </button>
 
             {/* Logout Button - More compact */}
@@ -215,18 +210,17 @@ const Navbar = ({ user, onLogout }) => {
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-gray-200 bg-white/95 backdrop-blur-md">
             <div className="px-2 pt-2 pb-3 space-y-2" dir="rtl">
-              
+
               {/* User Info Mobile - Clickable */}
               <button
                 onClick={() => {
                   handleUserNameClick();
                   setIsMobileMenuOpen(false);
                 }}
-                className={`w-full flex items-center space-x-3 rounded-xl px-4 py-3 mb-4 transition-all duration-300 ${
-                  isActivePage('/profile')
+                className={`w-full flex items-center space-x-3 rounded-xl px-4 py-3 mb-4 transition-all duration-300 ${isActivePage('/profile')
                     ? 'bg-slate-100'
                     : 'bg-slate-50 hover:bg-slate-100'
-                }`}
+                  }`}
               >
                 <div className={`rounded-full p-2 ${user?.user?.role === 'admin' ? 'bg-purple-500' : 'bg-slate-600'}`}>
                   {user?.user?.role === 'admin' ? (
@@ -236,9 +230,8 @@ const Navbar = ({ user, onLogout }) => {
                   )}
                 </div>
                 <div className="text-right mr-3 flex-1">
-                  <span className={`font-medium block ${
-                    isActivePage('/profile') ? 'text-slate-800' : 'text-slate-700'
-                  }`}>
+                  <span className={`font-medium block ${isActivePage('/profile') ? 'text-slate-800' : 'text-slate-700'
+                    }`}>
                     שלום, {user?.user?.fullName || user?.fullName || user?.name || 'משתמש'}
                   </span>
                   {user?.user?.role === 'admin' && (
@@ -256,15 +249,14 @@ const Navbar = ({ user, onLogout }) => {
                     key={item.path}
                     to={item.path}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-300 ${
-                      isActivePage(item.path)
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-300 ${isActivePage(item.path)
                         ? 'bg-slate-100 text-slate-800'
                         : item.path === '/admin'
                           ? 'text-purple-600 hover:text-purple-700 hover:bg-purple-50'
                           : item.path === '/search'
                             ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
                             : 'text-gray-600 hover:text-slate-700 hover:bg-slate-50'
-                    }`}
+                      }`}
                   >
                     <Icon className="w-5 h-5 ml-3" />
                     <span>{item.fullLabel}</span>
