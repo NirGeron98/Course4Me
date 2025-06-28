@@ -41,8 +41,13 @@ const CourseReviewFormModal = ({
 
     useEffect(() => {
         if (existingReview) {
-            console.log('Loading existing review:', existingReview); // Debug log
-            setFormData({
+            console.log('Loading existing review:', {
+                review: existingReview,
+                isAnonymous: existingReview.isAnonymous,
+                isAnonymousType: typeof existingReview.isAnonymous
+            });
+            
+            const newFormData = {
                 lecturer: existingReview.lecturer && typeof existingReview.lecturer === 'object'
                     ? existingReview.lecturer._id
                     : existingReview.lecturer || '',
@@ -52,8 +57,11 @@ const CourseReviewFormModal = ({
                 investment: existingReview.investment,
                 teachingQuality: existingReview.teachingQuality,
                 comment: existingReview.comment || '',
-                isAnonymous: Boolean(existingReview.isAnonymous) // Ensure it's a boolean
-            });
+                isAnonymous: Boolean(existingReview.isAnonymous)
+            };
+            
+            console.log('Setting form data:', newFormData);
+            setFormData(newFormData);
         }
     }, [existingReview]);
 
@@ -159,6 +167,8 @@ const CourseReviewFormModal = ({
                 ? normalizedFormData
                 : { ...normalizedFormData, course: courseId };
 
+            console.log('Sending to server:', requestData);
+
             const response = await fetch(url, {
                 method,
                 headers: {
@@ -174,6 +184,7 @@ const CourseReviewFormModal = ({
             }
 
             const newReview = await response.json();
+            console.log('Received from server:', newReview);
             onReviewSubmitted(newReview);
         } catch (err) {
             setError(err.message);
@@ -232,7 +243,11 @@ const CourseReviewFormModal = ({
                 
                 <button
                     type="button"
-                    onClick={() => setFormData({ ...formData, isAnonymous: !formData.isAnonymous })}
+                    onClick={() => {
+                        const newValue = !formData.isAnonymous;
+                        console.log('Toggle clicked:', { current: formData.isAnonymous, new: newValue });
+                        setFormData({ ...formData, isAnonymous: newValue });
+                    }}
                     className={`relative inline-flex h-8 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                         formData.isAnonymous ? 'bg-blue-600' : 'bg-gray-200'
                     }`}
