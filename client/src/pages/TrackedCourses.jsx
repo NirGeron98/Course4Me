@@ -12,6 +12,16 @@ const TrackedCourses = () => {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Set page title
+  useEffect(() => {
+    document.title = 'קורסים במעקב - Course4Me';
+    
+    // Cleanup function to reset title when component unmounts
+    return () => {
+      document.title = 'Course4Me';
+    };
+  }, []);
+
   // Fetch tracked courses from API
   const fetchTrackedCourses = async () => {
     try {

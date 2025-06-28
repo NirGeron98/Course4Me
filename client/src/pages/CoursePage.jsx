@@ -1,6 +1,6 @@
 import { useCourseData } from '../components/course-page/hooks/useCourseData';
 import { useReviews } from '../components/course-page/hooks/useReviews';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { BookOpen, AlertCircle, Loader2 } from 'lucide-react';
 import CourseDescription from '../components/course-page/CourseDescription';
@@ -22,6 +22,19 @@ const CoursePage = ({ user }) => {
         refetchReviews
     } = useReviews(id, user?.token);
 
+    // Set page title
+    useEffect(() => {
+        if (course) {
+            document.title = `${course.title} - Course4Me`;
+        } else {
+            document.title = 'קורס - Course4Me';
+        }
+        
+        // Cleanup function to reset title when component unmounts
+        return () => {
+            document.title = 'Course4Me';
+        };
+    }, [course]);
 
     const [editingReview, setEditingReview] = useState(null);
 

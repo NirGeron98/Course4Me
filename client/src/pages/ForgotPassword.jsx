@@ -1,10 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, CheckCircle, AlertCircle, KeyRound, ArrowRight } from "lucide-react";
 
 const ForgotPassword = () => {
     const [step, setStep] = useState(1); // 1: Email, 2: Code, 3: New Password
+
+    // Set page title
+    useEffect(() => {
+        document.title = 'שכחתי סיסמה - Course4Me';
+        
+        // Cleanup function to reset title when component unmounts
+        return () => {
+            document.title = 'Course4Me';
+        };
+    }, []);
+
     const [formData, setFormData] = useState({
         email: "",
         verificationCode: "",

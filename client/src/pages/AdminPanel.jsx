@@ -13,6 +13,16 @@ const AdminPanel = ({ user }) => {
 
   const isAdmin = user?.user?.role === "admin";
 
+  // Set page title
+  useEffect(() => {
+    document.title = 'פאנל ניהול - Course4Me';
+    
+    // Cleanup function to reset title when component unmounts
+    return () => {
+      document.title = 'Course4Me';
+    };
+  }, []);
+
   useEffect(() => {
     const fetchLecturers = async () => {
       try {

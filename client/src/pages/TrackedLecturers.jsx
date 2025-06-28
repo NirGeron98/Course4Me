@@ -11,6 +11,16 @@ const TrackedLecturers = () => {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Set page title
+  useEffect(() => {
+    document.title = 'מרצים במעקב - Course4Me';
+    
+    // Cleanup function to reset title when component unmounts
+    return () => {
+      document.title = 'Course4Me';
+    };
+  }, []);
+
   // Fetch tracked lecturers from API
   const fetchTrackedLecturers = async () => {
     try {

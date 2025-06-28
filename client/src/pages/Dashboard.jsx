@@ -24,6 +24,16 @@ const Dashboard = () => {
   const [lecturerCarouselIndex, setLecturerCarouselIndex] = useState(0);
   const [trackedCarouselIndex, setTrackedCarouselIndex] = useState(0);
 
+  // Set page title
+  useEffect(() => {
+    document.title = 'דף הבית - Course4Me';
+    
+    // Cleanup function to reset title when component unmounts
+    return () => {
+      document.title = 'Course4Me';
+    };
+  }, []);
+
   const formatLecturersDisplay = (lecturers, max = 3, badgeClassName = "bg-blue-200 text-blue-800") => {
     if (!Array.isArray(lecturers) || lecturers.length === 0) return "לא זמין";
 

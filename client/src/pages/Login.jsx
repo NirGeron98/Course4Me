@@ -4,6 +4,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, CheckCircle, AlertCircle, LogIn } from "lucide-react";
 
 const Login = ({ onLogin, user }) => {
+  console.log("API Base URL:", process.env.REACT_APP_API_BASE_URL);
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -15,6 +17,15 @@ const Login = ({ onLogin, user }) => {
   const [message, setMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    document.title = 'התחברות - Course4Me';
+
+    // Cleanup function to reset title when component unmounts
+    return () => {
+      document.title = 'Course4Me';
+    };
+  }, []);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
@@ -41,12 +52,15 @@ const Login = ({ onLogin, user }) => {
     setMessage("");
 
     try {
-      const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/auth/login`, formData);
+      const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/auth/login`, formData, {
+        withCredentials: true,
+      });
+
 
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userFullName", res.data.user.fullName);
       localStorage.setItem("userRole", res.data.user.role);
-      localStorage.setItem("userId", res.data.user._id); 
+      localStorage.setItem("userId", res.data.user._id);
 
       onLogin(res.data);
 

@@ -1,10 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, User, Mail, Lock, CheckCircle, AlertCircle } from "lucide-react";
 
 const Signup = ({ onLogin }) => {
   const navigate = useNavigate();
+
+  // Set page title
+  useEffect(() => {
+    document.title = 'הרשמה - Course4Me';
+    
+    // Cleanup function to reset title when component unmounts
+    return () => {
+      document.title = 'Course4Me';
+    };
+  }, []);
 
   const [formData, setFormData] = useState({
     fullName: "",

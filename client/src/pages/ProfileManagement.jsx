@@ -30,6 +30,16 @@ const ProfileManagement = () => {
     confirmPassword: ""
   });
 
+  // Set page title
+  useEffect(() => {
+    document.title = 'ניהול פרופיל - Course4Me';
+    
+    // Cleanup function to reset title when component unmounts
+    return () => {
+      document.title = 'Course4Me';
+    };
+  }, []);
+
   const [loading, setLoading] = useState({
     profile: true,
     updateProfile: false,

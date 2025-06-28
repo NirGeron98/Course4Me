@@ -23,6 +23,20 @@ const LecturerPage = ({ user }) => {
     const [filterCourse, setFilterCourse] = useState('all');
     const [sortBy, setSortBy] = useState('newest');
 
+    // Set page title
+    useEffect(() => {
+        if (lecturer) {
+            document.title = `${lecturer.name} - Course4Me`;
+        } else {
+            document.title = 'מרצה - Course4Me';
+        }
+        
+        // Cleanup function to reset title when component unmounts
+        return () => {
+            document.title = 'Course4Me';
+        };
+    }, [lecturer]);
+
     // Check if all components are ready
     useEffect(() => {
         const allDataLoaded = !lecturerLoading && !reviewsLoading && !coursesLoading;
