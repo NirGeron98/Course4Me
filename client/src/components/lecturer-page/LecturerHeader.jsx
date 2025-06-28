@@ -42,21 +42,22 @@ const LecturerHeader = ({ lecturer, courses, reviews = [], renderStars }) => {
             <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-purple-700 to-purple-800"></div>
 
             <div className="relative max-w-7xl mx-auto px-6 py-12">
-                <div className="flex flex-col lg:flex-row items-start gap-8">
-                    {/* Lecturer Icon */}
-                    <div className="flex items-center gap-4">
-                        <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl p-3 shadow-lg">
-                            <User className="w-8 h-8 text-white" />
-                        </div>
-                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight">
-                            {lecturer.name}
-                        </h1>
+                {/* Lecturer Name and Icon - Centered at top */}
+                <div className="flex items-center justify-center gap-4 mb-8">
+                    <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl p-3 shadow-lg">
+                        <User className="w-8 h-8 text-white" />
                     </div>
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight">
+                        {lecturer.name}
+                    </h1>
+                </div>
 
-                    {/* Lecturer Details */}
-                    <div className="flex-1 min-w-0">
+                {/* Content below - lecturer details with rating on the side */}
+                <div className="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-8">
+                    {/* Lecturer Details - Centered */}
+                    <div className="flex flex-col items-center text-center flex-1">
                         {/* Lecturer Meta - Compact Pills */}
-                        <div className="flex flex-wrap gap-2 mb-6 justify-center lg:justify-start">
+                        <div className="flex flex-wrap gap-2 mb-6 justify-center">
                             {lecturer.department && (
                                 <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
                                     <Building className="w-3.5 h-3.5" />
@@ -77,19 +78,19 @@ const LecturerHeader = ({ lecturer, courses, reviews = [], renderStars }) => {
                             )}
                         </div>
 
-                        {/* Courses Section - Inline */}
+                        {/* Courses Section - Centered */}
                         {coursesToShow.length > 0 && (
                             <div className="mb-6">
-                                <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-xl p-4 shadow-lg inline-block">
-                                    <div className="flex items-start gap-4">
+                                <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-xl p-4 shadow-lg">
+                                    <div className="flex flex-col items-center gap-4">
                                         {/* Courses Label */}
-                                        <div className="flex items-center gap-2 text-white font-semibold whitespace-nowrap">
+                                        <div className="flex items-center gap-2 text-white font-semibold">
                                             <BookOpen className="w-4 h-4" />
                                             <span>קורסים:</span>
                                         </div>
 
                                         {/* Courses Grid */}
-                                        <div className="flex flex-col gap-3">
+                                        <div className="flex flex-col gap-3 items-center">
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl">
                                                 {coursesToShow.map((course) => (
                                                     <Link
@@ -116,16 +117,14 @@ const LecturerHeader = ({ lecturer, courses, reviews = [], renderStars }) => {
                                             </div>
 
                                             {remainingCourses > 0 && (
-                                                <div className="flex justify-center">
-                                                    <button
-                                                        onClick={() => setShowAllCourses(true)}
-                                                        className="bg-purple-500/80 backdrop-blur-md border border-purple-400/50 rounded-lg px-4 py-2 shadow-lg hover:bg-purple-400/80 hover:scale-105 transition-all cursor-pointer"
-                                                    >
-                                                        <span className="text-white font-semibold text-sm">
-                                                            +{remainingCourses} קורסים נוספים
-                                                        </span>
-                                                    </button>
-                                                </div>
+                                                <button
+                                                    onClick={() => setShowAllCourses(true)}
+                                                    className="bg-purple-500/80 backdrop-blur-md border border-purple-400/50 rounded-lg px-4 py-2 shadow-lg hover:bg-purple-400/80 hover:scale-105 transition-all cursor-pointer"
+                                                >
+                                                    <span className="text-white font-semibold text-sm">
+                                                        +{remainingCourses} קורסים נוספים
+                                                    </span>
+                                                </button>
                                             )}
                                         </div>
                                     </div>
@@ -134,9 +133,9 @@ const LecturerHeader = ({ lecturer, courses, reviews = [], renderStars }) => {
                         )}
                     </div>
 
-                    {/* Rating Section */}
+                    {/* Rating Section - On the left side */}
                     {displayRating && (
-                        <div className="flex-shrink-0">
+                        <div className="flex-shrink-0 order-first lg:order-last">
                             <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl p-6 shadow-lg">
                                 <div className="text-center">
                                     <div className="text-3xl font-bold text-white mb-3">

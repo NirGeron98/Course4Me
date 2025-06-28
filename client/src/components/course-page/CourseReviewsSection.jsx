@@ -22,6 +22,20 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
 
     const isAdmin = user?.user?.role === 'admin';
 
+    // Function to get display name based on anonymity setting
+    const getDisplayName = (review) => {
+        console.log('Review in getDisplayName:', {
+            isAnonymous: review.isAnonymous,
+            userFullName: review.user?.fullName,
+            displayName: review.displayName
+        }); // Debug log
+        
+        if (review.isAnonymous === true) {
+            return 'משתמש אנונימי';
+        }
+        return review.user?.fullName || 'משתמש אנונימי';
+    };
+
     const fetchData = async () => {
         try {
             const courseResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/courses/${courseId}`, {
@@ -58,7 +72,8 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
                     ...review,
                     lecturer: typeof review.lecturer === 'string'
                         ? lecturerMap[review.lecturer] || { name: 'מרצה לא ידוע' }
-                        : review.lecturer
+                        : review.lecturer,
+                    displayName: review.isAnonymous ? 'משתמש אנונימי' : review.user?.fullName || 'משתמש אנונימי'
                 }));
 
                 setReviews(enrichedReviews);
@@ -74,7 +89,6 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
         fetchData();
     }, [courseId, user.token]);
 
-    // Check for existing review when user wants to write a new one
     const checkForExistingReview = () => {
         if (!user?.user) return null;
         
@@ -110,7 +124,6 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
         setUserExistingReview(null);
     };
 
-    // Filter and sort reviews
     const getFilteredReviews = () => {
         let filtered = [...reviews];
 
@@ -118,7 +131,6 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
             filtered = filtered.filter(review => review.lecturer && review.lecturer._id === filterLecturer);
         }
 
-        // Sort reviews
         filtered.sort((a, b) => {
             switch (sortBy) {
                 case 'newest':
@@ -137,7 +149,6 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
         return filtered;
     };
 
-    // פונקציה מעודכנת לטיפול במחיקה
     const handleDeleteClick = (review) => {
         setReviewToDelete(review);
         setShowDeleteModal(true);
@@ -169,7 +180,7 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
         setReviewToDelete(null);
     };
 
-    const handleReviewSubmitted = () => {
+    const handleReviewSubmitted = (newReview) => {
         fetchData();
         setEditingReview(null);
         setShowReviewForm(false);
@@ -180,7 +191,6 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
         setShowReviewForm(true);
     };
 
-    // בדיקה האם המשתמש יכול לערוך/למחוק ביקורת
     const canEditReview = (review) => {
         return review.user && user?.user && review.user._id === user.user._id;
     };
@@ -226,7 +236,6 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
     return (
         <>
             <div className="bg-white rounded-2xl shadow-lg p-6" dir="rtl">
-                {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
                         <MessageCircle className="w-6 h-6 text-emerald-500" />
@@ -248,7 +257,6 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
                     </button>
                 </div>
 
-                {/* Filters and Sort */}
                 {reviews.length > 0 && (
                     <div className="flex flex-wrap gap-4 mb-6">
                         <div className="flex items-center gap-2">
@@ -283,7 +291,6 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
                     </div>
                 )}
 
-                {/* Reviews List */}
                 {filteredReviews.length === 0 ? (
                     <div className="text-center py-12">
                         <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -310,8 +317,13 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
                                 <div className="flex items-start justify-between mb-4">
                                     <div>
                                         <div className="flex items-center gap-3 mb-2">
-                                            <span className="font-semibold text-gray-800">
-                                                {review.user?.fullName || 'משתמש אנונימי'}
+                                            <span className="font-semibold text-gray-800 flex items-center gap-2">
+                                                {getDisplayName(review)}
+                                                {review.isAnonymous && (
+                                                    <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full">
+                                                        אנונימי
+                                                    </span>
+                                                )}
                                             </span>
                                             <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded flex items-center gap-1">
                                                 <User className="w-3 h-3" />
@@ -353,7 +365,6 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
                                     </div>
                                 </div>
 
-                                {/* Rating Details */}
                                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
                                     <div className="text-center">
                                         <div className="text-sm font-medium text-gray-700">עניין</div>
@@ -377,7 +388,6 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
                                     </div>
                                 </div>
 
-                                {/* Comment */}
                                 {review.comment && (
                                     <div className="relative mt-3 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border border-emerald-200 rounded-xl p-5 shadow-sm">
                                         <span className="absolute top-2 right-4 text-emerald-300 text-3xl leading-none select-none font-serif">"</span>
@@ -392,7 +402,6 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
                     </div>
                 )}
 
-                {/* Review Form Modal */}
                 {showReviewForm && (
                     <ReviewFormModal
                         courseId={courseId}
@@ -408,7 +417,6 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
                 )}
             </div>
 
-            {/* Existing Review Modal */}
             {showExistingReviewModal && userExistingReview && (
                 <ExistingReviewModal
                     onEdit={handleEditExistingReview}
@@ -417,7 +425,6 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
                 />
             )}
 
-            {/* Delete Confirmation Modal */}
             {showDeleteModal && reviewToDelete && (
                 <DeleteConfirmationModal
                     isOpen={showDeleteModal}
@@ -426,7 +433,7 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
                     title="מחיקת ביקורת"
                     message={
                         isAdmin && !canEditReview(reviewToDelete)
-                            ? `האם אתה בטוח שברצונך למחוק את הביקורת של ${reviewToDelete.user?.fullName || 'משתמש אנונימי'}? פעולה זו אינה ניתנת לביטול.`
+                            ? `האם אתה בטוח שברצונך למחוק את הביקורת של ${getDisplayName(reviewToDelete)}? פעולה זו אינה ניתנת לביטול.`
                             : "האם אתה בטוח שברצונך למחוק את הביקורת? פעולה זו אינה ניתנת לביטול."
                     }
                 />

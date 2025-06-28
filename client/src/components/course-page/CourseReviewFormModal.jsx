@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Heart, Zap, Clock, TrendingUp, Award, MessageCircle, Loader2, User } from 'lucide-react';
+import { X, Heart, Zap, Clock, TrendingUp, Award, MessageCircle, Loader2, User, Eye, EyeOff } from 'lucide-react';
 import ExistingReviewModal from '../common/ExistingReviewModal';
 
 const CourseReviewFormModal = ({
@@ -22,7 +22,8 @@ const CourseReviewFormModal = ({
         workload: 3,
         investment: 3,
         teachingQuality: 3,
-        comment: ''
+        comment: '',
+        isAnonymous: false // New field for anonymous review
     });
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
@@ -40,6 +41,7 @@ const CourseReviewFormModal = ({
 
     useEffect(() => {
         if (existingReview) {
+            console.log('Loading existing review:', existingReview); // Debug log
             setFormData({
                 lecturer: existingReview.lecturer && typeof existingReview.lecturer === 'object'
                     ? existingReview.lecturer._id
@@ -49,7 +51,8 @@ const CourseReviewFormModal = ({
                 workload: existingReview.workload,
                 investment: existingReview.investment,
                 teachingQuality: existingReview.teachingQuality,
-                comment: existingReview.comment || ''
+                comment: existingReview.comment || '',
+                isAnonymous: Boolean(existingReview.isAnonymous) // Ensure it's a boolean
             });
         }
     }, [existingReview]);
@@ -204,6 +207,52 @@ const CourseReviewFormModal = ({
         </div>
     );
 
+    // Styled Toggle component for anonymous review
+    const AnonymousToggle = () => (
+        <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                        {formData.isAnonymous ? (
+                            <EyeOff className="w-5 h-5 text-blue-600" />
+                        ) : (
+                            <Eye className="w-5 h-5 text-blue-600" />
+                        )}
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-gray-800">ביקורת אנונימית</h3>
+                        <p className="text-sm text-gray-600">
+                            {formData.isAnonymous 
+                                ? 'הביקורת תופיע כ"משתמש אנונימי"' 
+                                : 'השם שלך יופיע בביקורת'
+                            }
+                        </p>
+                    </div>
+                </div>
+                
+                <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, isAnonymous: !formData.isAnonymous })}
+                    className={`relative inline-flex h-8 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                        formData.isAnonymous ? 'bg-blue-600' : 'bg-gray-200'
+                    }`}
+                    role="switch"
+                    aria-checked={formData.isAnonymous}
+                >
+                    <span className="sr-only">
+                        {formData.isAnonymous ? 'הפוך לגלוי' : 'הפוך לאנונימי'}
+                    </span>
+                    <span
+                        aria-hidden="true"
+                        className={`pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                            formData.isAnonymous ? '-translate-x-6' : 'translate-x-0'
+                        }`}
+                    />
+                </button>
+            </div>
+        </div>
+    );
+
     return (
         <>
             <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4" dir="rtl">
@@ -260,6 +309,9 @@ const CourseReviewFormModal = ({
                                 </select>
                             )}
                         </div>
+
+                        {/* Anonymous Toggle */}
+                        <AnonymousToggle />
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             {renderRatingInput('עד כמה הקורס מעניין?', 'interest', <Heart className="w-5 h-5 text-red-500" />, 'red')}

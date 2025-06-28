@@ -28,6 +28,20 @@ const LecturerReviewsSection = ({
 
     const isAdmin = user?.user?.role === 'admin';
 
+    // Function to get display name based on anonymity setting
+    const getDisplayName = (review) => {
+        console.log('Lecturer review in getDisplayName:', {
+            isAnonymous: review.isAnonymous,
+            userFullName: review.user?.fullName,
+            displayName: review.displayName
+        }); // Debug log
+        
+        if (review.isAnonymous === true) {
+            return 'משתמש אנונימי';
+        }
+        return review.user?.fullName || 'משתמש אנונימי';
+    };
+
     const checkForExistingReview = () => {
         if (!user?.user) return null;
 
@@ -234,8 +248,13 @@ const LecturerReviewsSection = ({
                                     <div className="flex items-start justify-between mb-4">
                                         <div>
                                             <div className="flex items-center gap-3 mb-2">
-                                                <span className="font-semibold text-gray-800">
-                                                    {review.user?.fullName || 'משתמש אנונימי'}
+                                                <span className="font-semibold text-gray-800 flex items-center gap-2">
+                                                    {getDisplayName(review)}
+                                                    {review.isAnonymous && (
+                                                        <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full">
+                                                            אנונימי
+                                                        </span>
+                                                    )}
                                                 </span>
                                                 <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded flex items-center gap-1">
                                                     <User className="w-3 h-3" />
@@ -337,7 +356,7 @@ const LecturerReviewsSection = ({
                     title="מחיקת ביקורת מרצה"
                     message={
                         isAdmin && !canEditReview(reviewToDelete)
-                            ? `האם אתה בטוח שברצונך למחוק את הביקורת של ${reviewToDelete.user?.fullName || 'משתמש אנונימי'} על הקורס ${reviewToDelete.course?.title || 'לא ידוע'}? פעולה זו אינה ניתנת לביטול.`
+                            ? `האם אתה בטוח שברצונך למחוק את הביקורת של ${getDisplayName(reviewToDelete)} על הקורס ${reviewToDelete.course?.title || 'לא ידוע'}? פעולה זו אינה ניתנת לביטול.`
                             : "האם אתה בטוח שברצונך למחוק את הביקורת? פעולה זו אינה ניתנת לביטול."
                     }
                 />
