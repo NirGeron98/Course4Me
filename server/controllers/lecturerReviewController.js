@@ -24,7 +24,6 @@ exports.getReviewsByLecturer = async (req, res) => {
       query.course = courseId;
     }
 
-
     // Check if lecturer exists first
     let lecturerExists;
     try {
@@ -33,7 +32,10 @@ exports.getReviewsByLecturer = async (req, res) => {
       console.error("Error finding lecturer:", lecturerError);
       return res.status(500).json({
         message: "שגיאה בבדיקת קיום המרצה",
-        error: process.env.NODE_ENV === "development" ? lecturerError.message : "Internal server error",
+        error:
+          process.env.NODE_ENV === "development"
+            ? lecturerError.message
+            : "Internal server error",
       });
     }
 
@@ -42,7 +44,6 @@ exports.getReviewsByLecturer = async (req, res) => {
         message: "מרצה לא נמצא",
       });
     }
-
 
     // Find reviews with improved error handling
     let reviews;
@@ -55,7 +56,7 @@ exports.getReviewsByLecturer = async (req, res) => {
     } catch (reviewsError) {
       console.error("Error finding reviews:", reviewsError);
       console.error("Review error details:", reviewsError.stack);
-      
+
       // If populate fails, try without populate
       try {
         reviews = await LecturerReview.find(query).sort({ createdAt: -1 });
@@ -63,11 +64,13 @@ exports.getReviewsByLecturer = async (req, res) => {
         console.error("Basic review query also failed:", basicError);
         return res.status(500).json({
           message: "שגיאה בחיפוש ביקורות",
-          error: process.env.NODE_ENV === "development" ? reviewsError.message : "Internal server error",
+          error:
+            process.env.NODE_ENV === "development"
+              ? reviewsError.message
+              : "Internal server error",
         });
       }
     }
-
 
     // If we have reviews, try to manually populate if needed
     if (reviews && reviews.length > 0 && !reviews[0].user?.fullName) {
@@ -78,7 +81,10 @@ exports.getReviewsByLecturer = async (req, res) => {
           .populate("lecturer", "name")
           .sort({ createdAt: -1 });
       } catch (populateError) {
-        console.warn("Manual populate failed, returning reviews without population:", populateError.message);
+        console.warn(
+          "Manual populate failed, returning reviews without population:",
+          populateError.message
+        );
       }
     }
 
@@ -92,10 +98,21 @@ exports.getReviewsByLecturer = async (req, res) => {
           review.knowledge) /
         5
       ).toFixed(1);
-      return {
+      
+      const reviewObj = {
         ...review.toObject(),
         overallRating: parseFloat(overall),
       };
+      
+      // If the review is anonymous, hide user details
+      if (reviewObj.isAnonymous) {
+        reviewObj.user = {
+          _id: reviewObj.user._id, // Keep ID for edit/delete permissions
+          fullName: 'משתמש אנונימי'
+        };
+      }
+      
+      return reviewObj;
     });
 
     res.status(200).json(reviewsWithOverall);
@@ -114,13 +131,19 @@ exports.getReviewsByLecturer = async (req, res) => {
     if (err.name === "MongooseError" || err.name === "MongoError") {
       return res.status(503).json({
         message: "שגיאת חיבור למסד נתונים",
-        error: process.env.NODE_ENV === "development" ? err.message : "Database unavailable",
+        error:
+          process.env.NODE_ENV === "development"
+            ? err.message
+            : "Database unavailable",
       });
     }
 
     res.status(500).json({
       message: "שגיאת שרת בקבלת הביקורות",
-      error: process.env.NODE_ENV === "development" ? err.message : "Internal server error",
+      error:
+        process.env.NODE_ENV === "development"
+          ? err.message
+          : "Internal server error",
     });
   }
 };
@@ -137,6 +160,7 @@ exports.createLecturerReview = async (req, res) => {
       organization,
       knowledge,
       comment,
+      isAnonymous,
     } = req.body;
 
     // Validate required fields
@@ -214,6 +238,7 @@ exports.createLecturerReview = async (req, res) => {
       organization: parseInt(organization),
       knowledge: parseInt(knowledge),
       comment: comment?.trim() || "",
+      isAnonymous,
     });
 
     await review.save();
@@ -244,9 +269,18 @@ exports.createLecturerReview = async (req, res) => {
     const populatedReview = await LecturerReview.findById(review._id)
       .populate("user", "fullName")
       .populate("course", "title courseNumber")
-      .populate("lecturer", "name"); // תיקון: השתמשנו ב-name
+      .populate("lecturer", "name");
 
-    res.status(201).json(populatedReview);
+    // Process the returned review to handle anonymity
+    const reviewObj = populatedReview.toObject();
+    if (reviewObj.isAnonymous) {
+      reviewObj.user = {
+        _id: reviewObj.user._id, // Keep ID for edit/delete permissions
+        fullName: 'משתמש אנונימי'
+      };
+    }
+
+    res.status(201).json(reviewObj);
   } catch (err) {
     console.error("=== Error creating lecturer review ===");
     console.error("Error message:", err.message);
@@ -288,10 +322,25 @@ exports.getAllLecturerReviews = async (req, res) => {
     const reviews = await LecturerReview.find()
       .populate("user", "fullName")
       .populate("course", "title courseNumber")
-      .populate("lecturer", "name") 
+      .populate("lecturer", "name")
       .sort({ createdAt: -1 });
 
-    res.status(200).json(reviews);
+    // Process reviews to handle anonymous ones
+    const processedReviews = reviews.map(review => {
+      const reviewObj = review.toObject();
+      
+      // If the review is anonymous, hide user details
+      if (reviewObj.isAnonymous) {
+        reviewObj.user = {
+          _id: reviewObj.user._id, // Keep ID for edit/delete permissions
+          fullName: 'משתמש אנונימי'
+        };
+      }
+      
+      return reviewObj;
+    });
+
+    res.status(200).json(processedReviews);
   } catch (err) {
     console.error("Error fetching all lecturer reviews:", err);
     res.status(500).json({
@@ -316,6 +365,7 @@ exports.updateLecturerReview = async (req, res) => {
       organization,
       knowledge,
       comment,
+      isAnonymous,
     } = req.body;
 
     // Find the existing review
@@ -340,12 +390,13 @@ exports.updateLecturerReview = async (req, res) => {
         organization: parseInt(organization),
         knowledge: parseInt(knowledge),
         comment: comment?.trim() || "",
+        isAnonymous,
       },
       { new: true, runValidators: true }
     )
       .populate("user", "fullName")
       .populate("course", "title courseNumber")
-      .populate("lecturer", "name"); 
+      .populate("lecturer", "name");
 
     // Recalculate lecturer's average rating
     const allReviews = await LecturerReview.find({

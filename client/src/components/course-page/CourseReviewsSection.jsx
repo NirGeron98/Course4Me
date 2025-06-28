@@ -27,8 +27,8 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
         console.log('Review in getDisplayName:', {
             isAnonymous: review.isAnonymous,
             userFullName: review.user?.fullName,
-            displayName: review.displayName
-        }); // Debug log
+            fullReview: review
+        });
         
         if (review.isAnonymous === true) {
             return 'משתמש אנונימי';
@@ -72,8 +72,7 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
                     ...review,
                     lecturer: typeof review.lecturer === 'string'
                         ? lecturerMap[review.lecturer] || { name: 'מרצה לא ידוע' }
-                        : review.lecturer,
-                    displayName: review.isAnonymous ? 'משתמש אנונימי' : review.user?.fullName || 'משתמש אנונימי'
+                        : review.lecturer
                 }));
 
                 setReviews(enrichedReviews);

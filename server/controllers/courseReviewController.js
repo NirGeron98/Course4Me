@@ -13,6 +13,7 @@ exports.createReview = async (req, res) => {
       investment,
       teachingQuality,
       comment,
+      isAnonymous,
     } = req.body;
 
     // Check if review already exists for this course-lecturer-user combination
@@ -39,9 +40,14 @@ exports.createReview = async (req, res) => {
       investment,
       teachingQuality,
       comment,
+      isAnonymous,
     });
 
+    console.log('Creating review with isAnonymous:', isAnonymous);
+
     await review.save();
+
+    console.log('Saved review isAnonymous:', review.isAnonymous);
 
     // Update the course's average rating
     const allReviews = await CourseReview.find({ course });
@@ -68,7 +74,16 @@ exports.createReview = async (req, res) => {
       .populate("user", "fullName _id")
       .populate("lecturer", "name");
 
-    res.status(201).json(populatedReview);
+    // Process the returned review to handle anonymity
+    const reviewObj = populatedReview.toObject();
+    if (reviewObj.isAnonymous) {
+      reviewObj.user = {
+        _id: reviewObj.user._id, // Keep ID for edit/delete permissions
+        fullName: 'משתמש אנונימי'
+      };
+    }
+
+    res.status(201).json(reviewObj);
   } catch (err) {
     console.error("Error creating review:", err);
     if (err.code === 11000) {
@@ -87,7 +102,7 @@ exports.createReview = async (req, res) => {
 exports.getReviewsByCourse = async (req, res) => {
   try {
     const { courseId } = req.params;
-    const { lecturerId } = req.query; // Optional filter by lecturer
+    const { lecturerId } = req.query;
 
     let query = { course: courseId };
     if (lecturerId) {
@@ -99,7 +114,29 @@ exports.getReviewsByCourse = async (req, res) => {
       .populate("lecturer", "name")
       .sort({ createdAt: -1 });
 
-    res.status(200).json(reviews);
+    // Process reviews to handle anonymous ones
+    const processedReviews = reviews.map(review => {
+      const reviewObj = review.toObject();
+      
+      console.log('Processing review:', {
+        id: reviewObj._id,
+        isAnonymous: reviewObj.isAnonymous,
+        originalUserName: reviewObj.user?.fullName
+      });
+      
+      // If the review is anonymous, hide user details
+      if (reviewObj.isAnonymous === true) {
+        reviewObj.user = {
+          _id: reviewObj.user._id, // Keep ID for edit/delete permissions
+          fullName: 'משתמש אנונימי'
+        };
+        console.log('Made anonymous:', reviewObj.user.fullName);
+      }
+      
+      return reviewObj;
+    });
+
+    res.status(200).json(processedReviews);
   } catch (err) {
     console.error("Error fetching reviews:", err);
     res.status(500).json({
@@ -118,7 +155,22 @@ exports.getAllReviews = async (req, res) => {
       .populate("lecturer", "name")
       .sort({ createdAt: -1 });
 
-    res.status(200).json(reviews);
+    // Process reviews to handle anonymous ones
+    const processedReviews = reviews.map(review => {
+      const reviewObj = review.toObject();
+      
+      // If the review is anonymous, hide user details
+      if (reviewObj.isAnonymous) {
+        reviewObj.user = {
+          _id: reviewObj.user._id, // Keep ID for edit/delete permissions
+          fullName: 'משתמש אנונימי'
+        };
+      }
+      
+      return reviewObj;
+    });
+
+    res.status(200).json(processedReviews);
   } catch (err) {
     console.error("Error fetching all reviews:", err);
     res.status(500).json({ message: "שגיאת שרת פנימית" });
@@ -136,6 +188,7 @@ exports.updateReview = async (req, res) => {
       investment,
       teachingQuality,
       comment,
+      isAnonymous,
     } = req.body;
 
     // Find the existing review
@@ -160,6 +213,7 @@ exports.updateReview = async (req, res) => {
         investment,
         teachingQuality,
         comment,
+        isAnonymous,
       },
       { new: true, runValidators: true }
     )

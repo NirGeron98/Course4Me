@@ -50,6 +50,10 @@ const courseReviewSchema = new mongoose.Schema(
     comment: {
       type: String,
     },
+    isAnonymous: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
