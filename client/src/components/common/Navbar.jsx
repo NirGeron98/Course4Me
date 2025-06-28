@@ -1,6 +1,7 @@
+// Navbar.jsx - Improved with better spacing and responsive design
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { User, BookOpen, Settings, LogOut, Menu, X, Home, Shield, UserCheck, Heart } from "lucide-react";
+import { User, BookOpen, Settings, LogOut, Menu, X, Home, Shield, UserCheck, Heart, Search } from "lucide-react";
 
 const Navbar = ({ user, onLogout }) => {
   const navigate = useNavigate();
@@ -36,105 +37,147 @@ const Navbar = ({ user, onLogout }) => {
     return null;
   }
 
-  // Navigation items based on user role
+  // Navigation items with shorter labels for better fitting
   const navItems = [
     {
       path: "/dashboard",
-      label: "דף הבית",
+      label: "בית",
+      fullLabel: "דף הבית",
       icon: Home
     },
     {
+      path: "/search",
+      label: "חיפוש",
+      fullLabel: "חיפוש מתקדם",
+      icon: Search
+    },
+    {
       path: "/lecturers",
-      label: "המרצים שלי",
+      label: "מרצים",
+      fullLabel: "המרצים שלי",
       icon: UserCheck
     },
     {
       path: "/tracked-courses",
-      label: "הקורסים שלי",
+      label: "קורסים",
+      fullLabel: "הקורסים שלי",
       icon: Heart
     }
   ];
 
-  // Add admin link if user is admin - Fixed to check user.user.role
+  // Add admin link if user is admin
   if (user?.user?.role === "admin") {
     navItems.push({
       path: "/admin",
-      label: "ניהול מערכת",
+      label: "ניהול",
+      fullLabel: "ניהול מערכת",
       icon: Shield
     });
   }
 
   return (
     <nav className="bg-white/95 backdrop-blur-md border-b-2 border-emerald-100 shadow-lg sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Make container wider */}
+      <div className="max-w-8xl mx-auto px-3 sm:px-4 lg:px-6">
         <div className="flex items-center justify-between h-16" dir="rtl">
           
-          {/* Logo */}
+          {/* Logo - Slightly smaller on medium screens */}
           <div className="flex-shrink-0">
             <Link 
               to="/dashboard" 
-              className="flex items-center space-x-4 group"
+              className="flex items-center space-x-3 group"
             >
               <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl p-2 shadow-lg group-hover:shadow-xl transition-all duration-300 ml-2">
-                <BookOpen className="w-6 h-6 text-white" />
+                <BookOpen className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-700 bg-clip-text text-transparent mr-4">
+              <span className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-700 bg-clip-text text-transparent mr-3">
                 Course4Me
               </span>
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden lg:block">
-            <div className="flex items-center space-x-6 space-x-reverse">
+          {/* Desktop Navigation - Improved spacing */}
+          <div className="hidden lg:block flex-1 max-w-4xl mx-8">
+            <div className="flex items-center justify-center space-x-4 xl:space-x-6 space-x-reverse">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded-xl font-medium transition-all duration-300 whitespace-nowrap ${
+                    className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-xl font-medium transition-all duration-300 whitespace-nowrap text-sm xl:text-base ${
                       isActivePage(item.path)
                         ? 'bg-gray-200 text-gray-800 shadow-md'
                         : item.path === '/admin' 
                           ? 'text-purple-600 hover:text-purple-700 hover:bg-purple-50'
-                          : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50'
+                          : item.path === '/search'
+                            ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
+                            : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50'
                     }`}
+                    title={item.fullLabel} // Tooltip with full label
                   >
-                    <Icon className="w-4 h-4 ml-2" />
-                    <span>{item.label}</span>
+                    <Icon className="w-4 h-4 ml-1.5" />
+                    <span className="hidden xl:inline">{item.fullLabel}</span>
+                    <span className="xl:hidden">{item.label}</span>
                   </Link>
                 );
               })}
             </div>
           </div>
 
-          {/* User Menu & Logout */}
-          <div className="hidden lg:flex items-center space-x-3 space-x-reverse">
-            {/* User Profile Button - Clickable */}
+          {/* Medium screens navigation (tablet) */}
+          <div className="hidden md:flex lg:hidden flex-1 justify-center mx-6">
+            <div className="flex items-center space-x-3 space-x-reverse">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300 ${
+                      isActivePage(item.path)
+                        ? 'bg-gray-200 text-gray-800 shadow-md'
+                        : item.path === '/admin' 
+                          ? 'text-purple-600 hover:text-purple-700 hover:bg-purple-50'
+                          : item.path === '/search'
+                            ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
+                            : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50'
+                    }`}
+                    title={item.fullLabel}
+                  >
+                    <Icon className="w-5 h-5" />
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* User Menu & Logout - Improved for smaller screens */}
+          <div className="hidden md:flex items-center space-x-2 lg:space-x-3 space-x-reverse">
+            {/* User Profile Button - More compact */}
             <button 
               onClick={handleUserNameClick}
-              className={`flex items-center space-x-3 rounded-xl px-3 py-2 transition-all duration-300 cursor-pointer ${
+              className={`flex items-center space-x-2 lg:space-x-3 rounded-xl px-2 lg:px-3 py-2 transition-all duration-300 cursor-pointer ${
                 isActivePage('/profile') 
                   ? 'bg-gray-200 hover:bg-gray-300' 
                   : 'bg-gray-50 hover:bg-emerald-50'
               }`}
             >
-              <div className={`rounded-full p-1.5 ml-4 ${user?.user?.role === 'admin' ? 'bg-purple-500' : 'bg-emerald-500'}`}>
+              <div className={`rounded-full p-1.5 ml-2 lg:ml-3 ${user?.user?.role === 'admin' ? 'bg-purple-500' : 'bg-emerald-500'}`}>
                 {user?.user?.role === 'admin' ? (
                   <Shield className="w-3.5 h-3.5 text-white" />
                 ) : (
                   <User className="w-3.5 h-3.5 text-white" />
                 )}
               </div>
-              <div className="text-right mr-3">
+              <div className="text-right mr-2 lg:mr-3 hidden lg:block">
                 <span className={`font-medium text-sm block ${
                   isActivePage('/profile') ? 'text-gray-800' : 'text-gray-700'
                 }`}>
-                  {user?.user?.fullName || user?.fullName || user?.name || 'משתמש'}
+                  {(user?.user?.fullName || user?.fullName || user?.name || 'משתמש').split(' ')[0]}
                 </span>
                 {user?.user?.role === 'admin' && (
-                  <span className="text-purple-600 text-xs font-medium">מנהל מערכת</span>
+                  <span className="text-purple-600 text-xs font-medium">מנהל</span>
                 )}
               </div>
               <Settings className={`w-3.5 h-3.5 ml-1 ${
@@ -142,18 +185,19 @@ const Navbar = ({ user, onLogout }) => {
               }`} />
             </button>
 
-            {/* Logout Button */}
+            {/* Logout Button - More compact */}
             <button
               onClick={handleLogout}
-              className="flex items-center space-x-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-3 py-2 rounded-xl font-medium text-sm shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300"
+              className="flex items-center space-x-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-2 lg:px-3 py-2 rounded-xl font-medium text-sm shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300"
+              title="יציאה מהמערכת"
             >
               <LogOut className="w-3.5 h-3.5 ml-1" />
-              <span>יציאה</span>
+              <span className="hidden lg:inline">יציאה</span>
             </button>
           </div>
 
           {/* Mobile menu button */}
-          <div className="lg:hidden">
+          <div className="md:hidden">
             <button
               onClick={toggleMobileMenu}
               className="bg-emerald-100 text-emerald-600 p-2 rounded-xl hover:bg-emerald-200 transition-colors"
@@ -217,11 +261,13 @@ const Navbar = ({ user, onLogout }) => {
                         ? 'bg-gray-200 text-gray-800'
                         : item.path === '/admin'
                           ? 'text-purple-600 hover:text-purple-700 hover:bg-purple-50'
-                          : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50'
+                          : item.path === '/search'
+                            ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
+                            : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50'
                     }`}
                   >
                     <Icon className="w-5 h-5 ml-3" />
-                    <span>{item.label}</span>
+                    <span>{item.fullLabel}</span>
                   </Link>
                 );
               })}

@@ -1,64 +1,55 @@
-import React, { useEffect, useState } from "react";
-import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
-  Navigate,
-  useLocation,
-} from "react-router-dom";
+// App.js - Updated with Advanced Search Route
+import React, { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/common/Navbar";
-import Signup from "./pages/Signup";
-import Login from "./pages/Login";
-import ForgotPassword from "./pages/ForgotPassword";
 import Dashboard from "./pages/Dashboard";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import ForgotPassword from "./pages/ForgotPassword";
 import TrackedCourses from "./pages/TrackedCourses";
-import AdminPanel from "./pages/AdminPanel";
+import TrackedLecturers from "./pages/TrackedLecturers";
 import CoursePage from "./pages/CoursePage";
 import LecturerPage from "./pages/LecturerPage";
-import LecturersPage from "./pages/TrackedLecturers";
+import AdminPanel from "./pages/AdminPanel";
 import ProfileManagement from "./pages/ProfileManagement";
-
-const ProtectedRoute = ({ user, children }) => {
-  const location = useLocation();
-  return user ? (
-    children
-  ) : (
-    <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} />
-  );
-};
+import AdvancedSearch from "./pages/AdvancedSearch"; 
 
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      try {
-        setUser(JSON.parse(userData));
-      } catch (error) {
-        console.error("Error parsing user data:", error);
-        localStorage.removeItem("user");
-      }
+    const token = localStorage.getItem("token");
+    const userFullName = localStorage.getItem("userFullName");
+    const userRole = localStorage.getItem("userRole");
+    const userId = localStorage.getItem("userId");
+
+    if (token && userFullName && userRole && userId) {
+      setUser({
+        token,
+        user: {
+          fullName: userFullName,
+          role: userRole,
+          _id: userId
+        }
+      });
     }
     setLoading(false);
   }, []);
 
   const handleLogin = (userData) => {
     setUser(userData);
-    localStorage.setItem("user", JSON.stringify(userData));
   };
 
   const handleLogout = () => {
     setUser(null);
-    localStorage.removeItem("user");
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">טוען...</p>
         </div>
       </div>
@@ -70,90 +61,106 @@ function App() {
       <div className="App">
         <Navbar user={user} onLogout={handleLogout} />
         <Routes>
-          <Route
-            path="/"
+          {/* Public Routes */}
+          <Route 
+            path="/login" 
             element={
-              user ? <Navigate to="/dashboard" /> : <Navigate to="/login" />
-            }
+              user ? <Navigate to="/dashboard" /> : <Login onLogin={handleLogin} user={user} />
+            } 
           />
-          <Route
-            path="/login"
-            element={<Login onLogin={handleLogin} user={user} />}
-          />
-          <Route
-            path="/signup"
+          <Route 
+            path="/signup" 
             element={
-              user ? (
-                <Navigate to="/dashboard" />
-              ) : (
-                <Signup onLogin={handleLogin} />
-              )
-            }
+              user ? <Navigate to="/dashboard" /> : <Signup onLogin={handleLogin} />
+            } 
           />
-          <Route
-            path="/forgot-password"
-            element={user ? <Navigate to="/dashboard" /> : <ForgotPassword />}
+          <Route 
+            path="/forgot-password" 
+            element={
+              user ? <Navigate to="/dashboard" /> : <ForgotPassword />
+            } 
           />
 
-          <Route
-            path="/dashboard"
+          {/* Protected Routes */}
+          <Route 
+            path="/dashboard" 
             element={
-              <ProtectedRoute user={user}>
-                <Dashboard user={user} />
-              </ProtectedRoute>
-            }
+              user ? <Dashboard /> : <Navigate to="/login" />
+            } 
           />
-          <Route
-            path="/course/:id"
+          <Route 
+            path="/search" 
             element={
-              <ProtectedRoute user={user}>
-                <CoursePage user={user} />
-              </ProtectedRoute>
-            }
+              user ? <AdvancedSearch user={user} /> : <Navigate to="/login" />
+            } 
           />
-          <Route
-            path="/lecturer/:id"
+          <Route 
+            path="/tracked-courses" 
             element={
-              <ProtectedRoute user={user}>
-                <LecturerPage user={user} />
-              </ProtectedRoute>
-            }
+              user ? <TrackedCourses /> : <Navigate to="/login" />
+            } 
           />
-          <Route
-            path="/lecturers"
+          <Route 
+            path="/lecturers" 
             element={
-              <ProtectedRoute user={user}>
-                <LecturersPage user={user} />
-              </ProtectedRoute>
-            }
+              user ? <TrackedLecturers /> : <Navigate to="/login" />
+            } 
           />
-          <Route
-            path="/tracked-courses"
+          <Route 
+            path="/course/:id" 
             element={
-              <ProtectedRoute user={user}>
-                <TrackedCourses user={user} />
-              </ProtectedRoute>
-            }
+              user ? <CoursePage user={user} /> : <Navigate to="/login" />
+            } 
           />
-          <Route
-            path="/profile"
+          <Route 
+            path="/lecturer/:id" 
             element={
-              <ProtectedRoute user={user}>
-                <ProfileManagement user={user} />
-              </ProtectedRoute>
-            }
+              user ? <LecturerPage user={user} /> : <Navigate to="/login" />
+            } 
           />
-          <Route
-            path="/admin"
+          <Route 
+            path="/profile" 
             element={
-              user?.user?.role === "admin" ? (
-                <AdminPanel user={user} />
-              ) : (
-                <Navigate to="/dashboard" />
-              )
-            }
+              user ? <ProfileManagement /> : <Navigate to="/login" />
+            } 
           />
-          <Route path="*" element={<Navigate to="/" />} />
+
+          {/* Admin Routes */}
+          <Route 
+            path="/admin" 
+            element={
+              user?.user?.role === "admin" ? 
+                <AdminPanel user={user} /> : 
+                user ? <Navigate to="/dashboard" /> : <Navigate to="/login" />
+            } 
+          />
+
+          {/* Default Routes */}
+          <Route 
+            path="/" 
+            element={
+              user ? <Navigate to="/dashboard" /> : <Navigate to="/login" />
+            } 
+          />
+          
+          {/* Catch all route - 404 */}
+          <Route 
+            path="*" 
+            element={
+              <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-red-100 flex items-center justify-center">
+                <div className="text-center">
+                  <h1 className="text-4xl font-bold text-gray-800 mb-4">404</h1>
+                  <p className="text-gray-600 mb-6">הדף שחיפשת לא נמצא</p>
+                  <button 
+                    onClick={() => window.location.href = user ? '/dashboard' : '/login'}
+                    className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl transition-colors"
+                  >
+                    {user ? 'חזור לדף הבית' : 'חזור להתחברות'}
+                  </button>
+                </div>
+              </div>
+            } 
+          />
         </Routes>
       </div>
     </Router>
