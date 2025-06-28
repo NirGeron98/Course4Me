@@ -69,16 +69,12 @@ const Dashboard = () => {
   };
 
   const filterReviewsByUser = (reviews, userId) => {
-    console.log("Reviews received:", reviews);
-    console.log("UserId for filtering:", userId, typeof userId);
 
     const filtered = reviews.filter(review => {
-      console.log("Review user:", review.user, typeof review.user);
       return (typeof review.user === "string" && review.user === userId) ||
         (typeof review.user === "object" && review.user._id === userId);
     });
 
-    console.log("Filtered reviews:", filtered);
     return filtered;
   };
 
@@ -88,7 +84,6 @@ const Dashboard = () => {
       try {
         const token = localStorage.getItem("token");
         const userId = localStorage.getItem("userId");
-        console.log("userId from localStorage:", userId);
         if (!token) return;
 
         const userFullName = localStorage.getItem("userFullName") || "User";

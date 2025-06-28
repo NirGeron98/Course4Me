@@ -72,7 +72,6 @@ const TrackedLecturers = () => {
 
   // Navigate to lecturer details page
   const handleViewLecturerDetails = (lecturer) => {
-    console.log("Navigating to lecturer page:", lecturer);
     navigate(`/lecturer/${lecturer._id}`);
   };
 

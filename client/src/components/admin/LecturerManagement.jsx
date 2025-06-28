@@ -161,10 +161,7 @@ const LecturerManagement = ({ onMessage, onError, onLecturersUpdate }) => {
     else if (lecturer.department && lecturer.department.trim() !== '') {
       // Split by comma and find matching departments
       const departmentNames = lecturer.department.split(',').map(name => name.trim());
-      
-      console.log('Looking for departments:', departmentNames);
-      console.log('Available departments:', departments.map(d => `"${d.name}"`));
-      
+            
       departmentNames.forEach(deptName => {
         // Create variations of the department name to try
         const searchVariations = [
@@ -184,7 +181,6 @@ const LecturerManagement = ({ onMessage, onError, onLecturersUpdate }) => {
             dept.name.trim().toLowerCase() === variation.toLowerCase()
           );
           if (matchingDept) {
-            console.log(`Found exact match: "${deptName}" -> "${matchingDept.name}" (using variation: "${variation}")`);
             break;
           }
         }
@@ -196,16 +192,11 @@ const LecturerManagement = ({ onMessage, onError, onLecturersUpdate }) => {
             const searchLower = deptName.trim().toLowerCase();
             return deptNameLower.includes(searchLower) || searchLower.includes(deptNameLower);
           });
-          if (matchingDept) {
-            console.log(`Found partial match: "${deptName}" -> "${matchingDept.name}"`);
-          }
         }
         
         if (matchingDept && !selectedDepartments.includes(matchingDept._id)) {
           selectedDepartments.push(matchingDept._id);
-        } else if (!matchingDept) {
-          console.log(`No match found for: "${deptName}"`);
-        }
+        } 
       });
     }
     
