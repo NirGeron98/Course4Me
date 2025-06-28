@@ -27,7 +27,7 @@ const LecturerHeader = ({ lecturer, courses, reviews = [], renderStars }) => {
     }, [reviews]);
 
     // Use calculated stats from reviews if available, otherwise use lecturer data
-    const displayRating = stats ? parseFloat(stats.overallRating) : 
+    const displayRating = stats ? parseFloat(stats.overallRating) :
         (lecturer.averageRating ? parseFloat(lecturer.averageRating) : null);
     const reviewsCount = stats ? stats.total : (lecturer.ratingsCount || 0);
 
@@ -44,16 +44,17 @@ const LecturerHeader = ({ lecturer, courses, reviews = [], renderStars }) => {
             <div className="relative max-w-7xl mx-auto px-6 py-12">
                 <div className="flex flex-col lg:flex-row items-start gap-8">
                     {/* Lecturer Icon */}
-                    <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl p-4 shadow-lg">
-                        <User className="w-10 h-10 text-white" />
+                    <div className="flex items-center gap-4">
+                        <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl p-3 shadow-lg">
+                            <User className="w-8 h-8 text-white" />
+                        </div>
+                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight">
+                            {lecturer.name}
+                        </h1>
                     </div>
 
                     {/* Lecturer Details */}
                     <div className="flex-1 min-w-0">
-                        <h1 className="text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight text-center lg:text-right">
-                            {lecturer.name}
-                        </h1>
-
                         {/* Lecturer Meta - Compact Pills */}
                         <div className="flex flex-wrap gap-2 mb-6 justify-center lg:justify-start">
                             {lecturer.department && (
@@ -113,7 +114,7 @@ const LecturerHeader = ({ lecturer, courses, reviews = [], renderStars }) => {
                                                     </Link>
                                                 ))}
                                             </div>
-                                            
+
                                             {remainingCourses > 0 && (
                                                 <div className="flex justify-center">
                                                     <button

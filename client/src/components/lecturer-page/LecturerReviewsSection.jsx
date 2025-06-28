@@ -3,7 +3,7 @@ import { MessageCircle, Star, Plus, Loader2, User, Filter, SortAsc, Shield } fro
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen, faTrash } from '@fortawesome/free-solid-svg-icons';
 import ExistingReviewModal from '../common/ExistingReviewModal';
-import DeleteConfirmationModal from '../common/DeleteConfirmationModal'; 
+import DeleteConfirmationModal from '../common/DeleteConfirmationModal';
 
 const LecturerReviewsSection = ({
     reviews,
@@ -18,11 +18,11 @@ const LecturerReviewsSection = ({
     onEditReview,
     user,
     lecturerId,
-    onReviewDeleted 
+    onReviewDeleted
 }) => {
     const [showExistingReviewModal, setShowExistingReviewModal] = useState(false);
     const [userExistingReview, setUserExistingReview] = useState(null);
-    
+
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [reviewToDelete, setReviewToDelete] = useState(null);
 
@@ -30,8 +30,8 @@ const LecturerReviewsSection = ({
 
     const checkForExistingReview = () => {
         if (!user?.user) return null;
-        
-        return reviews.find(review => 
+
+        return reviews.find(review =>
             review.user && review.user._id === user.user._id
         );
     };
@@ -43,7 +43,7 @@ const LecturerReviewsSection = ({
         }
 
         const existingReview = checkForExistingReview();
-        
+
         if (existingReview) {
             setUserExistingReview(existingReview);
             setShowExistingReviewModal(true);
@@ -85,7 +85,7 @@ const LecturerReviewsSection = ({
             } else {
                 window.location.reload(); // fallback
             }
-            
+
             setShowDeleteModal(false);
             setReviewToDelete(null);
         } catch (error) {
@@ -156,12 +156,13 @@ const LecturerReviewsSection = ({
 
                     {user && (
                         <button
-                            onClick={handleWriteReviewClick} 
+                            onClick={handleWriteReviewClick}
                             className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 transition-colors"
                         >
                             <Plus className="w-4 h-4" />
-                            כתוב ביקורת
+                            <span className="hidden sm:inline">כתוב ביקורת</span>
                         </button>
+
                     )}
                 </div>
 
@@ -215,7 +216,7 @@ const LecturerReviewsSection = ({
                         </p>
                         {user && (
                             <button
-                                onClick={handleWriteReviewClick} 
+                                onClick={handleWriteReviewClick}
                                 className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl transition-colors"
                             >
                                 כתוב ביקורת ראשונה
@@ -225,9 +226,9 @@ const LecturerReviewsSection = ({
                 ) : (
                     <div className="space-y-4">
                         {filteredReviews.map((review) => {
-                            const overallRating = review.overallRating || 
+                            const overallRating = review.overallRating ||
                                 ((review.clarity + review.responsiveness + review.availability + review.organization + review.knowledge) / 5).toFixed(1);
-                            
+
                             return (
                                 <div key={review._id} className="border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow">
                                     <div className="flex items-start justify-between mb-4">

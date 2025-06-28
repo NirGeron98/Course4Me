@@ -36,16 +36,16 @@ const CourseHeader = ({ course, stats }) => {
     const displayRating = stats?.overallRating
         ? parseFloat(stats.overallRating)
         : course.averageRating
-        ? parseFloat(course.averageRating)
-        : null;
+            ? parseFloat(course.averageRating)
+            : null;
 
     const reviewsCount = stats?.total || course.ratingsCount || 0;
 
     // Limit lecturers display
     const maxLecturersToShow = 4;
     const lecturersToShow = course.lecturers?.slice(0, maxLecturersToShow) || [];
-    const remainingLecturers = course.lecturers?.length > maxLecturersToShow 
-        ? course.lecturers.length - maxLecturersToShow 
+    const remainingLecturers = course.lecturers?.length > maxLecturersToShow
+        ? course.lecturers.length - maxLecturersToShow
         : 0;
 
     return (
@@ -53,17 +53,20 @@ const CourseHeader = ({ course, stats }) => {
             <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800"></div>
 
             <div className="relative max-w-7xl mx-auto px-6 py-12">
-                <div className="flex flex-col lg:flex-row items-start gap-8">
-                    <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl p-4 shadow-lg">
-                        <BookOpen className="w-10 h-10 text-white" />
-                    </div>
+                <div className="flex flex-col items-center lg:flex-row lg:items-start gap-6 sm:gap-10 text-center lg:text-right">
 
                     <div className="flex-1 min-w-0">
-                        <h1 className="text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight text-center lg:text-right">
-                            {course.title}
-                        </h1>
+                        <div className="flex items-center justify-center lg:justify-start gap-3 mb-4">
+                            <div className="bg-white/20 p-2 rounded-xl">
+                                <BookOpen className="w-6 h-6 text-white" />
+                            </div>
+                            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight">
+                                {course.title}
+                            </h1>
+                        </div>
 
-                        <div className="flex flex-wrap gap-2 mb-6 justify-center lg:justify-start">
+
+                        <div className="flex flex-wrap gap-2 mb-6 justify-center lg:justify-start text-sm sm:text-base">
                             <div className="bg-white/25 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
                                 <Hash className="w-3.5 h-3.5" />
                                 {course.courseNumber}
@@ -86,14 +89,14 @@ const CourseHeader = ({ course, stats }) => {
 
                         {lecturersToShow.length > 0 && (
                             <div className="mb-6">
-                                <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-xl p-4 shadow-lg inline-block">
-                                    <div className="flex items-center gap-4">
+                                <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-xl p-4 shadow-lg">
+                                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4 text-sm sm:text-base">
                                         <div className="flex items-center gap-2 text-white font-semibold whitespace-nowrap">
                                             <Users className="w-4 h-4" />
                                             <span>{course.lecturers.length > 1 ? 'מרצים:' : 'מרצה:'}</span>
                                         </div>
 
-                                        <div className="flex gap-3 items-center">
+                                        <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
                                             {lecturersToShow.map((lecturer, index) => (
                                                 <Link
                                                     key={index}
@@ -105,7 +108,7 @@ const CourseHeader = ({ course, stats }) => {
                                                     </span>
                                                 </Link>
                                             ))}
-                                            
+
                                             {remainingLecturers > 0 && (
                                                 <button
                                                     onClick={() => setShowAllLecturers(true)}
@@ -124,7 +127,7 @@ const CourseHeader = ({ course, stats }) => {
                     </div>
 
                     {displayRating && (
-                        <div className="flex-shrink-0">
+                        <div className="w-full sm:w-auto mt-6 lg:mt-0 flex justify-center lg:justify-start">
                             <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl p-6 shadow-lg">
                                 <div className="text-center">
                                     <div className="text-3xl font-bold text-white mb-3">

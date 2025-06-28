@@ -244,7 +244,7 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
                         className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 transition-colors"
                     >
                         <Plus className="w-4 h-4" />
-                        כתוב ביקורת
+                        <span className="hidden sm:inline">כתוב ביקורת</span>
                     </button>
                 </div>
 

@@ -15,7 +15,7 @@ const TrackedCourses = () => {
   // Set page title
   useEffect(() => {
     document.title = 'קורסים במעקב - Course4Me';
-    
+
     // Cleanup function to reset title when component unmounts
     return () => {
       document.title = 'Course4Me';
@@ -99,7 +99,7 @@ const TrackedCourses = () => {
           className="absolute top-4 left-4 bg-white text-emerald-600 hover:text-emerald-700 py-2.5 px-5 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 group text-sm border-2 border-white hover:bg-gray-50"
         >
           <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
-          הוספת קורס
+          <span className="hidden sm:inline">הוספת קורס</span>
         </button>
 
         {/* Centered header content with title and description */}
