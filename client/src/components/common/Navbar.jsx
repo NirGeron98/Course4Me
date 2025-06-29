@@ -265,16 +265,18 @@ const Navbar = ({ user, onLogout }) => {
               })}
 
               {/* Logout Button Mobile */}
-              <button
-                onClick={() => {
-                  handleLogout();
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full flex items-center space-x-3 bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-3 rounded-xl font-medium shadow-lg mt-4"
-              >
-                <LogOut className="w-5 h-5 ml-3" />
-                <span>יציאה</span>
-              </button>
+              <div className="w-full flex justify-center mt-4">
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="flex items-center space-x-3 bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-3 rounded-xl font-medium shadow-lg"
+                >
+                  <LogOut className="w-5 h-5 ml-3" />
+                  <span>יציאה</span>
+                </button>
+              </div>
             </div>
           </div>
         )}
