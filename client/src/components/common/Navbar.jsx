@@ -115,11 +115,7 @@ const Navbar = ({ user, onLogout }) => {
                         ? 'bg-slate-100 text-slate-800 shadow-md'
                         : item.path === '/admin'
                           ? 'text-purple-600 hover:text-purple-700 hover:bg-purple-50'
-                          : item.path === '/search'
-                            ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
-                            : item.path === '/my-reviews'
-                              ? 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50'
-                              : 'text-gray-600 hover:text-slate-700 hover:bg-slate-50'
+                          : 'text-gray-600 hover:text-slate-700 hover:bg-slate-50'
                       }`}
                     title={item.fullLabel} // Tooltip with full label
                   >
@@ -145,11 +141,7 @@ const Navbar = ({ user, onLogout }) => {
                         ? 'bg-slate-100 text-slate-800 shadow-md'
                         : item.path === '/admin'
                           ? 'text-purple-600 hover:text-purple-700 hover:bg-purple-50'
-                          : item.path === '/search'
-                            ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
-                            : item.path === '/my-reviews'
-                              ? 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50'
-                              : 'text-gray-600 hover:text-slate-700 hover:bg-slate-50'
+                          : 'text-gray-600 hover:text-slate-700 hover:bg-slate-50'
                       }`}
                     title={item.fullLabel}
                   >
@@ -263,11 +255,7 @@ const Navbar = ({ user, onLogout }) => {
                         ? 'bg-slate-100 text-slate-800'
                         : item.path === '/admin'
                           ? 'text-purple-600 hover:text-purple-700 hover:bg-purple-50'
-                          : item.path === '/search'
-                            ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
-                            : item.path === '/my-reviews'
-                              ? 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50'
-                              : 'text-gray-600 hover:text-slate-700 hover:bg-slate-50'
+                          : 'text-gray-600 hover:text-slate-700 hover:bg-slate-50'
                       }`}
                   >
                     <Icon className="w-5 h-5 ml-3" />

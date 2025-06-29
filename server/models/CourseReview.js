@@ -29,7 +29,8 @@ const courseReviewSchema = new mongoose.Schema(
       max: 5,
       required: true,
     },
-    investment: {
+    // CHANGE: Use 'workload' instead of 'workload' to match your existing schema
+    workload: {
       type: Number,
       min: 1,
       max: 5,
@@ -64,14 +65,14 @@ courseReviewSchema.index({ course: 1, lecturer: 1, user: 1 }, { unique: true });
 // Virtual field for detailed average rating (average of criteria except recommendation)
 courseReviewSchema.virtual("detailedAverageRating").get(function () {
   return (
-    (this.interest + this.difficulty + this.investment + this.teachingQuality) / 4
+    (this.interest + this.difficulty + this.workload + this.teachingQuality) / 4
   ).toFixed(1);
 });
 
 // Virtual field for overall average (including all criteria)
 courseReviewSchema.virtual("overallAverageRating").get(function () {
   return (
-    (this.interest + this.difficulty + this.investment + this.teachingQuality + this.recommendation) / 5
+    (this.interest + this.difficulty + this.workload + this.teachingQuality + this.recommendation) / 5
   ).toFixed(1);
 });
 

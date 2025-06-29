@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { MessageCircle, Loader2 } from 'lucide-react';
-import ReviewFilters from './ReviewFilters';
-import ReviewsList from './ReviewsList';
-import ReviewEditModal from './ReviewEditModal';
-import DeleteConfirmationModal from '../common/DeleteConfirmationModal';
+import ReviewFilters from '../components/my-reviews/ReviewFilters';
+import ReviewsList from '../components/my-reviews/ReviewsList';
+import ReviewEditModal from '../components/my-reviews/ReviewEditModal';
+import DeleteConfirmationModal from '../components/common/DeleteConfirmationModal';
 
 const MyReviewsPage = ({ user }) => {
   const [reviews, setReviews] = useState([]);
@@ -19,7 +19,8 @@ const MyReviewsPage = ({ user }) => {
     endDate: '',
     minRating: '',
     maxRating: '',
-    isAnonymous: 'all'
+    isAnonymous: 'all',
+    reviewType: 'all' // New filter for review type
   });
   const [sortBy, setSortBy] = useState('newest');
   const [sortOrder, setSortOrder] = useState('desc');
@@ -44,32 +45,51 @@ const MyReviewsPage = ({ user }) => {
   const fetchMyReviews = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/reviews/`, {
-        headers: {
-          'Authorization': `Bearer ${user.token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      
+      // Fetch both course reviews and lecturer reviews
+      const [courseReviewsResponse, lecturerReviewsResponse] = await Promise.all([
+        fetch(`${process.env.REACT_APP_API_BASE_URL}/api/reviews/`, {
+          headers: {
+            'Authorization': `Bearer ${user.token}`,
+            'Content-Type': 'application/json',
+          },
+        }),
+        fetch(`${process.env.REACT_APP_API_BASE_URL}/api/lecturer-reviews/`, {
+          headers: {
+            'Authorization': `Bearer ${user.token}`,
+            'Content-Type': 'application/json',
+          },
+        })
+      ]);
 
-      if (response.ok) {
-        const allReviews = await response.json();
-        
-        // Filter only current user's reviews
-        const myReviews = allReviews.filter(review => 
+      let allMyReviews = [];
+
+      if (courseReviewsResponse.ok) {
+        const courseReviews = await courseReviewsResponse.json();
+        const myCourseReviews = courseReviews.filter(review => 
           review.user && review.user._id === user.user._id
-        );
-
-        setReviews(myReviews);
-        
-        // Extract unique values for filters
-        const lecturers = [...new Set(myReviews.map(r => r.lecturer?.name).filter(Boolean))];
-        const courses = [...new Set(myReviews.map(r => r.course?.title).filter(Boolean))];
-        const departments = [...new Set(myReviews.map(r => r.course?.department).filter(Boolean))];
-        
-        setUniqueLecturers(lecturers);
-        setUniqueCourses(courses);
-        setUniqueDepartments(departments);
+        ).map(review => ({ ...review, reviewType: 'course' }));
+        allMyReviews = [...allMyReviews, ...myCourseReviews];
       }
+
+      if (lecturerReviewsResponse.ok) {
+        const lecturerReviews = await lecturerReviewsResponse.json();
+        const myLecturerReviews = lecturerReviews.filter(review => 
+          review.user && review.user._id === user.user._id
+        ).map(review => ({ ...review, reviewType: 'lecturer' }));
+        allMyReviews = [...allMyReviews, ...myLecturerReviews];
+      }
+
+      setReviews(allMyReviews);
+      
+      // Extract unique values for filters
+      const lecturers = [...new Set(allMyReviews.map(r => r.lecturer?.name).filter(Boolean))];
+      const courses = [...new Set(allMyReviews.map(r => r.course?.title).filter(Boolean))];
+      const departments = [...new Set(allMyReviews.map(r => r.course?.department).filter(Boolean))];
+      
+      setUniqueLecturers(lecturers);
+      setUniqueCourses(courses);
+      setUniqueDepartments(departments);
     } catch (error) {
       console.error('Error fetching reviews:', error);
     } finally {
@@ -124,17 +144,38 @@ const MyReviewsPage = ({ user }) => {
       );
     }
 
-    // Rating filters
+    // Rating filters - handle both course and lecturer reviews
     if (filters.minRating) {
-      filtered = filtered.filter(review => 
-        (review.recommendation || 0) >= parseInt(filters.minRating)
-      );
+      filtered = filtered.filter(review => {
+        let rating;
+        if (review.reviewType === 'course') {
+          rating = review.recommendation || review.overallRating || 
+                  ((review.interest + review.difficulty + (review.workload || review.workload) + review.teachingQuality) / 4);
+        } else {
+          rating = review.overallRating || 
+                  ((review.clarity + review.responsiveness + review.availability + review.organization + review.knowledge) / 5);
+        }
+        return rating >= parseInt(filters.minRating);
+      });
     }
 
     if (filters.maxRating) {
-      filtered = filtered.filter(review => 
-        (review.recommendation || 0) <= parseInt(filters.maxRating)
-      );
+      filtered = filtered.filter(review => {
+        let rating;
+        if (review.reviewType === 'course') {
+          rating = review.recommendation || review.overallRating || 
+                  ((review.interest + review.difficulty + (review.workload || review.workload) + review.teachingQuality) / 4);
+        } else {
+          rating = review.overallRating || 
+                  ((review.clarity + review.responsiveness + review.availability + review.organization + review.knowledge) / 5);
+        }
+        return rating <= parseInt(filters.maxRating);
+      });
+    }
+
+    // Review type filter
+    if (filters.reviewType !== 'all') {
+      filtered = filtered.filter(review => review.reviewType === filters.reviewType);
     }
 
     // Anonymous filter
@@ -161,7 +202,24 @@ const MyReviewsPage = ({ user }) => {
           comparison = (a.lecturer?.name || '').localeCompare(b.lecturer?.name || '');
           break;
         case 'rating':
-          comparison = (b.recommendation || 0) - (a.recommendation || 0);
+          let aRating, bRating;
+          if (a.reviewType === 'course') {
+            aRating = a.recommendation || a.overallRating || 
+                     ((a.interest + a.difficulty + (a.workload || a.workload) + a.teachingQuality) / 4);
+          } else {
+            aRating = a.overallRating || 
+                     ((a.clarity + a.responsiveness + a.availability + a.organization + a.knowledge) / 5);
+          }
+          
+          if (b.reviewType === 'course') {
+            bRating = b.recommendation || b.overallRating || 
+                     ((b.interest + b.difficulty + (b.workload || b.workload) + b.teachingQuality) / 4);
+          } else {
+            bRating = b.overallRating || 
+                     ((b.clarity + b.responsiveness + b.availability + b.organization + b.knowledge) / 5);
+          }
+          
+          comparison = bRating - aRating;
           break;
         case 'department':
           comparison = (a.course?.department || '').localeCompare(b.course?.department || '');
@@ -194,7 +252,8 @@ const MyReviewsPage = ({ user }) => {
       endDate: '',
       minRating: '',
       maxRating: '',
-      isAnonymous: 'all'
+      isAnonymous: 'all',
+      reviewType: 'all'
     });
   };
 
@@ -212,7 +271,11 @@ const MyReviewsPage = ({ user }) => {
     if (!reviewToDelete) return;
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/reviews/${reviewToDelete._id}`, {
+      const endpoint = reviewToDelete.reviewType === 'course' 
+        ? `${process.env.REACT_APP_API_BASE_URL}/api/reviews/${reviewToDelete._id}`
+        : `${process.env.REACT_APP_API_BASE_URL}/api/lecturer-reviews/${reviewToDelete._id}`;
+
+      const response = await fetch(endpoint, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${user.token}`

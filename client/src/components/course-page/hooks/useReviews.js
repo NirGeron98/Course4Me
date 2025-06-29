@@ -63,10 +63,10 @@ export const useReviews = (courseId, token) => {
             avgInterest: avg('interest').toFixed(1),
             avgDifficulty: avg('difficulty').toFixed(1),
             avgWorkload: avg('workload').toFixed(1),
-            avgInvestment: avg('investment').toFixed(1),
+            avgworkload: avg('workload').toFixed(1),
             avgTeachingQuality: avg('teachingQuality').toFixed(1),
             overallRating: (
-                (avg('interest') + avg('teachingQuality') + avg('investment')) / 3
+                (avg('interest') + avg('teachingQuality') + avg('workload')) / 3
             ).toFixed(1)
         };
     }, [reviews]);
@@ -77,14 +77,14 @@ export const useReviews = (courseId, token) => {
         if (filterRating !== 'all') {
             const minRating = parseInt(filterRating);
             filtered = filtered.filter(review => {
-                const avgRating = (review.interest + review.teachingQuality + review.investment) / 3;
+                const avgRating = (review.interest + review.teachingQuality + review.workload) / 3;
                 return Math.floor(avgRating) + 1 === minRating;
             });
         }
 
         filtered.sort((a, b) => {
-            const avgA = (a.interest + a.teachingQuality + a.investment) / 3;
-            const avgB = (b.interest + b.teachingQuality + b.investment) / 3;
+            const avgA = (a.interest + a.teachingQuality + a.workload) / 3;
+            const avgB = (b.interest + b.teachingQuality + b.workload) / 3;
 
             switch (sortBy) {
                 case 'newest':

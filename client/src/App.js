@@ -13,7 +13,7 @@ import LecturerPage from "./pages/LecturerPage";
 import AdminPanel from "./pages/AdminPanel";
 import ProfileManagement from "./pages/ProfileManagement";
 import AdvancedSearch from "./pages/AdvancedSearch";
-import MyReviewsPage from "./components/my-reviews/MyReviewsPage";
+import MyReviewsPage from "./pages/MyReviewsPage";
 
 function App() {
   const [user, setUser] = useState(null);

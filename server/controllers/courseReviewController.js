@@ -9,7 +9,7 @@ exports.createReview = async (req, res) => {
       lecturer,
       interest,
       difficulty,
-      investment,
+      workload, // Frontend sends 'workload'
       teachingQuality,
       recommendation,
       comment,
@@ -17,10 +17,9 @@ exports.createReview = async (req, res) => {
     } = req.body;
 
     console.log('Request body received:', req.body);
-    console.log('isAnonymous value:', isAnonymous, 'type:', typeof isAnonymous);
 
     // Validate required fields
-    if (!course || !lecturer || !interest || !difficulty || !investment || !teachingQuality || !recommendation) {
+    if (!course || !lecturer || !interest || !difficulty || !workload || !teachingQuality || !recommendation) {
       return res.status(400).json({
         message: "חסרים שדות נדרשים",
       });
@@ -39,33 +38,25 @@ exports.createReview = async (req, res) => {
       });
     }
 
-    // Ensure isAnonymous is properly converted to boolean
-    const anonymousValue = Boolean(isAnonymous);
-    console.log('Processed isAnonymous:', anonymousValue);
-
     // Create review using the authenticated user's ID
+    // IMPORTANT: Map 'workload' to 'workload' for the database
     const review = new CourseReview({
       course,
       lecturer,
       user: req.user._id,
       interest: Number(interest),
       difficulty: Number(difficulty),
-      investment: Number(investment),
+      workload: Number(workload), // Map workload to workload
       teachingQuality: Number(teachingQuality),
       recommendation: Number(recommendation),
       comment: comment || '',
-      isAnonymous: anonymousValue,
+      isAnonymous: Boolean(isAnonymous),
     });
 
-    console.log('Creating review with data:', {
-      course,
-      lecturer,
-      user: req.user._id,
-      isAnonymous: anonymousValue
-    });
+    console.log('Creating review with workload mapping...');
 
     const savedReview = await review.save();
-    console.log('Saved review:', savedReview);
+    console.log('Review saved successfully');
 
     // Update the course's average rating based on recommendation score
     const allReviews = await CourseReview.find({ course });
@@ -82,40 +73,24 @@ exports.createReview = async (req, res) => {
       .populate("user", "fullName _id")
       .populate("lecturer", "name");
 
-    console.log('Populated review before processing:', {
-      id: populatedReview._id,
-      isAnonymous: populatedReview.isAnonymous,
-      userName: populatedReview.user?.fullName
-    });
-
     // Process the returned review to handle anonymity
     const reviewObj = populatedReview.toObject();
     
-    console.log('Review object after toObject:', {
-      id: reviewObj._id,
-      isAnonymous: reviewObj.isAnonymous,
-      userName: reviewObj.user?.fullName
-    });
+    // Map workload back to workload for the frontend
+    reviewObj.workload = reviewObj.workload;
+    delete reviewObj.workload;
     
     if (reviewObj.isAnonymous === true) {
       reviewObj.user = {
         _id: reviewObj.user._id,
         fullName: 'משתמש אנונימי'
       };
-      console.log('Made anonymous, final user name:', reviewObj.user.fullName);
     }
-
-    console.log('Final review object being sent:', {
-      id: reviewObj._id,
-      isAnonymous: reviewObj.isAnonymous,
-      userName: reviewObj.user?.fullName
-    });
 
     res.status(201).json(reviewObj);
   } catch (err) {
     console.error("Error creating review:", err);
     
-    // Handle validation errors
     if (err.name === 'ValidationError') {
       const validationErrors = Object.values(err.errors).map(e => e.message);
       return res.status(400).json({
@@ -124,7 +99,6 @@ exports.createReview = async (req, res) => {
       });
     }
     
-    // Handle duplicate key error
     if (err.code === 11000) {
       return res.status(400).json({
         message: "כבר כתבת ביקורת עבור קורס זה עם מרצה זה",
@@ -154,23 +128,19 @@ exports.getReviewsByCourse = async (req, res) => {
       .populate("lecturer", "name")
       .sort({ createdAt: -1 });
 
-    // Process reviews to handle anonymous ones
+    // Process reviews to handle anonymous ones and map workload to workload
     const processedReviews = reviews.map(review => {
       const reviewObj = review.toObject();
       
-      console.log('Processing review in getReviewsByCourse:', {
-        id: reviewObj._id,
-        isAnonymous: reviewObj.isAnonymous,
-        isAnonymousType: typeof reviewObj.isAnonymous,
-        originalUserName: reviewObj.user?.fullName
-      });
+      // Map workload back to workload for frontend compatibility
+      reviewObj.workload = reviewObj.workload;
+      delete reviewObj.workload;
       
       if (reviewObj.isAnonymous === true) {
         reviewObj.user = {
           _id: reviewObj.user._id,
           fullName: 'משתמש אנונימי'
         };
-        console.log('Made anonymous in getReviewsByCourse:', reviewObj.user.fullName);
       }
       
       return reviewObj;
@@ -195,9 +165,13 @@ exports.getAllReviews = async (req, res) => {
       .populate("lecturer", "name")
       .sort({ createdAt: -1 });
 
-    // Process reviews to handle anonymous ones
+    // Process reviews to handle anonymous ones and map workload to workload
     const processedReviews = reviews.map(review => {
       const reviewObj = review.toObject();
+      
+      // Map workload back to workload for frontend compatibility
+      reviewObj.workload = reviewObj.workload;
+      delete reviewObj.workload;
       
       if (reviewObj.isAnonymous === true) {
         reviewObj.user = {
@@ -226,15 +200,12 @@ exports.updateReview = async (req, res) => {
     const {
       interest,
       difficulty,
-      investment,
+      workload, // Frontend sends 'workload'
       teachingQuality,
       recommendation,
       comment,
       isAnonymous,
     } = req.body;
-
-    console.log('Update request body:', req.body);
-    console.log('isAnonymous value for update:', isAnonymous, 'type:', typeof isAnonymous);
 
     // Find the existing review
     const existingReview = await CourseReview.findById(reviewId);
@@ -248,35 +219,30 @@ exports.updateReview = async (req, res) => {
       return res.status(403).json({ message: "אין הרשאה לעדכן ביקורת זו" });
     }
 
-    // Ensure isAnonymous is properly converted to boolean
-    const anonymousValue = Boolean(isAnonymous);
-    console.log('Processed isAnonymous for update:', anonymousValue);
-
-    // Update the review
+    // Update the review - map workload to workload
     const updatedReview = await CourseReview.findByIdAndUpdate(
       reviewId,
       {
         interest: Number(interest),
         difficulty: Number(difficulty),
-        investment: Number(investment),
+        workload: Number(workload), // Map workload to workload
         teachingQuality: Number(teachingQuality),
         recommendation: Number(recommendation),
         comment: comment || '',
-        isAnonymous: anonymousValue,
+        isAnonymous: Boolean(isAnonymous),
       },
       { new: true, runValidators: true }
     )
       .populate("user", "fullName _id")
       .populate("lecturer", "name");
 
-    console.log('Updated review from DB:', {
-      id: updatedReview._id,
-      isAnonymous: updatedReview.isAnonymous,
-      userName: updatedReview.user?.fullName
-    });
-
-    // Process the updated review to handle anonymity
+    // Process the updated review to handle anonymity and field mapping
     const reviewObj = updatedReview.toObject();
+    
+    // Map workload back to workload for frontend
+    reviewObj.workload = reviewObj.workload;
+    delete reviewObj.workload;
+    
     if (reviewObj.isAnonymous === true) {
       reviewObj.user = {
         _id: reviewObj.user._id,
@@ -296,17 +262,10 @@ exports.updateReview = async (req, res) => {
       ratingsCount: allReviews.length,
     });
 
-    console.log('Final updated review object:', {
-      id: reviewObj._id,
-      isAnonymous: reviewObj.isAnonymous,
-      userName: reviewObj.user?.fullName
-    });
-
     res.status(200).json(reviewObj);
   } catch (err) {
     console.error("Error updating review:", err);
     
-    // Handle validation errors
     if (err.name === 'ValidationError') {
       const validationErrors = Object.values(err.errors).map(e => e.message);
       return res.status(400).json({

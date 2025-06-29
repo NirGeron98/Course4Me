@@ -22,7 +22,7 @@ const ExistingReviewModal = ({ onEdit, onCancel, existingReview, reviewType = 'l
                 { key: 'interest', label: 'עניין', color: 'red' },
                 { key: 'difficulty', label: 'קושי', color: 'yellow' },
                 { key: 'workload', label: 'עומס', color: 'orange' },
-                { key: 'investment', label: 'השקעה', color: 'green' },
+                { key: 'workload', label: 'השקעה', color: 'green' },
                 { key: 'teachingQuality', label: 'איכות הוראה', color: 'purple' }
             ];
         } else {

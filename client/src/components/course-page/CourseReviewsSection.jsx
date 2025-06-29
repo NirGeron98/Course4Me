@@ -375,7 +375,7 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
                                     </div>
                                     <div className="text-center">
                                         <div className="text-sm font-medium text-gray-700">השקעה</div>
-                                        <div className="text-sm text-orange-600 font-bold">{review.investment || 0}/5</div>
+                                        <div className="text-sm text-orange-600 font-bold">{review.workload || 0}/5</div>
                                     </div>
                                     <div className="text-center">
                                         <div className="text-sm font-medium text-gray-700">איכות הוראה</div>

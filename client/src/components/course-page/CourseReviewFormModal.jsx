@@ -19,7 +19,7 @@ const CourseReviewFormModal = ({
         lecturer: '',
         interest: 3,
         difficulty: 3,
-        investment: 3,
+        workload: 3,
         teachingQuality: 3,
         recommendation: 3,
         comment: '',
@@ -53,7 +53,7 @@ const CourseReviewFormModal = ({
                     : existingReview.lecturer || '',
                 interest: Number(existingReview.interest) || 3,
                 difficulty: Number(existingReview.difficulty) || 3,
-                investment: Number(existingReview.investment) || 3,
+                workload: Number(existingReview.workload) || 3,
                 teachingQuality: Number(existingReview.teachingQuality) || 3,
                 recommendation: Number(existingReview.recommendation) || 3,
                 comment: existingReview.comment || '',
@@ -163,7 +163,7 @@ const CourseReviewFormModal = ({
                 lecturer: typeof formData.lecturer === 'object' ? formData.lecturer._id : formData.lecturer,
                 interest: Number(formData.interest),
                 difficulty: Number(formData.difficulty),
-                investment: Number(formData.investment),
+                workload: Number(formData.workload),
                 teachingQuality: Number(formData.teachingQuality),
                 recommendation: Number(formData.recommendation),
                 comment: String(formData.comment || '').trim(),
@@ -349,7 +349,7 @@ const CourseReviewFormModal = ({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             {renderRatingInput('עד כמה הקורס מעניין?', 'interest', <Heart className="w-5 h-5 text-red-500" />, 'red')}
                             {renderRatingInput('עד כמה הקורס קשה?', 'difficulty', <Zap className="w-5 h-5 text-yellow-500" />, 'yellow')}
-                            {renderRatingInput('כמה זמן השקעת בקורס?', 'investment', <Clock className="w-5 h-5 text-orange-500" />, 'orange')}
+                            {renderRatingInput('כמה זמן השקעת בקורס?', 'workload', <Clock className="w-5 h-5 text-orange-500" />, 'orange')}
                             {renderRatingInput('איכות ההוראה', 'teachingQuality', <Award className="w-5 h-5 text-purple-500" />, 'purple')}
                             {renderRatingInput('עד כמה היית ממליץ על הקורס?', 'recommendation', <ThumbsUp className="w-5 h-5 text-emerald-500" />, 'emerald')}
                         </div>

@@ -274,6 +274,23 @@ const ReviewFilters = ({
                 <option value="true">ביקורות אנונימיות</option>
               </select>
             </div>
+
+            {/* Review Type Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-gray-500" />
+                סוג דירוג
+              </label>
+              <select
+                value={filters.reviewType}
+                onChange={(e) => onFilterChange('reviewType', e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              >
+                <option value="all">כל הדירוגים</option>
+                <option value="course">דירוגי קורסים</option>
+                <option value="lecturer">דירוגי מרצים</option>
+              </select>
+            </div>
           </div>
 
           {/* Active Filters Display */}
@@ -294,12 +311,15 @@ const ReviewFilters = ({
                     endDate: 'עד תאריך',
                     minRating: 'דירוג מינימלי',
                     maxRating: 'דירוג מקסימלי',
-                    isAnonymous: 'סוג ביקורת'
+                    isAnonymous: 'סוג ביקורת',
+                    reviewType: 'סוג דירוג'
                   };
 
                   const displayValue = key === 'isAnonymous' 
                     ? (value === 'true' ? 'אנונימי' : 'גלוי')
-                    : value;
+                    : key === 'reviewType'
+                      ? (value === 'course' ? 'קורסים' : 'מרצים')
+                      : value;
 
                   return (
                     <span
@@ -308,7 +328,7 @@ const ReviewFilters = ({
                     >
                       {filterLabels[key]}: {displayValue}
                       <button
-                        onClick={() => onFilterChange(key, key === 'isAnonymous' ? 'all' : '')}
+                        onClick={() => onFilterChange(key, key === 'isAnonymous' || key === 'reviewType' ? 'all' : '')}
                         className="ml-1 hover:text-emerald-900"
                       >
                         <X className="w-3 h-3" />

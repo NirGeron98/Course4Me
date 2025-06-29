@@ -5,7 +5,7 @@ const CourseStatisticsCard = ({ stats }) => {
     const colors = {
         interest: 'red-500',
         difficulty: 'yellow-500',
-        investment: 'orange-500',
+        workload: 'orange-500',
         teachingQuality: 'purple-500',
         recommendation: 'emerald-500'
     };
@@ -56,7 +56,7 @@ const CourseStatisticsCard = ({ stats }) => {
             <div className="space-y-4">
                 {renderStat(Heart, 'עניין', stats.avgInterest, colors.interest)}
                 {renderStat(Brain, 'קושי', stats.avgDifficulty, colors.difficulty)}
-                {renderStat(Clock, 'השקעה', stats.avgInvestment, colors.investment)}
+                {renderStat(Clock, 'השקעה', stats.avgworkload, colors.workload)}
                 {renderStat(Award, 'איכות הוראה', stats.avgTeachingQuality, colors.teachingQuality)}
                 {renderStat(ThumbsUp, 'המלצה', stats.avgRecommendation, colors.recommendation)}
             </div>

@@ -13,7 +13,9 @@ import {
   Zap,
   Clock,
   Award,
-  ThumbsUp
+  ThumbsUp,
+  Users,
+  Tag
 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen, faTrash } from '@fortawesome/free-solid-svg-icons';
@@ -74,6 +76,16 @@ const ReviewsList = ({ reviews, onEditClick, onDeleteClick }) => {
             <div className="flex-1">
               {/* Course and Department Info */}
               <div className="flex items-center gap-4 mb-2">
+                <div className="flex items-center gap-2">
+                  <Tag className={`w-4 h-4 ${review.reviewType === 'course' ? 'text-emerald-500' : 'text-purple-500'}`} />
+                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                    review.reviewType === 'course' 
+                      ? 'bg-emerald-100 text-emerald-700' 
+                      : 'bg-purple-100 text-purple-700'
+                  }`}>
+                    {review.reviewType === 'course' ? 'דירוג קורס' : 'דירוג מרצה'}
+                  </span>
+                </div>
                 <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                   <BookOpen className="w-5 h-5 text-emerald-500" />
                   {review.course?.title || 'קורס לא ידוע'}
@@ -145,62 +157,119 @@ const ReviewsList = ({ reviews, onEditClick, onDeleteClick }) => {
               <span className="text-lg font-semibold text-gray-800">דירוג כללי:</span>
               <div className="flex items-center gap-2">
                 <div className="flex gap-1">
-                  {renderStars(parseFloat(review.recommendation || 0))}
+                  {renderStars(parseFloat(
+                    review.reviewType === 'course' 
+                      ? (review.recommendation || review.overallRating || ((review.interest + review.difficulty + (review.workload || review.workload) + review.teachingQuality) / 4))
+                      : (review.overallRating || ((review.clarity + review.responsiveness + review.availability + review.organization + review.knowledge) / 5))
+                  ))}
                 </div>
-                <span className="text-lg font-bold text-emerald-600">
-                  {review.recommendation || 0}/5.0
+                <span className={`text-lg font-bold ${review.reviewType === 'course' ? 'text-emerald-600' : 'text-purple-600'}`}>
+                  {review.reviewType === 'course' 
+                    ? (review.recommendation || review.overallRating || ((review.interest + review.difficulty + (review.workload || review.workload) + review.teachingQuality) / 4).toFixed(1))
+                    : (review.overallRating || ((review.clarity + review.responsiveness + review.availability + review.organization + review.knowledge) / 5).toFixed(1))
+                  }/5.0
                 </span>
               </div>
             </div>
           </div>
 
           {/* Detailed Ratings Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4 p-4 bg-gray-50 rounded-xl">
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-1">
-                <Heart className="w-4 h-4 text-red-500" />
-                <span className="text-sm font-medium text-gray-700">עניין</span>
+          {review.reviewType === 'course' ? (
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4 p-4 bg-emerald-50 rounded-xl">
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Heart className="w-4 h-4 text-red-500" />
+                  <span className="text-sm font-medium text-gray-700">עניין</span>
+                </div>
+                <div className="text-lg font-bold text-red-600">{review.interest || 0}/5</div>
               </div>
-              <div className="text-lg font-bold text-red-600">{review.interest || 0}/5</div>
-            </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-1">
-                <Zap className="w-4 h-4 text-yellow-500" />
-                <span className="text-sm font-medium text-gray-700">קושי</span>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Zap className="w-4 h-4 text-yellow-500" />
+                  <span className="text-sm font-medium text-gray-700">קושי</span>
+                </div>
+                <div className="text-lg font-bold text-yellow-600">{review.difficulty || 0}/5</div>
               </div>
-              <div className="text-lg font-bold text-yellow-600">{review.difficulty || 0}/5</div>
-            </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-1">
-                <Clock className="w-4 h-4 text-orange-500" />
-                <span className="text-sm font-medium text-gray-700">השקעה</span>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Clock className="w-4 h-4 text-orange-500" />
+                  <span className="text-sm font-medium text-gray-700">{review.workload ? 'עומס' : 'השקעה'}</span>
+                </div>
+                <div className="text-lg font-bold text-orange-600">{review.workload || review.workload || 0}/5</div>
               </div>
-              <div className="text-lg font-bold text-orange-600">{review.investment || 0}/5</div>
-            </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-1">
-                <Award className="w-4 h-4 text-purple-500" />
-                <span className="text-sm font-medium text-gray-700">איכות הוראה</span>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Award className="w-4 h-4 text-purple-500" />
+                  <span className="text-sm font-medium text-gray-700">איכות הוראה</span>
+                </div>
+                <div className="text-lg font-bold text-purple-600">{review.teachingQuality || 0}/5</div>
               </div>
-              <div className="text-lg font-bold text-purple-600">{review.teachingQuality || 0}/5</div>
+              {review.recommendation && (
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <ThumbsUp className="w-4 h-4 text-emerald-500" />
+                    <span className="text-sm font-medium text-gray-700">המלצה</span>
+                  </div>
+                  <div className="text-lg font-bold text-emerald-600">{review.recommendation}/5</div>
+                </div>
+              )}
             </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-1">
-                <ThumbsUp className="w-4 h-4 text-emerald-500" />
-                <span className="text-sm font-medium text-gray-700">המלצה</span>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4 p-4 bg-purple-50 rounded-xl">
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Eye className="w-4 h-4 text-blue-500" />
+                  <span className="text-sm font-medium text-gray-700">בהירות הוראה</span>
+                </div>
+                <div className="text-lg font-bold text-blue-600">{review.clarity || 0}/5</div>
               </div>
-              <div className="text-lg font-bold text-emerald-600">{review.recommendation || 0}/5</div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Users className="w-4 h-4 text-green-500" />
+                  <span className="text-sm font-medium text-gray-700">התחשבות</span>
+                </div>
+                <div className="text-lg font-bold text-green-600">{review.responsiveness || 0}/5</div>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Clock className="w-4 h-4 text-orange-500" />
+                  <span className="text-sm font-medium text-gray-700">זמינות</span>
+                </div>
+                <div className="text-lg font-bold text-orange-600">{review.availability || 0}/5</div>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Zap className="w-4 h-4 text-red-500" />
+                  <span className="text-sm font-medium text-gray-700">ארגון השיעור</span>
+                </div>
+                <div className="text-lg font-bold text-red-600">{review.organization || 0}/5</div>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Star className="w-4 h-4 text-yellow-500" />
+                  <span className="text-sm font-medium text-gray-700">עומק הידע</span>
+                </div>
+                <div className="text-lg font-bold text-yellow-600">{review.knowledge || 0}/5</div>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Comment Section */}
           {review.comment && (
-            <div className="relative bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border border-emerald-200 rounded-xl p-6 shadow-sm">
-              <span className="absolute top-2 right-4 text-emerald-300 text-3xl leading-none select-none font-serif">"</span>
+            <div className={`relative bg-gradient-to-br ${
+              review.reviewType === 'course' 
+                ? 'from-emerald-50 via-white to-emerald-50 border-emerald-200' 
+                : 'from-purple-50 via-white to-purple-50 border-purple-200'
+            } border rounded-xl p-6 shadow-sm`}>
+              <span className={`absolute top-2 right-4 text-3xl leading-none select-none font-serif ${
+                review.reviewType === 'course' ? 'text-emerald-300' : 'text-purple-300'
+              }`}>"</span>
               <p className="text-gray-800 text-base leading-relaxed font-medium italic px-4">
                 {review.comment}
               </p>
-              <span className="absolute bottom-2 left-4 text-emerald-300 text-3xl leading-none select-none font-serif">"</span>
+              <span className={`absolute bottom-2 left-4 text-3xl leading-none select-none font-serif ${
+                review.reviewType === 'course' ? 'text-emerald-300' : 'text-purple-300'
+              }`}>"</span>
             </div>
           )}
 

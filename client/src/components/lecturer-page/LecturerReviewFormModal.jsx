@@ -222,7 +222,7 @@ const LecturerReviewFormModal = ({
             </button>
           ))}
           <span className="mr-3 text-gray-600 font-medium">
-            {formData[field]}/5.0
+            {formData[field]}/5
           </span>
         </div>
       </div>
