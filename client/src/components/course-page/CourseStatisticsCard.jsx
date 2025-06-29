@@ -56,7 +56,7 @@ const CourseStatisticsCard = ({ stats }) => {
             <div className="space-y-4">
                 {renderStat(Heart, 'עניין', stats.avgInterest, colors.interest)}
                 {renderStat(Brain, 'קושי', stats.avgDifficulty, colors.difficulty)}
-                {renderStat(Clock, 'השקעה', stats.avgworkload, colors.workload)}
+                {renderStat(Clock, 'השקעה', stats.avgWorkload, colors.workload)}
                 {renderStat(Award, 'איכות הוראה', stats.avgTeachingQuality, colors.teachingQuality)}
                 {renderStat(ThumbsUp, 'המלצה', stats.avgRecommendation, colors.recommendation)}
             </div>

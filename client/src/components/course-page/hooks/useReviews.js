@@ -60,14 +60,14 @@ export const useReviews = (courseId, token) => {
 
         return {
             total,
-            avgInterest: avg('interest').toFixed(1),
-            avgDifficulty: avg('difficulty').toFixed(1),
-            avgWorkload: avg('workload').toFixed(1),
-            avgworkload: avg('workload').toFixed(1),
-            avgTeachingQuality: avg('teachingQuality').toFixed(1),
-            overallRating: (
+            avgInterest: parseFloat(avg('interest').toFixed(1)),
+            avgDifficulty: parseFloat(avg('difficulty').toFixed(1)),
+            avgWorkload: parseFloat(avg('workload').toFixed(1)), // FIXED: Capital W
+            avgTeachingQuality: parseFloat(avg('teachingQuality').toFixed(1)),
+            avgRecommendation: parseFloat(avg('recommendation').toFixed(1)), // Added missing field
+            overallRating: parseFloat((
                 (avg('interest') + avg('teachingQuality') + avg('workload')) / 3
-            ).toFixed(1)
+            ).toFixed(1))
         };
     }, [reviews]);
 

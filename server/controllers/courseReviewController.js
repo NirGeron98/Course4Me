@@ -16,10 +16,18 @@ exports.createReview = async (req, res) => {
       isAnonymous,
     } = req.body;
 
-    console.log('Request body received:', req.body);
+    console.log("Request body received:", req.body);
 
     // Validate required fields
-    if (!course || !lecturer || !interest || !difficulty || !workload || !teachingQuality || !recommendation) {
+    if (
+      !course ||
+      !lecturer ||
+      !interest ||
+      !difficulty ||
+      !workload ||
+      !teachingQuality ||
+      !recommendation
+    ) {
       return res.status(400).json({
         message: "חסרים שדות נדרשים",
       });
@@ -49,19 +57,20 @@ exports.createReview = async (req, res) => {
       workload: Number(workload), // Map workload to workload
       teachingQuality: Number(teachingQuality),
       recommendation: Number(recommendation),
-      comment: comment || '',
+      comment: comment || "",
       isAnonymous: Boolean(isAnonymous),
     });
 
-    console.log('Creating review with workload mapping...');
+    console.log("Creating review with workload mapping...");
 
     const savedReview = await review.save();
-    console.log('Review saved successfully');
+    console.log("Review saved successfully");
 
     // Update the course's average rating based on recommendation score
     const allReviews = await CourseReview.find({ course });
     const avgRecommendation =
-      allReviews.reduce((sum, r) => sum + r.recommendation, 0) / allReviews.length;
+      allReviews.reduce((sum, r) => sum + r.recommendation, 0) /
+      allReviews.length;
 
     await Course.findByIdAndUpdate(course, {
       averageRating: avgRecommendation.toFixed(2),
@@ -75,36 +84,32 @@ exports.createReview = async (req, res) => {
 
     // Process the returned review to handle anonymity
     const reviewObj = populatedReview.toObject();
-    
-    // Map workload back to workload for the frontend
-    reviewObj.workload = reviewObj.workload;
-    delete reviewObj.workload;
-    
+
     if (reviewObj.isAnonymous === true) {
       reviewObj.user = {
         _id: reviewObj.user._id,
-        fullName: 'משתמש אנונימי'
+        fullName: "משתמש אנונימי",
       };
     }
 
     res.status(201).json(reviewObj);
   } catch (err) {
     console.error("Error creating review:", err);
-    
-    if (err.name === 'ValidationError') {
-      const validationErrors = Object.values(err.errors).map(e => e.message);
+
+    if (err.name === "ValidationError") {
+      const validationErrors = Object.values(err.errors).map((e) => e.message);
       return res.status(400).json({
         message: "שגיאות אימות",
         errors: validationErrors,
       });
     }
-    
+
     if (err.code === 11000) {
       return res.status(400).json({
         message: "כבר כתבת ביקורת עבור קורס זה עם מרצה זה",
       });
     }
-    
+
     res.status(500).json({
       message: "שגיאת שרת ביצירת הביקורת",
       error: err.message,
@@ -129,20 +134,16 @@ exports.getReviewsByCourse = async (req, res) => {
       .sort({ createdAt: -1 });
 
     // Process reviews to handle anonymous ones and map workload to workload
-    const processedReviews = reviews.map(review => {
+    const processedReviews = reviews.map((review) => {
       const reviewObj = review.toObject();
-      
-      // Map workload back to workload for frontend compatibility
-      reviewObj.workload = reviewObj.workload;
-      delete reviewObj.workload;
-      
+
       if (reviewObj.isAnonymous === true) {
         reviewObj.user = {
           _id: reviewObj.user._id,
-          fullName: 'משתמש אנונימי'
+          fullName: "משתמש אנונימי",
         };
       }
-      
+
       return reviewObj;
     });
 
@@ -166,29 +167,25 @@ exports.getAllReviews = async (req, res) => {
       .sort({ createdAt: -1 });
 
     // Process reviews to handle anonymous ones and map workload to workload
-    const processedReviews = reviews.map(review => {
+    const processedReviews = reviews.map((review) => {
       const reviewObj = review.toObject();
-      
-      // Map workload back to workload for frontend compatibility
-      reviewObj.workload = reviewObj.workload;
-      delete reviewObj.workload;
-      
+
       if (reviewObj.isAnonymous === true) {
         reviewObj.user = {
           _id: reviewObj.user._id,
-          fullName: 'משתמש אנונימי'
+          fullName: "משתמש אנונימי",
         };
       }
-      
+
       return reviewObj;
     });
 
     res.status(200).json(processedReviews);
   } catch (err) {
     console.error("Error fetching all reviews:", err);
-    res.status(500).json({ 
+    res.status(500).json({
       message: "שגיאת שרת פנימית",
-      error: err.message 
+      error: err.message,
     });
   }
 };
@@ -228,7 +225,7 @@ exports.updateReview = async (req, res) => {
         workload: Number(workload), // Map workload to workload
         teachingQuality: Number(teachingQuality),
         recommendation: Number(recommendation),
-        comment: comment || '',
+        comment: comment || "",
         isAnonymous: Boolean(isAnonymous),
       },
       { new: true, runValidators: true }
@@ -238,15 +235,11 @@ exports.updateReview = async (req, res) => {
 
     // Process the updated review to handle anonymity and field mapping
     const reviewObj = updatedReview.toObject();
-    
-    // Map workload back to workload for frontend
-    reviewObj.workload = reviewObj.workload;
-    delete reviewObj.workload;
-    
+
     if (reviewObj.isAnonymous === true) {
       reviewObj.user = {
         _id: reviewObj.user._id,
-        fullName: 'משתמש אנונימי'
+        fullName: "משתמש אנונימי",
       };
     }
 
@@ -255,7 +248,8 @@ exports.updateReview = async (req, res) => {
       course: existingReview.course,
     });
     const avgRecommendation =
-      allReviews.reduce((sum, r) => sum + r.recommendation, 0) / allReviews.length;
+      allReviews.reduce((sum, r) => sum + r.recommendation, 0) /
+      allReviews.length;
 
     await Course.findByIdAndUpdate(existingReview.course, {
       averageRating: avgRecommendation.toFixed(2),
@@ -265,15 +259,15 @@ exports.updateReview = async (req, res) => {
     res.status(200).json(reviewObj);
   } catch (err) {
     console.error("Error updating review:", err);
-    
-    if (err.name === 'ValidationError') {
-      const validationErrors = Object.values(err.errors).map(e => e.message);
+
+    if (err.name === "ValidationError") {
+      const validationErrors = Object.values(err.errors).map((e) => e.message);
       return res.status(400).json({
         message: "שגיאות אימות",
         errors: validationErrors,
       });
     }
-    
+
     res.status(500).json({
       message: "שגיאת שרת בעדכון הביקורת",
       error: err.message,
@@ -310,7 +304,8 @@ exports.deleteReview = async (req, res) => {
 
     if (allReviews.length > 0) {
       const avgRecommendation =
-        allReviews.reduce((sum, r) => sum + r.recommendation, 0) / allReviews.length;
+        allReviews.reduce((sum, r) => sum + r.recommendation, 0) /
+        allReviews.length;
 
       await Course.findByIdAndUpdate(existingReview.course, {
         averageRating: avgRecommendation.toFixed(2),
