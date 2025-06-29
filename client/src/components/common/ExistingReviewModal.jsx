@@ -21,9 +21,9 @@ const ExistingReviewModal = ({ onEdit, onCancel, existingReview, reviewType = 'l
             return [
                 { key: 'interest', label: 'עניין', color: 'red' },
                 { key: 'difficulty', label: 'קושי', color: 'yellow' },
-                { key: 'workload', label: 'עומס', color: 'orange' },
-                { key: 'workload', label: 'השקעה', color: 'green' },
-                { key: 'teachingQuality', label: 'איכות הוראה', color: 'purple' }
+                { key: 'workload', label: 'השקעה', color: 'orange' }, // Fixed: removed duplicate and used correct label
+                { key: 'teachingQuality', label: 'איכות הוראה', color: 'purple' },
+                { key: 'recommendation', label: 'המלצה', color: 'green' } // Added missing recommendation field
             ];
         } else {
             return [
@@ -44,11 +44,21 @@ const ExistingReviewModal = ({ onEdit, onCancel, existingReview, reviewType = 'l
             return existingReview.overallRating;
         }
         
-        const sum = criteria.reduce((total, criterion) => {
-            return total + (existingReview[criterion.key] || 0);
-        }, 0);
-        
-        return (sum / criteria.length).toFixed(1);
+        // For course reviews, calculate based on the actual criteria
+        if (actualReviewType === 'course') {
+            const courseSum = (existingReview.interest || 0) + 
+                            (existingReview.difficulty || 0) + 
+                            (existingReview.workload || 0) + 
+                            (existingReview.teachingQuality || 0) + 
+                            (existingReview.recommendation || 0);
+            return (courseSum / 5).toFixed(1);
+        } else {
+            // For lecturer reviews
+            const sum = criteria.reduce((total, criterion) => {
+                return total + (existingReview[criterion.key] || 0);
+            }, 0);
+            return (sum / criteria.length).toFixed(1);
+        }
     };
 
     const overallRating = calculateOverallRating();
@@ -101,6 +111,18 @@ const ExistingReviewModal = ({ onEdit, onCancel, existingReview, reviewType = 'l
             return 'נמצאה ביקורת קיימת שלך על המרצה בקורס זה. האם תרצה לערוך אותה?';
         }
     };
+
+    // Debug log to check the data
+    console.log('ExistingReviewModal - Review data:', {
+        actualReviewType,
+        interest: existingReview.interest,
+        difficulty: existingReview.difficulty,
+        workload: existingReview.workload,
+        teachingQuality: existingReview.teachingQuality,
+        recommendation: existingReview.recommendation,
+        overallRating,
+        criteria
+    });
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4" dir="rtl">

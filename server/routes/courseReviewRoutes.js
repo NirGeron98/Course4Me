@@ -102,4 +102,6 @@ router.put("/:reviewId", protect, courseReviewController.updateReview);
 // Delete review
 router.delete("/:reviewId", protect, courseReviewController.deleteReview);
 
+router.get("/stats/:courseId", courseReviewController.getCourseReviewStats);
+
 module.exports = router;

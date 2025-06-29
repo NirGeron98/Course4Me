@@ -150,7 +150,7 @@ const MyReviewsPage = ({ user }) => {
         let rating;
         if (review.reviewType === 'course') {
           rating = review.recommendation || review.overallRating || 
-                  ((review.interest + review.difficulty + (review.workload || review.workload) + review.teachingQuality) / 4);
+                  ((review.interest + review.difficulty + (review.workload || review.investment) + review.teachingQuality) / 4);
         } else {
           rating = review.overallRating || 
                   ((review.clarity + review.responsiveness + review.availability + review.organization + review.knowledge) / 5);
@@ -164,7 +164,7 @@ const MyReviewsPage = ({ user }) => {
         let rating;
         if (review.reviewType === 'course') {
           rating = review.recommendation || review.overallRating || 
-                  ((review.interest + review.difficulty + (review.workload || review.workload) + review.teachingQuality) / 4);
+                  ((review.interest + review.difficulty + (review.workload || review.investment) + review.teachingQuality) / 4);
         } else {
           rating = review.overallRating || 
                   ((review.clarity + review.responsiveness + review.availability + review.organization + review.knowledge) / 5);
@@ -205,7 +205,7 @@ const MyReviewsPage = ({ user }) => {
           let aRating, bRating;
           if (a.reviewType === 'course') {
             aRating = a.recommendation || a.overallRating || 
-                     ((a.interest + a.difficulty + (a.workload || a.workload) + a.teachingQuality) / 4);
+                     ((a.interest + a.difficulty + (a.workload || a.investment) + a.teachingQuality) / 4);
           } else {
             aRating = a.overallRating || 
                      ((a.clarity + a.responsiveness + a.availability + a.organization + a.knowledge) / 5);
@@ -213,7 +213,7 @@ const MyReviewsPage = ({ user }) => {
           
           if (b.reviewType === 'course') {
             bRating = b.recommendation || b.overallRating || 
-                     ((b.interest + b.difficulty + (b.workload || b.workload) + b.teachingQuality) / 4);
+                     ((b.interest + b.difficulty + (b.workload || b.investment) + b.teachingQuality) / 4);
           } else {
             bRating = b.overallRating || 
                      ((b.clarity + b.responsiveness + b.availability + b.organization + b.knowledge) / 5);
@@ -308,11 +308,11 @@ const MyReviewsPage = ({ user }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center py-12">
-            <Loader2 className="w-12 h-12 text-emerald-500 animate-spin mx-auto mb-4" />
-            <p className="text-gray-600 text-lg">טוען ביקורות...</p>
+          <div className="text-center py-8 sm:py-12">
+            <Loader2 className="w-8 h-8 sm:w-12 sm:h-12 text-emerald-500 animate-spin mx-auto mb-4" />
+            <p className="text-gray-600 text-base sm:text-lg">טוען ביקורות...</p>
           </div>
         </div>
       </div>
@@ -320,15 +320,15 @@ const MyReviewsPage = ({ user }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6" dir="rtl">
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-6" dir="rtl">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
-            <MessageCircle className="w-8 h-8 text-emerald-500" />
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2 sm:gap-3 mb-2">
+            <MessageCircle className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-500" />
             הביקורות שלי
           </h1>
-          <p className="text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600">
             נמצאו {filteredReviews.length} ביקורות מתוך {reviews.length} סה"כ
           </p>
         </div>

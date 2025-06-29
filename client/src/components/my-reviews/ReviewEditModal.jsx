@@ -25,7 +25,7 @@ const ReviewEditModal = ({ review, user, onClose, onReviewUpdated }) => {
       setFormData({
         interest: review.interest || 3,
         difficulty: review.difficulty || 3,
-        workload: review.workload || 3,
+        investment: review.investment || 3,
         teachingQuality: review.teachingQuality || 3,
         recommendation: review.recommendation || 3,
         comment: review.comment || '',
@@ -79,17 +79,17 @@ const ReviewEditModal = ({ review, user, onClose, onReviewUpdated }) => {
 
   const renderRatingInput = (label, field, icon, color) => (
     <div>
-      <label className="block text-gray-700 font-medium mb-2 flex items-center gap-2">
+      <label className="block text-gray-700 font-medium mb-2 flex items-center gap-2 text-sm sm:text-base">
         {icon}
-        {label}
+        <span className="truncate">{label}</span>
       </label>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 sm:gap-2 flex-wrap sm:flex-nowrap">
         {[1, 2, 3, 4, 5].map((value) => (
           <button
             key={value}
             type="button"
             onClick={() => setFormData({ ...formData, [field]: value })}
-            className={`w-10 h-10 rounded-full border-2 font-bold transition-all ${formData[field] >= value
+            className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 font-bold transition-all text-sm sm:text-base ${formData[field] >= value
               ? `bg-${color}-500 border-${color}-500 text-white`
               : `border-gray-300 text-${color}-500 hover:border-${color}-300`
             }`}
@@ -97,25 +97,25 @@ const ReviewEditModal = ({ review, user, onClose, onReviewUpdated }) => {
             {value}
           </button>
         ))}
-        <span className="mr-3 text-gray-600 font-medium">{formData[field]}/5</span>
+        <span className="mr-2 sm:mr-3 text-gray-600 font-medium text-sm sm:text-base whitespace-nowrap">{formData[field]}/5</span>
       </div>
     </div>
   );
 
   const AnonymousToggle = () => (
-    <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl">
-      <div className="flex items-center justify-between">
+    <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
+          <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
             {formData.isAnonymous ? (
-              <EyeOff className="w-5 h-5 text-blue-600" />
+              <EyeOff className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
             ) : (
-              <Eye className="w-5 h-5 text-blue-600" />
+              <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
             )}
           </div>
-          <div>
-            <h3 className="font-semibold text-gray-800">ביקורת אנונימית</h3>
-            <p className="text-sm text-gray-600">
+          <div className="min-w-0">
+            <h3 className="font-semibold text-gray-800 text-sm sm:text-base">ביקורת אנונימית</h3>
+            <p className="text-xs sm:text-sm text-gray-600">
               {formData.isAnonymous 
                 ? 'הביקורת תופיע כ"משתמש אנונימי"' 
                 : 'השם שלך יופיע בביקורת'
@@ -127,7 +127,7 @@ const ReviewEditModal = ({ review, user, onClose, onReviewUpdated }) => {
         <button
           type="button"
           onClick={() => setFormData({ ...formData, isAnonymous: !formData.isAnonymous })}
-          className={`relative inline-flex h-8 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+          className={`relative inline-flex h-6 w-11 sm:h-8 sm:w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
             formData.isAnonymous ? 'bg-blue-600' : 'bg-gray-200'
           }`}
           role="switch"
@@ -138,8 +138,8 @@ const ReviewEditModal = ({ review, user, onClose, onReviewUpdated }) => {
           </span>
           <span
             aria-hidden="true"
-            className={`pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-              formData.isAnonymous ? '-translate-x-6' : 'translate-x-0'
+            className={`pointer-events-none inline-block h-5 w-5 sm:h-7 sm:w-7 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+              formData.isAnonymous ? '-translate-x-5 sm:-translate-x-6' : 'translate-x-0'
             }`}
           />
         </button>
@@ -220,7 +220,7 @@ const ReviewEditModal = ({ review, user, onClose, onReviewUpdated }) => {
               <>
                 {renderRatingInput('עד כמה הקורס מעניין?', 'interest', <Heart className="w-5 h-5 text-red-500" />, 'red')}
                 {renderRatingInput('עד כמה הקורס קשה?', 'difficulty', <Zap className="w-5 h-5 text-yellow-500" />, 'yellow')}
-                {renderRatingInput('כמה זמן השקעת בקורס?', 'workload', <Clock className="w-5 h-5 text-orange-500" />, 'orange')}
+                {renderRatingInput('כמה זמן השקעת בקורס?', 'investment', <Clock className="w-5 h-5 text-orange-500" />, 'orange')}
                 {renderRatingInput('איכות ההוראה', 'teachingQuality', <Award className="w-5 h-5 text-purple-500" />, 'purple')}
                 {renderRatingInput('עד כמה היית ממליץ על הקורס?', 'recommendation', <ThumbsUp className="w-5 h-5 text-emerald-500" />, 'emerald')}
               </>

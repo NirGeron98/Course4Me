@@ -328,3 +328,27 @@ exports.deleteReview = async (req, res) => {
     });
   }
 };
+
+// Get aggregated stats for a specific course
+exports.getCourseReviewStats = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+
+    const reviews = await CourseReview.find({ course: courseId });
+
+    if (!reviews.length) {
+      return res.status(200).json({ recommendation: null, total: 0 });
+    }
+
+    const recommendationSum = reviews.reduce((sum, r) => sum + r.recommendation, 0);
+    const recommendationAvg = (recommendationSum / reviews.length).toFixed(2);
+
+    res.status(200).json({
+      recommendation: parseFloat(recommendationAvg),
+      total: reviews.length,
+    });
+  } catch (err) {
+    console.error("Error getting course stats:", err);
+    res.status(500).json({ message: "שגיאה בקבלת סטטיסטיקות קורס" });
+  }
+};

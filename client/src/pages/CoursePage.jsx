@@ -13,11 +13,11 @@ import CourseStatisticsCard from '../components/course-page/CourseStatisticsCard
 const CoursePage = ({ user }) => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { course, loading, error } = useCourseData(id, user?.token);
+    const { course, stats, loading, error } = useCourseData(id, user?.token);
     const {
         showReviewForm,
         setShowReviewForm,
-        stats,
+        stats: reviewStats,
         reviews,
         refetchReviews
     } = useReviews(id, user?.token);
@@ -108,7 +108,7 @@ const CoursePage = ({ user }) => {
                     </div>
 
                     <div className="space-y-6">
-                        {stats && <CourseStatisticsCard stats={stats} />}
+                        {reviewStats && <CourseStatisticsCard stats={reviewStats} />}
                         <QuickActions
                             onShowReviewForm={handleShowReviewForm}
                             courseId={id}

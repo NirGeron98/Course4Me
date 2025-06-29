@@ -1,10 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Hash, Award, Building, BookMarked, Users, Star, X } from 'lucide-react';
-import { createLecturerSlug } from '../../utils/slugUtils';
+import { BookOpen, Hash, Award, Building, BookMarked, Users, Star } from 'lucide-react';
 
 const CourseHeader = ({ course, stats }) => {
-    const [showAllLecturers, setShowAllLecturers] = useState(false);
     const renderStars = (rating, size = 'w-4 h-4') => {
         const stars = [];
         const fullStars = Math.floor(rating);
@@ -34,20 +32,12 @@ const CourseHeader = ({ course, stats }) => {
         return stars;
     };
 
-    const displayRating = stats?.overallRating
-        ? parseFloat(stats.overallRating)
-        : course.averageRating
-            ? parseFloat(course.averageRating)
-            : null;
+    const displayRating = stats?.recommendation
+        ? parseFloat(stats.recommendation)
+        : null;
+
 
     const reviewsCount = stats?.total || course.ratingsCount || 0;
-
-    // Limit lecturers display
-    const maxLecturersToShow = 4;
-    const lecturersToShow = course.lecturers?.slice(0, maxLecturersToShow) || [];
-    const remainingLecturers = course.lecturers?.length > maxLecturersToShow
-        ? course.lecturers.length - maxLecturersToShow
-        : 0;
 
     return (
         <div className="relative overflow-hidden">
@@ -56,20 +46,20 @@ const CourseHeader = ({ course, stats }) => {
             <div className="relative max-w-7xl mx-auto px-6 py-12">
                 {/* Course Name and Icon - Centered at top */}
                 <div className="flex items-center justify-center gap-4 mb-8">
-                    <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl p-3 shadow-lg">
-                        <BookOpen className="w-8 h-8 text-white" />
+                    <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl p-4 shadow-lg">
+                        <BookOpen className="w-10 h-10 text-white" />
                     </div>
-                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight">
+                    <h1 className="text-3xl lg:text-4xl font-bold text-white leading-tight">
                         {course.title}
                     </h1>
                 </div>
 
-                {/* Content below - course details with rating on the side */}
-                <div className="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-8">
-                    {/* Course Details - Centered */}
-                    <div className="flex flex-col items-center text-center flex-1">
+                {/* Content below - course details centered with rating on the side */}
+                <div className="relative flex justify-center">
+                    {/* Course Details - Always Centered */}
+                    <div className="flex flex-col items-center text-center max-w-4xl w-full">
                         {/* Course Meta - Compact Pills */}
-                        <div className="flex flex-wrap gap-2 mb-6 justify-center">
+                        <div className="flex flex-wrap gap-2 mb-6 justify-center items-center w-full">
                             <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
                                 <Hash className="w-3.5 h-3.5" />
                                 {course.courseNumber}
@@ -91,42 +81,27 @@ const CourseHeader = ({ course, stats }) => {
                         </div>
 
                         {/* Lecturers Section - Centered */}
-                        {lecturersToShow.length > 0 && (
-                            <div className="mb-6">
+                        {course.lecturers?.length > 0 && (
+                            <div className="mb-6 w-full flex justify-center">
                                 <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-xl p-4 shadow-lg">
-                                    <div className="flex flex-col items-center gap-4">
-                                        {/* Lecturers Label */}
-                                        <div className="flex items-center gap-2 text-white font-semibold">
+                                    <div className="flex flex-col lg:flex-row items-center gap-4">
+                                        <div className="flex items-center gap-2 text-white font-semibold whitespace-nowrap">
                                             <Users className="w-4 h-4" />
                                             <span>{course.lecturers.length > 1 ? 'מרצים:' : 'מרצה:'}</span>
                                         </div>
 
-                                        {/* Lecturers Grid */}
-                                        <div className="flex flex-col gap-3 items-center">
-                                            <div className="flex flex-wrap gap-3 justify-center max-w-2xl">
-                                                {lecturersToShow.map((lecturer, index) => (
-                                                    <Link
-                                                        key={index}
-                                                        to={`/lecturer/${createLecturerSlug(lecturer)}`}
-                                                        className="bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-2 hover:bg-white/30 hover:scale-105 transition-all duration-200 group cursor-pointer"
-                                                    >
-                                                        <span className="text-white font-medium group-hover:text-white/90">
-                                                            {lecturer.name}
-                                                        </span>
-                                                    </Link>
-                                                ))}
-                                            </div>
-
-                                            {remainingLecturers > 0 && (
-                                                <button
-                                                    onClick={() => setShowAllLecturers(true)}
-                                                    className="bg-emerald-500/80 backdrop-blur-md border border-emerald-400/50 rounded-lg px-4 py-2 shadow-lg hover:bg-emerald-400/80 hover:scale-105 transition-all cursor-pointer"
+                                        <div className="flex flex-wrap gap-3 justify-center">
+                                            {course.lecturers.map((lecturer, index) => (
+                                                <Link
+                                                    key={index}
+                                                    to={`/lecturer/${lecturer._id}`}
+                                                    className="bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-2 hover:bg-white/30 hover:scale-105 transition-all duration-200 group cursor-pointer"
                                                 >
-                                                    <span className="text-white font-semibold text-sm">
-                                                        +{remainingLecturers} מרצים נוספים
+                                                    <span className="text-white font-medium group-hover:text-white/90">
+                                                        {lecturer.name}
                                                     </span>
-                                                </button>
-                                            )}
+                                                </Link>
+                                            ))}
                                         </div>
                                     </div>
                                 </div>
@@ -134,75 +109,46 @@ const CourseHeader = ({ course, stats }) => {
                         )}
                     </div>
 
-                    {/* Rating Section - On the left side */}
-                    {displayRating && (
-                        <div className="flex-shrink-0 order-first lg:order-last">
-                            <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl p-6 shadow-lg">
-                                <div className="text-center">
-                                    <div className="text-3xl font-bold text-white mb-3">
-                                        {displayRating.toFixed(1)}
-                                    </div>
-                                    <div className="flex justify-center gap-1 mb-3">
-                                        {renderStars(displayRating, 'w-5 h-5')}
-                                    </div>
-                                    <div className="text-white/90 text-sm font-medium">
-                                        מבוסס על {reviewsCount} ביקורות
-                                    </div>
+                </div>
+
+                {/* Rating Box - Positioned on the left side */}
+                {displayRating && (
+                    <div className="absolute left-0 top-20 hidden lg:block">
+                        <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl p-6 shadow-lg">
+                            <div className="text-center">
+                                <div className="text-3xl font-bold text-white mb-3">
+                                    {displayRating.toFixed(1)}
+                                </div>
+                                <div className="flex justify-center gap-1 mb-3">
+                                    {renderStars(displayRating, 'w-5 h-5')}
+                                </div>
+                                <div className="text-white/90 text-sm font-medium">
+                                    ציון ההמלצה מתוך {reviewsCount} ביקורות
                                 </div>
                             </div>
                         </div>
-                    )}
-                </div>
-            </div>
+                    </div>
+                )}
 
-            {/* All lecturers popup */}
-            {showAllLecturers && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
-                        {/* Popup header */}
-                        <div className="bg-gradient-to-r from-emerald-600 to-teal-700 px-6 py-4 flex items-center justify-between">
-                            <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                                <Users className="w-5 h-5" />
-                                כל המרצים של הקורס ({course.lecturers?.length || 0})
-                            </h3>
-                            <button
-                                onClick={() => setShowAllLecturers(false)}
-                                className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        {/* Popup content */}
-                        <div className="p-6 overflow-y-auto max-h-[calc(80vh-80px)]">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {course.lecturers?.map((lecturer, index) => (
-                                    <Link
-                                        key={index}
-                                        to={`/lecturer/${createLecturerSlug(lecturer)}`}
-                                        onClick={() => setShowAllLecturers(false)}
-                                        className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-4 hover:shadow-lg hover:scale-105 transition-all duration-200 group"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                                                {lecturer.name.split(' ').map(word => word[0]).join('').slice(0, 2)}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-semibold text-gray-800 group-hover:text-emerald-700 transition-colors">
-                                                    {lecturer.name}
-                                                </p>
-                                                <p className="text-xs text-gray-500 mt-1">
-                                                    לחץ לצפייה בפרופיל
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                ))}
+                {/* Rating Box for mobile - centered below */}
+                {displayRating && (
+                    <div className="lg:hidden mt-8 flex justify-center w-full">
+                        <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl p-6 shadow-lg">
+                            <div className="text-center">
+                                <div className="text-3xl font-bold text-white mb-3">
+                                    {displayRating.toFixed(1)}
+                                </div>
+                                <div className="flex justify-center gap-1 mb-3">
+                                    {renderStars(displayRating, 'w-5 h-5')}
+                                </div>
+                                <div className="text-white/90 text-sm font-medium">
+                                    מבוסס על {reviewsCount} ביקורות
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 };
