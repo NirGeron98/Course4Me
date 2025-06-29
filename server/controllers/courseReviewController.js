@@ -340,8 +340,16 @@ exports.getCourseReviewStats = async (req, res) => {
       return res.status(200).json({ recommendation: null, total: 0 });
     }
 
-    const recommendationSum = reviews.reduce((sum, r) => sum + r.recommendation, 0);
-    const recommendationAvg = (recommendationSum / reviews.length).toFixed(2);
+    const validRecs = reviews
+      .map(r => Number(r.recommendation))
+      .filter(val => !isNaN(val));
+
+    if (validRecs.length === 0) {
+      return res.status(200).json({ recommendation: null, total: reviews.length });
+    }
+
+    const recommendationSum = validRecs.reduce((sum, val) => sum + val, 0);
+    const recommendationAvg = (recommendationSum / validRecs.length).toFixed(2);
 
     res.status(200).json({
       recommendation: parseFloat(recommendationAvg),
@@ -352,3 +360,4 @@ exports.getCourseReviewStats = async (req, res) => {
     res.status(500).json({ message: "שגיאה בקבלת סטטיסטיקות קורס" });
   }
 };
+

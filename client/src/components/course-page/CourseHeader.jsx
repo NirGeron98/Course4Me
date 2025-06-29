@@ -32,9 +32,9 @@ const CourseHeader = ({ course, stats }) => {
         return stars;
     };
 
-    const displayRating = stats?.recommendation
-        ? parseFloat(stats.recommendation)
-        : null;
+        console.log("stats", stats);
+    const displayRating = stats?.recommendation ? parseFloat(stats.recommendation) : null;
+    console.log("displayRating", displayRating);
 
 
     const reviewsCount = stats?.total || course.ratingsCount || 0;
@@ -112,7 +112,7 @@ const CourseHeader = ({ course, stats }) => {
                 </div>
 
                 {/* Rating Box - Positioned on the left side */}
-                {displayRating && (
+                {displayRating !== null && (
                     <div className="absolute left-0 top-20 hidden lg:block">
                         <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl p-6 shadow-lg">
                             <div className="text-center">
@@ -131,7 +131,7 @@ const CourseHeader = ({ course, stats }) => {
                 )}
 
                 {/* Rating Box for mobile - centered below */}
-                {displayRating && (
+                {displayRating !== null && (
                     <div className="lg:hidden mt-8 flex justify-center w-full">
                         <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl p-6 shadow-lg">
                             <div className="text-center">
