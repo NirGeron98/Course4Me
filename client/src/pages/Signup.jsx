@@ -84,7 +84,6 @@ const Signup = ({ onLogin }) => {
             <User className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-800 mb-2">הרשמה</h1>
-          <p className="text-gray-600">הצטרף אלינו ותתחיל את המסע שלך</p>
         </div>
 
         <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl border border-emerald-100 p-8" dir="rtl">
