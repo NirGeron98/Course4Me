@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Heart, Zap, Clock, TrendingUp, Award, MessageCircle, Loader2, User, Eye, EyeOff } from 'lucide-react';
+import { X, Heart, Zap, Clock, TrendingUp, Award, MessageCircle, Loader2, User, Eye, EyeOff, ThumbsUp } from 'lucide-react';
 import ExistingReviewModal from '../common/ExistingReviewModal';
 
 const CourseReviewFormModal = ({
@@ -19,11 +19,11 @@ const CourseReviewFormModal = ({
         lecturer: '',
         interest: 3,
         difficulty: 3,
-        workload: 3,
         investment: 3,
         teachingQuality: 3,
+        recommendation: 3,
         comment: '',
-        isAnonymous: false // New field for anonymous review
+        isAnonymous: false
     });
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
@@ -53,9 +53,9 @@ const CourseReviewFormModal = ({
                     : existingReview.lecturer || '',
                 interest: existingReview.interest,
                 difficulty: existingReview.difficulty,
-                workload: existingReview.workload,
                 investment: existingReview.investment,
                 teachingQuality: existingReview.teachingQuality,
+                recommendation: existingReview.recommendation || 3,
                 comment: existingReview.comment || '',
                 isAnonymous: Boolean(existingReview.isAnonymous)
             };
@@ -331,9 +331,9 @@ const CourseReviewFormModal = ({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             {renderRatingInput('עד כמה הקורס מעניין?', 'interest', <Heart className="w-5 h-5 text-red-500" />, 'red')}
                             {renderRatingInput('עד כמה הקורס קשה?', 'difficulty', <Zap className="w-5 h-5 text-yellow-500" />, 'yellow')}
-                            {renderRatingInput('כמה זמן השקעת בקורס מעבר לשיעורים?', 'workload', <Clock className="w-5 h-5 text-orange-500" />, 'orange')}
-                            {renderRatingInput('עד כמה הקורס דרש ממך מאמץ אישי כדי להצליח?', 'investment', <TrendingUp className="w-5 h-5 text-emerald-500" />, 'emerald')}
+                            {renderRatingInput('כמה זמן השקעת בקורס?', 'investment', <Clock className="w-5 h-5 text-orange-500" />, 'orange')}
                             {renderRatingInput('איכות ההוראה', 'teachingQuality', <Award className="w-5 h-5 text-purple-500" />, 'purple')}
+                            {renderRatingInput('עד כמה היית ממליץ על הקורס?', 'recommendation', <ThumbsUp className="w-5 h-5 text-emerald-500" />, 'emerald')}
                         </div>
 
                         <div className="mb-6">

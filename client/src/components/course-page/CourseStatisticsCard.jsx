@@ -1,13 +1,13 @@
 import React from 'react';
-import { BarChart3, Heart, Brain, Clock, Zap, Award } from 'lucide-react';
+import { BarChart3, Heart, Brain, Clock, Zap, Award, ThumbsUp } from 'lucide-react';
 
 const CourseStatisticsCard = ({ stats }) => {
     const colors = {
         interest: 'red-500',
         difficulty: 'yellow-500',
-        workload: 'orange-500',
-        investment: 'green-500',
-        teachingQuality: 'purple-500'
+        investment: 'orange-500',
+        teachingQuality: 'purple-500',
+        recommendation: 'emerald-500'
     };
 
     const renderStat = (Icon, label, value, color) => {
@@ -56,9 +56,9 @@ const CourseStatisticsCard = ({ stats }) => {
             <div className="space-y-4">
                 {renderStat(Heart, 'עניין', stats.avgInterest, colors.interest)}
                 {renderStat(Brain, 'קושי', stats.avgDifficulty, colors.difficulty)}
-                {renderStat(Clock, 'עומס', stats.avgWorkload, colors.workload)}
-                {renderStat(Zap, 'השקעה', stats.avgInvestment, colors.investment)}
+                {renderStat(Clock, 'השקעה', stats.avgInvestment, colors.investment)}
                 {renderStat(Award, 'איכות הוראה', stats.avgTeachingQuality, colors.teachingQuality)}
+                {renderStat(ThumbsUp, 'המלצה', stats.avgRecommendation, colors.recommendation)}
             </div>
         </div>
     );

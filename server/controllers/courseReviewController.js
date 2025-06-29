@@ -9,9 +9,9 @@ exports.createReview = async (req, res) => {
       lecturer,
       interest,
       difficulty,
-      workload,
       investment,
       teachingQuality,
+      recommendation,
       comment,
       isAnonymous,
     } = req.body;
@@ -36,9 +36,9 @@ exports.createReview = async (req, res) => {
       user: req.user._id,
       interest,
       difficulty,
-      workload,
       investment,
       teachingQuality,
+      recommendation,
       comment,
       isAnonymous,
     });
@@ -49,23 +49,14 @@ exports.createReview = async (req, res) => {
 
     console.log('Saved review isAnonymous:', review.isAnonymous);
 
-    // Update the course's average rating
+    // Update the course's average rating based on recommendation score
     const allReviews = await CourseReview.find({ course });
 
-    const avg =
-      allReviews.reduce((sum, r) => {
-        const averageScore =
-          (r.interest +
-            r.difficulty +
-            r.workload +
-            r.investment +
-            r.teachingQuality) /
-          5;
-        return sum + averageScore;
-      }, 0) / allReviews.length;
+    const avgRecommendation =
+      allReviews.reduce((sum, r) => sum + r.recommendation, 0) / allReviews.length;
 
     await Course.findByIdAndUpdate(course, {
-      averageRating: avg.toFixed(2),
+      averageRating: avgRecommendation.toFixed(2),
       ratingsCount: allReviews.length,
     });
 
@@ -91,7 +82,7 @@ exports.createReview = async (req, res) => {
     
     if (reviewObj.isAnonymous) {
       reviewObj.user = {
-        _id: reviewObj.user._id, // Keep ID for edit/delete permissions
+        _id: reviewObj.user._id,
         fullName: 'משתמש אנונימי'
       };
       console.log('Made anonymous, final user name:', reviewObj.user.fullName);
@@ -145,10 +136,9 @@ exports.getReviewsByCourse = async (req, res) => {
         originalUserName: reviewObj.user?.fullName
       });
       
-      // If the review is anonymous, hide user details
       if (reviewObj.isAnonymous === true) {
         reviewObj.user = {
-          _id: reviewObj.user._id, // Keep ID for edit/delete permissions
+          _id: reviewObj.user._id,
           fullName: 'משתמש אנונימי'
         };
         console.log('Made anonymous in getReviewsByCourse:', reviewObj.user.fullName);
@@ -180,10 +170,9 @@ exports.getAllReviews = async (req, res) => {
     const processedReviews = reviews.map(review => {
       const reviewObj = review.toObject();
       
-      // If the review is anonymous, hide user details
       if (reviewObj.isAnonymous) {
         reviewObj.user = {
-          _id: reviewObj.user._id, // Keep ID for edit/delete permissions
+          _id: reviewObj.user._id,
           fullName: 'משתמש אנונימי'
         };
       }
@@ -205,9 +194,9 @@ exports.updateReview = async (req, res) => {
     const {
       interest,
       difficulty,
-      workload,
       investment,
       teachingQuality,
+      recommendation,
       comment,
       isAnonymous,
     } = req.body;
@@ -230,9 +219,9 @@ exports.updateReview = async (req, res) => {
       {
         interest,
         difficulty,
-        workload,
         investment,
         teachingQuality,
+        recommendation,
         comment,
         isAnonymous,
       },
@@ -245,29 +234,20 @@ exports.updateReview = async (req, res) => {
     const reviewObj = updatedReview.toObject();
     if (reviewObj.isAnonymous) {
       reviewObj.user = {
-        _id: reviewObj.user._id, // Keep ID for edit/delete permissions
+        _id: reviewObj.user._id,
         fullName: 'משתמש אנונימי'
       };
     }
 
-    // Recalculate course's average rating
+    // Recalculate course's average rating based on recommendation
     const allReviews = await CourseReview.find({
       course: existingReview.course,
     });
-    const avg =
-      allReviews.reduce((sum, r) => {
-        const averageScore =
-          (r.interest +
-            r.difficulty +
-            r.workload +
-            r.investment +
-            r.teachingQuality) /
-          5;
-        return sum + averageScore;
-      }, 0) / allReviews.length;
+    const avgRecommendation =
+      allReviews.reduce((sum, r) => sum + r.recommendation, 0) / allReviews.length;
 
     await Course.findByIdAndUpdate(existingReview.course, {
-      averageRating: avg.toFixed(2),
+      averageRating: avgRecommendation.toFixed(2),
       ratingsCount: allReviews.length,
     });
 
@@ -309,20 +289,11 @@ exports.deleteReview = async (req, res) => {
     });
 
     if (allReviews.length > 0) {
-      const avg =
-        allReviews.reduce((sum, r) => {
-          const averageScore =
-            (r.interest +
-              r.difficulty +
-              r.workload +
-              r.investment +
-              r.teachingQuality) /
-            5;
-          return sum + averageScore;
-        }, 0) / allReviews.length;
+      const avgRecommendation =
+        allReviews.reduce((sum, r) => sum + r.recommendation, 0) / allReviews.length;
 
       await Course.findByIdAndUpdate(existingReview.course, {
-        averageRating: avg.toFixed(2),
+        averageRating: avgRecommendation.toFixed(2),
         ratingsCount: allReviews.length,
       });
     } else {

@@ -137,9 +137,9 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
                 case 'oldest':
                     return new Date(a.createdAt) - new Date(b.createdAt);
                 case 'highest':
-                    return b.overallRating - a.overallRating;
+                    return (b.recommendation || 0) - (a.recommendation || 0);
                 case 'lowest':
-                    return a.overallRating - b.overallRating;
+                    return (a.recommendation || 0) - (b.recommendation || 0);
                 default:
                     return 0;
             }
@@ -283,8 +283,8 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
                             >
                                 <option value="newest">הכי חדש</option>
                                 <option value="oldest">הכי ישן</option>
-                                <option value="highest">ציון גבוה</option>
-                                <option value="lowest">ציון נמוך</option>
+                                <option value="highest">המלצה גבוהה</option>
+                                <option value="lowest">המלצה נמוכה</option>
                             </select>
                         </div>
                     </div>
@@ -331,10 +331,10 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <div className="flex gap-1">
-                                                {renderStars(parseFloat(review.overallRating || 0))}
+                                                {renderStars(parseFloat(review.recommendation || 0))}
                                             </div>
                                             <span className="text-sm font-medium text-gray-700">
-                                                {review.overallRating || 0}/5.0
+                                                {review.recommendation || 0}/5.0
                                             </span>
                                             <span className="text-xs text-gray-500">
                                                 {new Date(review.createdAt).toLocaleDateString('he-IL')}
@@ -374,16 +374,16 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
                                         <div className="text-sm text-yellow-600 font-bold">{review.difficulty || 0}/5</div>
                                     </div>
                                     <div className="text-center">
-                                        <div className="text-sm font-medium text-gray-700">עומס</div>
-                                        <div className="text-sm text-orange-600 font-bold">{review.workload || 0}/5</div>
-                                    </div>
-                                    <div className="text-center">
                                         <div className="text-sm font-medium text-gray-700">השקעה</div>
-                                        <div className="text-sm text-green-600 font-bold">{review.investment || 0}/5</div>
+                                        <div className="text-sm text-orange-600 font-bold">{review.investment || 0}/5</div>
                                     </div>
                                     <div className="text-center">
                                         <div className="text-sm font-medium text-gray-700">איכות הוראה</div>
                                         <div className="text-sm text-purple-600 font-bold">{review.teachingQuality || 0}/5</div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-sm font-medium text-gray-700">המלצה</div>
+                                        <div className="text-sm text-emerald-600 font-bold">{review.recommendation || 0}/5</div>
                                     </div>
                                 </div>
 
