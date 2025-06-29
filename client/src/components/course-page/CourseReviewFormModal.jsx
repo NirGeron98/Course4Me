@@ -331,8 +331,8 @@ const CourseReviewFormModal = ({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             {renderRatingInput('עד כמה הקורס מעניין?', 'interest', <Heart className="w-5 h-5 text-red-500" />, 'red')}
                             {renderRatingInput('עד כמה הקורס קשה?', 'difficulty', <Zap className="w-5 h-5 text-yellow-500" />, 'yellow')}
-                            {renderRatingInput('כמה זמן השקעת בקורס?', 'workload', <Clock className="w-5 h-5 text-orange-500" />, 'orange')}
-                            {renderRatingInput('עד כמה השקעת בקורס?', 'investment', <TrendingUp className="w-5 h-5 text-emerald-500" />, 'emerald')}
+                            {renderRatingInput('כמה זמן השקעת בקורס מעבר לשיעורים?', 'workload', <Clock className="w-5 h-5 text-orange-500" />, 'orange')}
+                            {renderRatingInput('עד כמה הקורס דרש ממך מאמץ אישי כדי להצליח?', 'investment', <TrendingUp className="w-5 h-5 text-emerald-500" />, 'emerald')}
                             {renderRatingInput('איכות ההוראה', 'teachingQuality', <Award className="w-5 h-5 text-purple-500" />, 'purple')}
                         </div>
 
