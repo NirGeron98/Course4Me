@@ -14,7 +14,7 @@ const TrackedCourses = () => {
 
   // Set page title
   useEffect(() => {
-    document.title = 'קורסים במעקב - Course4Me';
+    document.title = 'הקורסים שלי - Course4Me';
 
     // Cleanup function to reset title when component unmounts
     return () => {

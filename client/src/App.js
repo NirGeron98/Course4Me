@@ -1,4 +1,4 @@
-// App.js - Updated with Advanced Search Route
+// App.js - Updated with Advanced Search Route and My Reviews
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/common/Navbar";
@@ -12,7 +12,8 @@ import CoursePage from "./pages/CoursePage";
 import LecturerPage from "./pages/LecturerPage";
 import AdminPanel from "./pages/AdminPanel";
 import ProfileManagement from "./pages/ProfileManagement";
-import AdvancedSearch from "./pages/AdvancedSearch"; 
+import AdvancedSearch from "./pages/AdvancedSearch";
+import MyReviewsPage from "./components/my-reviews/MyReviewsPage";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -92,6 +93,12 @@ function App() {
             path="/search" 
             element={
               user ? <AdvancedSearch user={user} /> : <Navigate to="/login" />
+            } 
+          />
+          <Route 
+            path="/my-reviews" 
+            element={
+              user ? <MyReviewsPage user={user} /> : <Navigate to="/login" />
             } 
           />
           <Route 

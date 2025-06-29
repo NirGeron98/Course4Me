@@ -11,7 +11,7 @@ const StatsCards = ({ stats, allCoursesCount, lecturersCount }) => {
           </div>
           <div>
             <h3 className="text-2xl font-bold text-gray-800">{stats.coursesCount}</h3>
-            <p className="text-gray-600">קורסים במעקב</p>
+            <p className="text-gray-600">הקורסים שלי</p>
           </div>
         </div>
       </div>

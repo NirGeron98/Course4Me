@@ -51,13 +51,13 @@ const CourseReviewFormModal = ({
                 lecturer: existingReview.lecturer && typeof existingReview.lecturer === 'object'
                     ? existingReview.lecturer._id
                     : existingReview.lecturer || '',
-                interest: existingReview.interest,
-                difficulty: existingReview.difficulty,
-                investment: existingReview.investment,
-                teachingQuality: existingReview.teachingQuality,
-                recommendation: existingReview.recommendation || 3,
+                interest: Number(existingReview.interest) || 3,
+                difficulty: Number(existingReview.difficulty) || 3,
+                investment: Number(existingReview.investment) || 3,
+                teachingQuality: Number(existingReview.teachingQuality) || 3,
+                recommendation: Number(existingReview.recommendation) || 3,
                 comment: existingReview.comment || '',
-                isAnonymous: Boolean(existingReview.isAnonymous)
+                isAnonymous: Boolean(existingReview.isAnonymous) // Ensure it's a boolean
             };
             
             console.log('Setting form data:', newFormData);
@@ -158,9 +158,16 @@ const CourseReviewFormModal = ({
 
             const method = existingReview ? 'PUT' : 'POST';
 
+            // Ensure all values are properly typed and cleaned
             const normalizedFormData = {
-                ...formData,
-                lecturer: typeof formData.lecturer === 'object' ? formData.lecturer._id : formData.lecturer
+                lecturer: typeof formData.lecturer === 'object' ? formData.lecturer._id : formData.lecturer,
+                interest: Number(formData.interest),
+                difficulty: Number(formData.difficulty),
+                investment: Number(formData.investment),
+                teachingQuality: Number(formData.teachingQuality),
+                recommendation: Number(formData.recommendation),
+                comment: String(formData.comment || '').trim(),
+                isAnonymous: Boolean(formData.isAnonymous) // Ensure it's explicitly a boolean
             };
 
             const requestData = existingReview
@@ -168,6 +175,7 @@ const CourseReviewFormModal = ({
                 : { ...normalizedFormData, course: courseId };
 
             console.log('Sending to server:', requestData);
+            console.log('isAnonymous being sent:', requestData.isAnonymous, 'type:', typeof requestData.isAnonymous);
 
             const response = await fetch(url, {
                 method,
@@ -180,13 +188,15 @@ const CourseReviewFormModal = ({
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'שגיאה בשליחת הביקורת');
+                console.error('Server error response:', errorData);
+                throw new Error(errorData.message || errorData.error || 'שגיאה בשליחת הביקורת');
             }
 
             const newReview = await response.json();
             console.log('Received from server:', newReview);
             onReviewSubmitted(newReview);
         } catch (err) {
+            console.error('Submit error:', err);
             setError(err.message);
         } finally {
             setSubmitting(false);
@@ -245,7 +255,12 @@ const CourseReviewFormModal = ({
                     type="button"
                     onClick={() => {
                         const newValue = !formData.isAnonymous;
-                        console.log('Toggle clicked:', { current: formData.isAnonymous, new: newValue });
+                        console.log('Toggle clicked:', { 
+                            current: formData.isAnonymous, 
+                            new: newValue,
+                            currentType: typeof formData.isAnonymous,
+                            newType: typeof newValue
+                        });
                         setFormData({ ...formData, isAnonymous: newValue });
                     }}
                     className={`relative inline-flex h-8 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
@@ -264,6 +279,9 @@ const CourseReviewFormModal = ({
                         }`}
                     />
                 </button>
+            </div>
+            <div className="mt-2 text-xs text-gray-500">
+                מצב נוכחי: {formData.isAnonymous ? 'אנונימי' : 'גלוי'}
             </div>
         </div>
     );

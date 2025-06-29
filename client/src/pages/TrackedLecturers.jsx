@@ -13,7 +13,7 @@ const TrackedLecturers = () => {
 
   // Set page title
   useEffect(() => {
-    document.title = 'מרצים במעקב - Course4Me';
+    document.title = 'המרצים שלי - Course4Me';
 
     // Cleanup function to reset title when component unmounts
     return () => {

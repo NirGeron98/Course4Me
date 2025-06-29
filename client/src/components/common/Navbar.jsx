@@ -1,7 +1,7 @@
-// Navbar.jsx - Updated with neutral colors (gray/blue palette)
+// Navbar.jsx - Updated with neutral colors (gray/blue palette) and My Reviews
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { User, BookOpen, Settings, LogOut, Menu, X, Home, Shield, UserCheck, Heart, Search } from "lucide-react";
+import { User, BookOpen, Settings, LogOut, Menu, X, Home, Shield, UserCheck, Heart, Search, MessageCircle } from "lucide-react";
 
 const Navbar = ({ user, onLogout }) => {
   const navigate = useNavigate();
@@ -50,6 +50,12 @@ const Navbar = ({ user, onLogout }) => {
       label: "חיפוש",
       fullLabel: "חיפוש מתקדם",
       icon: Search
+    },
+    {
+      path: "/my-reviews",
+      label: "ביקורות",
+      fullLabel: "הביקורות שלי",
+      icon: MessageCircle
     },
     {
       path: "/lecturers",
@@ -111,7 +117,9 @@ const Navbar = ({ user, onLogout }) => {
                           ? 'text-purple-600 hover:text-purple-700 hover:bg-purple-50'
                           : item.path === '/search'
                             ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
-                            : 'text-gray-600 hover:text-slate-700 hover:bg-slate-50'
+                            : item.path === '/my-reviews'
+                              ? 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50'
+                              : 'text-gray-600 hover:text-slate-700 hover:bg-slate-50'
                       }`}
                     title={item.fullLabel} // Tooltip with full label
                   >
@@ -139,7 +147,9 @@ const Navbar = ({ user, onLogout }) => {
                           ? 'text-purple-600 hover:text-purple-700 hover:bg-purple-50'
                           : item.path === '/search'
                             ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
-                            : 'text-gray-600 hover:text-slate-700 hover:bg-slate-50'
+                            : item.path === '/my-reviews'
+                              ? 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50'
+                              : 'text-gray-600 hover:text-slate-700 hover:bg-slate-50'
                       }`}
                     title={item.fullLabel}
                   >
@@ -255,7 +265,9 @@ const Navbar = ({ user, onLogout }) => {
                           ? 'text-purple-600 hover:text-purple-700 hover:bg-purple-50'
                           : item.path === '/search'
                             ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
-                            : 'text-gray-600 hover:text-slate-700 hover:bg-slate-50'
+                            : item.path === '/my-reviews'
+                              ? 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50'
+                              : 'text-gray-600 hover:text-slate-700 hover:bg-slate-50'
                       }`}
                   >
                     <Icon className="w-5 h-5 ml-3" />
