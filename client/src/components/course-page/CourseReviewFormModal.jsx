@@ -78,7 +78,16 @@ const CourseReviewFormModal = ({
 
                 if (courseResponse.ok) {
                     const courseData = await courseResponse.json();
-                    setLecturers(courseData.lecturers || []);
+                    const courseLecturers = courseData.lecturers || [];
+                    setLecturers(courseLecturers);
+                    
+                    // Auto-select if there's only one lecturer and we're not editing an existing review
+                    if (courseLecturers.length === 1 && !existingReview) {
+                        setFormData(prev => ({
+                            ...prev,
+                            lecturer: courseLecturers[0]._id
+                        }));
+                    }
                 } else {
                     throw new Error('Failed to fetch course lecturers');
                 }
@@ -315,7 +324,7 @@ const CourseReviewFormModal = ({
                         <div className="mb-3">
                             <label className="block text-gray-700 font-medium mb-2 flex items-center gap-2">
                                 <User className="w-5 h-5 text-emerald-500" />
-                                בחר מרצה *
+                                {lecturers.length === 1 ? 'מרצה נבחר אוטומטית' : 'בחר מרצה *'}
                             </label>
                             {loadingLecturers ? (
                                 <div className="flex items-center justify-center py-4">
@@ -325,6 +334,18 @@ const CourseReviewFormModal = ({
                             ) : lecturers.length === 0 ? (
                                 <div className="text-center py-4 text-gray-500">
                                     לא נמצאו מרצים עבור קורס זה
+                                </div>
+                            ) : lecturers.length === 1 ? (
+                                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                                    <div className="flex items-center gap-2 text-green-700">
+                                        <User className="w-5 h-5" />
+                                        <span className="font-medium">
+                                            {lecturers[0].name}
+                                        </span>
+                                    </div>
+                                    <p className="text-sm text-green-600 mt-1">
+                                        המרצה נבחר אוטומטית מכיוון שזה המרצה היחיד של הקורס
+                                    </p>
                                 </div>
                             ) : (
                                 <select

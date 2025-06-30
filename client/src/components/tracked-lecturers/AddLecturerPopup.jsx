@@ -37,9 +37,9 @@ const AddLecturerPopup = ({ onClose, onLecturerAdded }) => {
           .filter(({ lecturer }) => lecturer) // Filter out null/undefined
           .map(({ lecturer }) => lecturer._id);
 
-        // Filter out lecturers that are already being tracked
+        // Filter out lecturers that are already being tracked and ensure valid lecturer objects
         const availableLecturers = allLecturersData.filter(
-          lecturer => !trackedIds.includes(lecturer._id)
+          lecturer => lecturer && lecturer._id && lecturer.name && !trackedIds.includes(lecturer._id)
         );
 
         setAllLecturers(availableLecturers);
@@ -58,12 +58,19 @@ const AddLecturerPopup = ({ onClose, onLecturerAdded }) => {
 
   useEffect(() => {
     const term = searchTerm.toLowerCase();
-    const filtered = allLecturers.filter((lecturer) =>
-      lecturer.name.toLowerCase().includes(term) ||
-      lecturer.department.toLowerCase().includes(term) ||
-      lecturer.email.toLowerCase().includes(term) ||
-      (lecturer.academicInstitution || "").toLowerCase().includes(term)
-    );
+    const filtered = allLecturers.filter((lecturer) => {
+      // Safe string check function
+      const safeIncludes = (value) => {
+        return value && typeof value === 'string' ? value.toLowerCase().includes(term) : false;
+      };
+
+      return (
+        safeIncludes(lecturer.name) ||
+        safeIncludes(lecturer.department) ||
+        safeIncludes(lecturer.email) ||
+        safeIncludes(lecturer.academicInstitution)
+      );
+    });
     setFilteredLecturers(filtered);
   }, [searchTerm, allLecturers]);
 

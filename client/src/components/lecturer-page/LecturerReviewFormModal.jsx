@@ -37,7 +37,6 @@ const LecturerReviewFormModal = ({
 
   useEffect(() => {
     if (existingReview) {
-      console.log('Loading existing lecturer review:', existingReview); // Debug log
       setFormData({
         course: existingReview.course?._id || '',
         clarity: existingReview.clarity,
@@ -73,6 +72,14 @@ const LecturerReviewFormModal = ({
           );
           
           setCourses(lecturerCourses);
+          
+          // Auto-select if there's only one course
+          if (lecturerCourses.length === 1) {
+            setFormData(prev => ({
+              ...prev,
+              course: lecturerCourses[0]._id
+            }));
+          }
         } else {
           const errorData = await response.json();
           console.error('Failed to fetch courses:', errorData);
@@ -304,7 +311,7 @@ const LecturerReviewFormModal = ({
             <div className="mb-3">
               <label className="block text-gray-700 font-medium mb-2 flex items-center gap-2">
                 <Award className="w-5 h-5 text-purple-500" />
-                בחר קורס *
+                {courses.length === 1 ? 'קורס נבחר אוטומטית' : 'בחר קורס *'}
               </label>
               {loadingCourses ? (
                 <div className="flex items-center justify-center py-4">
@@ -314,6 +321,18 @@ const LecturerReviewFormModal = ({
               ) : courses.length === 0 ? (
                 <div className="text-center py-4 text-gray-500 bg-gray-50 rounded-lg">
                   לא נמצאו קורסים עבור מרצה זה
+                </div>
+              ) : courses.length === 1 ? (
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center gap-2 text-green-700">
+                    <Award className="w-5 h-5" />
+                    <span className="font-medium">
+                      {courses[0].title} ({courses[0].courseNumber})
+                    </span>
+                  </div>
+                  <p className="text-sm text-green-600 mt-1">
+                    הקורס נבחר אוטומטית מכיוון שזה הקורס היחיד של המרצה
+                  </p>
                 </div>
               ) : (
                 <select
