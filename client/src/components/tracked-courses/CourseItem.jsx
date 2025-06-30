@@ -22,7 +22,7 @@ const CourseItem = ({ course, onViewDetails, onAdd, isAdding }) => {
         
         {/* Course Info */}
         <div className="flex-1">
-          <div className="flex items-start space-x-3">
+          <div className="flex items-start space-x-3 gap-2">
             <div className="bg-emerald-100 group-hover:bg-emerald-200 rounded-full p-2 transition-colors">
               <BookOpen className="w-5 h-5 text-emerald-600" />
             </div>
@@ -71,7 +71,7 @@ const CourseItem = ({ course, onViewDetails, onAdd, isAdding }) => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center space-x-2 mr-4">
+        <div className="flex items-center space-x-2 mr-4 gap-2">
           {/* View Details Button */}
           <button
             onClick={(e) => {

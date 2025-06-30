@@ -201,7 +201,7 @@ const AddCoursePopup = ({ onClose, onCourseAdded, user }) => {
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">
                   <div className="bg-emerald-100 rounded-full p-3 w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                    <BookOpen className="w-8 h-8 text-emerald-500" />
+                    <BookOpen className="w-8 h-8 text-emerald-500 ml-4" />
                   </div>
                   <p className="text-gray-600 font-medium">אתה עוקב אחרי כל הקורסים!</p>
                   <p className="text-gray-400 text-sm mt-2">אין קורסים נוספים להוספה</p>
