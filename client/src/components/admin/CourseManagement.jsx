@@ -7,7 +7,6 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
     // State management
     const [courses, setCourses] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [showPrerequisites, setShowPrerequisites] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [isEditing, setIsEditing] = useState(false);
     const [editId, setEditId] = useState(null);
@@ -31,19 +30,6 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
     useEffect(() => {
         fetchCourses();
     }, []);
-
-    // Handle click outside for prerequisites dropdown
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (showPrerequisites && !event.target.closest('.prerequisites-dropdown')) {
-                setShowPrerequisites(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [showPrerequisites]);
 
     // Filter courses based on search term and update filtered courses
     useEffect(() => {
@@ -270,105 +256,70 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
                                 />
                             </div>
 
-                            {/* Prerequisites Dropdown - Full Width */}
+                            {/* Prerequisites Multi-Select with Search - Full Width */}
                             <div className="md:col-span-2 xl:col-span-3">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    דרישות קדם
+                                    דרישות קדם (ניתן לחפש ולבחור יותר מקורס אחד)
                                 </label>
-                                <div className="relative prerequisites-dropdown">
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPrerequisites(!showPrerequisites)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500 text-right bg-white flex justify-between items-center hover:bg-gray-50 transition-all"
-                                    >
-                                        <span className="text-gray-700">
-                                            {courseForm.prerequisites.length === 0
-                                                ? "בחר דרישות קדם..."
-                                                : `נבחרו ${courseForm.prerequisites.length} קורסים`
+                                <Select
+                                    options={courses
+                                        .filter(course => course.courseNumber !== courseForm.courseNumber) // Don't include current course
+                                        .map((course) => ({
+                                            value: course.title,
+                                            label: `${course.title} (${course.courseNumber})`,
+                                            courseNumber: course.courseNumber
+                                        }))}
+                                    isMulti
+                                    value={courseForm.prerequisites.map(prereq => ({
+                                        value: prereq,
+                                        label: prereq
+                                    }))}
+                                    onChange={(selectedOptions) => {
+                                        setCourseForm({
+                                            ...courseForm,
+                                            prerequisites: selectedOptions ? selectedOptions.map((option) => option.value) : []
+                                        });
+                                    }}
+                                    className="basic-multi-select"
+                                    classNamePrefix="select"
+                                    placeholder="חפש ובחר קורסים..."
+                                    noOptionsMessage={() => "לא נמצאו קורסים"}
+                                    isSearchable={true}
+                                    isClearable={true}
+                                    styles={{
+                                        control: (provided) => ({
+                                            ...provided,
+                                            minHeight: '48px',
+                                            border: '1px solid #d1d5db',
+                                            borderRadius: '0.75rem',
+                                            '&:hover': {
+                                                borderColor: '#10b981'
+                                            },
+                                            '&:focus-within': {
+                                                borderColor: '#10b981',
+                                                boxShadow: '0 0 0 2px rgba(16, 185, 129, 0.2)'
                                             }
-                                        </span>
-                                        <svg
-                                            className={`w-5 h-5 transition-transform ${showPrerequisites ? 'rotate-180' : ''}`}
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </button>
-
-                                    {/* Prerequisites Dropdown with Checkboxes */}
-                                    {showPrerequisites && (
-                                        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-xl shadow-lg z-10 max-h-64 overflow-y-auto">
-                                            {courses.length === 0 ? (
-                                                <div className="p-4 text-center text-gray-500">
-                                                    אין קורסים זמינים עדיין
-                                                </div>
-                                            ) : (
-                                                <div className="p-2">
-                                                    {courses
-                                                        .filter(course => course.courseNumber !== courseForm.courseNumber)
-                                                        .map((course) => (
-                                                            <label
-                                                                key={course._id}
-                                                                className="flex items-center p-3 hover:bg-gray-50 rounded-lg cursor-pointer"
-                                                            >
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={courseForm.prerequisites.includes(course.title)}
-                                                                    onChange={(e) => {
-                                                                        if (e.target.checked) {
-                                                                            setCourseForm({
-                                                                                ...courseForm,
-                                                                                prerequisites: [...courseForm.prerequisites, course.title]
-                                                                            });
-                                                                        } else {
-                                                                            setCourseForm({
-                                                                                ...courseForm,
-                                                                                prerequisites: courseForm.prerequisites.filter(p => p !== course.title)
-                                                                            });
-                                                                        }
-                                                                    }}
-                                                                    className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 ml-3"
-                                                                />
-                                                                <div className="flex-1 text-right">
-                                                                    <div className="font-medium text-sm">{course.title}</div>
-                                                                    <div className="text-xs text-gray-500">{course.courseNumber}</div>
-                                                                </div>
-                                                            </label>
-                                                        ))
-                                                    }
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Selected Prerequisites Display */}
-                                {courseForm.prerequisites.length > 0 && (
-                                    <div className="mt-3 flex flex-wrap gap-2">
-                                        {courseForm.prerequisites.map((prerequisite, index) => (
-                                            <span
-                                                key={index}
-                                                className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-emerald-100 text-emerald-800"
-                                            >
-                                                {prerequisite}
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setCourseForm({
-                                                            ...courseForm,
-                                                            prerequisites: courseForm.prerequisites.filter(p => p !== prerequisite)
-                                                        });
-                                                    }}
-                                                    className="mr-2 hover:text-emerald-600"
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </button>
-                                            </span>
-                                        ))}
-                                    </div>
-                                )}
+                                        }),
+                                        multiValue: (provided) => ({
+                                            ...provided,
+                                            backgroundColor: '#d1fae5',
+                                            borderRadius: '0.5rem'
+                                        }),
+                                        multiValueLabel: (provided) => ({
+                                            ...provided,
+                                            color: '#065f46',
+                                            fontWeight: '500'
+                                        }),
+                                        multiValueRemove: (provided) => ({
+                                            ...provided,
+                                            color: '#065f46',
+                                            '&:hover': {
+                                                backgroundColor: '#10b981',
+                                                color: 'white'
+                                            }
+                                        })
+                                    }}
+                                />
                             </div>
 
                             {/* Course Description Textarea - Full Width */}
