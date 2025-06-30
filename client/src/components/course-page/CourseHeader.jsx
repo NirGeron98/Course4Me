@@ -37,7 +37,7 @@ const CourseHeader = ({ course, stats }) => {
         return stars;
     };
 
-    const displayRating = stats?.recommendation ? parseFloat(stats.recommendation) : null;
+    const displayRating = stats?.avgRecommendation || null;
     const reviewsCount = stats?.total || course.ratingsCount || 0;
 
     const maxLecturersToShow = 4;

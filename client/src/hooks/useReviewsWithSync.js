@@ -1,13 +1,16 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useCourseDataContext } from '../contexts/CourseDataContext';
 
-export const useReviews = (courseId, token) => {
+export const useReviewsWithSync = (courseId, token) => {
     const [reviews, setReviews] = useState([]);
     const [reviewsLoading, setReviewsLoading] = useState(true);
     const [showReviewForm, setShowReviewForm] = useState(false);
     const [filterRating, setFilterRating] = useState('all');
     const [sortBy, setSortBy] = useState('newest');
 
-    const fetchReviews = async () => {
+    const { triggerCourseRefresh, updateCourseData } = useCourseDataContext();
+
+    const fetchReviews = useCallback(async () => {
         try {
             const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/reviews/course/${courseId}`, {
                 headers: {
@@ -22,21 +25,59 @@ export const useReviews = (courseId, token) => {
 
             const data = await response.json();
             setReviews(data);
+
+            // Recalculate and update course stats
+            if (data.length > 0) {
+                const total = data.length;
+                const avg = (key) => data.reduce((sum, r) => sum + (r[key] || 0), 0) / total;
+                
+                const calculatedStats = {
+                    total,
+                    avgInterest: parseFloat(avg('interest').toFixed(1)),
+                    avgDifficulty: parseFloat(avg('difficulty').toFixed(1)),
+                    avgWorkload: parseFloat(avg('workload').toFixed(1)),
+                    avgTeachingQuality: parseFloat(avg('teachingQuality').toFixed(1)),
+                    avgRecommendation: parseFloat(avg('recommendation').toFixed(1)),
+                    overallRating: parseFloat((
+                        (avg('interest') + avg('teachingQuality') + avg('workload')) / 3
+                    ).toFixed(1))
+                };
+
+                // Update course data with new stats
+                updateCourseData(courseId, {
+                    stats: calculatedStats,
+                    averageRating: calculatedStats.overallRating,
+                    ratingsCount: calculatedStats.total,
+                    lastUpdated: Date.now()
+                });
+            } else {
+                // No reviews - clear stats
+                updateCourseData(courseId, {
+                    stats: null,
+                    averageRating: null,
+                    ratingsCount: 0,
+                    lastUpdated: Date.now()
+                });
+            }
+
+            // Trigger refresh for all components using this course
+            triggerCourseRefresh(courseId);
+
         } catch (err) {
             console.error('Error fetching reviews:', err);
             setReviews([]);
         } finally {
             setReviewsLoading(false);
         }
-    };
+    }, [courseId, token, updateCourseData, triggerCourseRefresh]);
 
     useEffect(() => {
         if (courseId && token) {
             fetchReviews();
         }
-    }, [courseId, token]);
+    }, [courseId, token, fetchReviews]);
 
-    const addReview = (newReview) => {
+    const addReview = useCallback((newReview) => {
         setReviews(prev => {
             const existingIndex = prev.findIndex(r => r._id === newReview._id);
             if (existingIndex >= 0) {
@@ -46,11 +87,15 @@ export const useReviews = (courseId, token) => {
             }
             return [newReview, ...prev];
         });
-    };
+        // Trigger refresh after adding review
+        setTimeout(() => fetchReviews(), 100);
+    }, [fetchReviews]);
 
-    const removeReview = (reviewId) => {
+    const removeReview = useCallback((reviewId) => {
         setReviews(prev => prev.filter(r => r._id !== reviewId));
-    };
+        // Trigger refresh after removing review
+        setTimeout(() => fetchReviews(), 100);
+    }, [fetchReviews]);
 
     const stats = useMemo(() => {
         if (!reviews.length) return null;
@@ -62,16 +107,16 @@ export const useReviews = (courseId, token) => {
             total,
             avgInterest: parseFloat(avg('interest').toFixed(1)),
             avgDifficulty: parseFloat(avg('difficulty').toFixed(1)),
-            avgWorkload: parseFloat(avg('workload').toFixed(1)), // FIXED: Capital W
+            avgWorkload: parseFloat(avg('workload').toFixed(1)),
             avgTeachingQuality: parseFloat(avg('teachingQuality').toFixed(1)),
-            avgRecommendation: parseFloat(avg('recommendation').toFixed(1)), // Added missing field
+            avgRecommendation: parseFloat(avg('recommendation').toFixed(1)),
             overallRating: parseFloat((
                 (avg('interest') + avg('teachingQuality') + avg('workload')) / 3
             ).toFixed(1))
         };
     }, [reviews]);
 
-    const getFilteredReviews = () => {
+    const getFilteredReviews = useCallback(() => {
         let filtered = [...reviews];
 
         if (filterRating !== 'all') {
@@ -101,7 +146,7 @@ export const useReviews = (courseId, token) => {
         });
 
         return filtered;
-    };
+    }, [reviews, filterRating, sortBy]);
 
     const filteredReviews = getFilteredReviews();
 

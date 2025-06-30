@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MessageCircle, Star, Plus, Loader2, User, Filter, SortAsc, Shield } from 'lucide-react';
 import ReviewFormModal from './CourseReviewFormModal';
 import ExistingReviewModal from '../common/ExistingReviewModal';
-import DeleteConfirmationModal from '../common/DeleteConfirmationModal'; 
+import DeleteConfirmationModal from '../common/DeleteConfirmationModal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen, faTrash } from '@fortawesome/free-solid-svg-icons';
 
@@ -16,7 +16,7 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
     const [sortBy, setSortBy] = useState('newest');
     const [showExistingReviewModal, setShowExistingReviewModal] = useState(false);
     const [userExistingReview, setUserExistingReview] = useState(null);
-    
+
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [reviewToDelete, setReviewToDelete] = useState(null);
 
@@ -29,7 +29,7 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
             userFullName: review.user?.fullName,
             fullReview: review
         });
-        
+
         if (review.isAnonymous === true) {
             return 'משתמש אנונימי';
         }
@@ -90,8 +90,8 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
 
     const checkForExistingReview = () => {
         if (!user?.user) return null;
-        
-        return reviews.find(review => 
+
+        return reviews.find(review =>
             review.user && review.user._id === user.user._id
         );
     };
@@ -103,7 +103,7 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
         }
 
         const existingReview = checkForExistingReview();
-        
+
         if (existingReview) {
             setUserExistingReview(existingReview);
             setShowExistingReviewModal(true);
@@ -334,7 +334,7 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
                                                 {renderStars(parseFloat(review.recommendation || 0))}
                                             </div>
                                             <span className="text-sm font-medium text-gray-700">
-                                                {review.recommendation || 0}/5.0
+                                                {review.recommendation.toFixed(1) || 0}/5.0
                                             </span>
                                             <span className="text-xs text-gray-500">
                                                 {new Date(review.createdAt).toLocaleDateString('he-IL')}

@@ -1,5 +1,5 @@
-import { useCourseData } from '../components/course-page/hooks/useCourseData';
-import { useReviews } from '../components/course-page/hooks/useReviews';
+import { useCourseDataWithSync  } from '../hooks/useCourseDataWithSync';
+import { useReviewsWithSync  } from '../hooks/useReviewsWithSync';
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { BookOpen, AlertCircle, Loader2 } from 'lucide-react';
@@ -13,14 +13,14 @@ import CourseStatisticsCard from '../components/course-page/CourseStatisticsCard
 const CoursePage = ({ user }) => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { course, stats, loading, error } = useCourseData(id, user?.token);
+    const { course, stats, loading, error } = useCourseDataWithSync(id, user?.token);
     const {
         showReviewForm,
         setShowReviewForm,
         stats: reviewStats,
         reviews,
         refetchReviews
-    } = useReviews(id, user?.token);
+    } = useReviewsWithSync(id, user?.token);
 
 
     const [editingReview, setEditingReview] = useState(null);
