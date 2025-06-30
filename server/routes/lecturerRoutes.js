@@ -6,6 +6,7 @@ const { admin } = require("../middleware/adminMiddleware");
 
 // Public routes
 router.get("/", lecturerController.getAllLecturers);
+router.get("/by-slug/:slug", lecturerController.getLecturerBySlug);
 router.get("/:id", lecturerController.getLecturerById);
 router.get("/:id/full", lecturerController.getLecturerWithCourses);
 router.get("/search/:query", lecturerController.searchLecturers);

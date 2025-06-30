@@ -37,6 +37,27 @@ exports.getCourseById = async (req, res) => {
   }
 };
 
+// Get course by courseNumber
+exports.getCourseByNumber = async (req, res) => {
+  try {
+    const course = await Course.findOne({ courseNumber: req.params.courseNumber })
+      .populate({
+        path: "lecturers",
+        select: "-__v -createdAt -updatedAt -ratingsCount",
+      })
+      .populate("createdBy", "fullName email");
+
+    if (!course) {
+      return res.status(404).json({ message: "קורס לא נמצא" });
+    }
+
+    res.status(200).json(course);
+  } catch (err) {
+    console.error("Error fetching course by number:", err);
+    res.status(500).json({ message: "שגיאת שרת פנימית" });
+  }
+};
+
 // Create new course
 exports.createCourse = async (req, res) => {
   try {

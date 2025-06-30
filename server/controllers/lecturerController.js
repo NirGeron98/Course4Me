@@ -1,6 +1,43 @@
 const Lecturer = require("../models/Lecturer");
 const Department = require("../models/Department");
 
+// Utility function to generate slug from Hebrew/English text
+const generateSlug = (text) => {
+    return text
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^\u0590-\u05FF\w-]/g, '')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+};
+
+// Function to find lecturer by slug (with fallback logic)
+const findLecturerBySlug = async (slug) => {
+    // First try to find by exact slug match (if lecturer has slug field)
+    let lecturer = await Lecturer.findOne({ slug })
+        .populate("createdBy", "fullName email")
+        .populate("departments", "name code description");
+    
+    if (lecturer) return lecturer;
+    
+    // If no exact match, try to find by generating slug from name
+    const lecturers = await Lecturer.find()
+        .populate("createdBy", "fullName email")
+        .populate("departments", "name code description");
+    
+    for (let lec of lecturers) {
+        const generatedSlug = generateSlug(lec.name);
+        if (generatedSlug === slug || 
+            slug.startsWith(`${generatedSlug}-`) ||
+            `${generatedSlug}-1` === slug) {
+            return lec;
+        }
+    }
+    
+    return null;
+};
+
 // GET /api/lecturers
 exports.getAllLecturers = async (req, res) => {
   try {
@@ -35,6 +72,22 @@ exports.getLecturerById = async (req, res) => {
       message: "שגיאה בטעינת המרצה",
       error: err.message,
     });
+  }
+};
+
+// GET /api/lecturers/by-slug/:slug
+exports.getLecturerBySlug = async (req, res) => {
+  try {
+    const lecturer = await findLecturerBySlug(req.params.slug);
+
+    if (!lecturer) {
+      return res.status(404).json({ message: "מרצה לא נמצא" });
+    }
+
+    res.status(200).json(lecturer);
+  } catch (err) {
+    console.error("Error fetching lecturer by slug:", err);
+    res.status(500).json({ message: "שגיאת שרת פנימית" });
   }
 };
 
