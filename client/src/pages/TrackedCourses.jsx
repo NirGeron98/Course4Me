@@ -130,7 +130,7 @@ const TrackedCourses = () => {
             <div className="mt-4">
               <div className="inline-flex items-center bg-white/15 backdrop-blur-sm rounded-full px-4 py-2 border border-white/20 text-sm">
                 <span className="font-semibold">
-                  עוקב אחר {trackedCourses.filter(({ course }) => course).length} קורסים
+                    {trackedCourses.filter(({ course }) => course).length} קורסים במעקב
                 </span>
               </div>
             </div>

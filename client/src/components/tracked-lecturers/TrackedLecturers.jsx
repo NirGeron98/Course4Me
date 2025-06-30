@@ -106,7 +106,7 @@ const TrackedLecturers = () => {
             <div className="mt-4">
               <div className="inline-flex items-center bg-white/15 backdrop-blur-sm rounded-full px-4 py-2 border border-white/20 text-sm">
                 <span className="font-semibold">
-                  עוקב אחר {trackedLecturers.filter(({ lecturer }) => lecturer).length} מרצים
+                 {trackedLecturers.filter(({ lecturer }) => lecturer).length} מרצים במעקב
                 </span>
               </div>
             </div>
