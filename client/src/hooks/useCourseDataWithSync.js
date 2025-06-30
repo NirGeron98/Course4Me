@@ -6,6 +6,7 @@ export const useCourseDataWithSync = (identifier, token, identifierType = 'id') 
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [courseId, setCourseId] = useState(null); // Track course ID separately
     
     const { updateCourseData, getCourseData, getRefreshTrigger } = useCourseDataContext();
 
@@ -75,6 +76,7 @@ export const useCourseDataWithSync = (identifier, token, identifierType = 'id') 
 
             setCourse(updatedCourseData);
             setStats(calculatedStats);
+            setCourseId(courseData._id); // Set course ID separately
 
             // Update global cache using course ID
             updateCourseData(courseData._id, {
@@ -90,23 +92,45 @@ export const useCourseDataWithSync = (identifier, token, identifierType = 'id') 
         }
     }, [identifier, token, identifierType, updateCourseData]);
 
-    // Get refresh trigger for the course ID (if we have it)
-    const refreshTrigger = getRefreshTrigger(course?._id);
-
+    // Try to get cached data first (only when component mounts)
     useEffect(() => {
-        fetchCourseAndStats();
-    }, [fetchCourseAndStats, refreshTrigger]);
-
-    // Try to get cached data first (only if we have course ID)
-    useEffect(() => {
-        if (course?._id) {
-            const cachedData = getCourseData(course._id);
+        if (identifier && identifierType === 'id') {
+            // If we have an ID, try cache first
+            const cachedData = getCourseData(identifier);
             if (cachedData && cachedData.course) {
+                setCourse(cachedData.course);
+                setStats(cachedData.stats);
+                setCourseId(identifier);
+                setLoading(false);
+                return; // Don't fetch if we have cached data
+            }
+        }
+        
+        // If no cached data or using courseNumber, fetch fresh
+        fetchCourseAndStats();
+    }, [identifier, identifierType]); // Removed getCourseData to prevent re-runs
+
+    // Get refresh trigger for the course ID (only after we have it)
+    const refreshTrigger = getRefreshTrigger(courseId);
+
+    // Only refetch when refresh is triggered
+    useEffect(() => {
+        if (refreshTrigger && courseId) {
+            fetchCourseAndStats();
+        }
+    }, [refreshTrigger, courseId, fetchCourseAndStats]);
+
+    // Update from cache when refresh trigger changes
+    useEffect(() => {
+        if (courseId && refreshTrigger) {
+            const cachedData = getCourseData(courseId);
+            if (cachedData && cachedData.course && cachedData.lastUpdated > Date.now() - 1000) {
+                // Only use very recent cache updates (within 1 second)
                 setCourse(cachedData.course);
                 setStats(cachedData.stats);
             }
         }
-    }, [course?._id, getCourseData]);
+    }, [refreshTrigger, courseId, getCourseData]);
 
     return { 
         course, 
