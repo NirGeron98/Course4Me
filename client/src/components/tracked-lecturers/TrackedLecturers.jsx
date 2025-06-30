@@ -20,7 +20,10 @@ const TrackedLecturers = () => {
       const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-lecturers`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setTrackedLecturers(res.data);
+      
+      // Filter out any tracked lecturers with null/undefined lecturer objects
+      const validTrackedLecturers = res.data.filter(({ lecturer }) => lecturer && lecturer._id);
+      setTrackedLecturers(validTrackedLecturers);
     } catch (err) {
       console.error("Failed to fetch tracked lecturers:", err);
     } finally {
@@ -54,7 +57,7 @@ const TrackedLecturers = () => {
 
       // Update local state to remove the lecturer immediately
       setTrackedLecturers(prevLecturers =>
-        prevLecturers.filter(({ lecturer }) => lecturer._id !== lecturerId)
+        prevLecturers.filter(({ lecturer }) => lecturer && lecturer._id !== lecturerId)
       );
     } catch (err) {
       console.error("Failed to remove lecturer from tracking:", err);
