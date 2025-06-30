@@ -19,8 +19,11 @@ const CoursePage = ({ user }) => {
         setShowReviewForm,
         stats: reviewStats,
         reviews,
+        reviewsLoading,
         refetchReviews
-    } = useReviewsWithSync(course?._id, user?.token);
+    } = useReviewsWithSync(course?._id || null, user?.token);
+
+
 
     const [editingReview, setEditingReview] = useState(null);
 
@@ -43,7 +46,7 @@ const CoursePage = ({ user }) => {
         handleCloseReviewForm();
     };
 
-    if (loading) {
+    if (loading || reviewsLoading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-100 flex items-center justify-center">
                 <div className="text-center">
@@ -53,6 +56,7 @@ const CoursePage = ({ user }) => {
             </div>
         );
     }
+
 
     if (error) {
         return (
@@ -107,7 +111,7 @@ const CoursePage = ({ user }) => {
                     </div>
 
                     <div className="space-y-6">
-                        {reviewStats && <CourseStatisticsCard stats={reviewStats} />}
+                        <CourseStatisticsCard stats={reviewStats} />
                         <QuickActions
                             onShowReviewForm={handleShowReviewForm}
                             courseId={course._id}

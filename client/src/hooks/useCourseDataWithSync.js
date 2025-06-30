@@ -18,16 +18,14 @@ export const useCourseDataWithSync = (
   const fetchCourse = useCallback(async () => {
     if (!identifier || !token) return;
 
+    setLoading(true);
     try {
-      setLoading(true);
       const baseUrl = process.env.REACT_APP_API_BASE_URL;
 
-      let courseEndpoint;
-      if (identifierType === "courseNumber") {
-        courseEndpoint = `${baseUrl}/api/courses/by-number/${identifier}`;
-      } else {
-        courseEndpoint = `${baseUrl}/api/courses/${identifier}`;
-      }
+      const courseEndpoint =
+        identifierType === "courseNumber"
+          ? `${baseUrl}/api/courses/by-number/${identifier}`
+          : `${baseUrl}/api/courses/${identifier}`;
 
       const courseRes = await fetch(courseEndpoint, {
         headers: {
@@ -36,12 +34,9 @@ export const useCourseDataWithSync = (
         },
       });
 
-      if (!courseRes.ok) {
-        throw new Error("Failed to load course");
-      }
+      if (!courseRes.ok) throw new Error("Failed to load course");
 
       const courseData = await courseRes.json();
-
       setCourse(courseData);
       setStats(null);
       setCourseId(courseData._id);
@@ -58,42 +53,33 @@ export const useCourseDataWithSync = (
     }
   }, [identifier, token, identifierType, updateCourseData]);
 
+  // Load from cache first if available (only if identifierType is "id")
   useEffect(() => {
+    let hasLoadedFromCache = false;
+
     if (identifier && identifierType === "id") {
-      const cachedData = getCourseData(identifier);
-      if (cachedData && cachedData.course) {
-        setCourse(cachedData.course);
-        setStats(cachedData.stats);
+      const cached = getCourseData(identifier);
+      if (cached?.course) {
+        setCourse(cached.course);
+        setStats(cached.stats);
         setCourseId(identifier);
         setLoading(false);
-        return;
+        hasLoadedFromCache = true;
       }
     }
 
-    fetchCourse();
-  }, [identifier, identifierType, fetchCourse, getCourseData]);
+    if (!hasLoadedFromCache) {
+      fetchCourse();
+    }
+  }, [identifier, identifierType, fetchCourse]);
 
+  // Re-fetch on refresh trigger
   const refreshTrigger = getRefreshTrigger(courseId);
-
   useEffect(() => {
     if (refreshTrigger && courseId) {
       fetchCourse();
     }
   }, [refreshTrigger, courseId, fetchCourse]);
-
-  useEffect(() => {
-    if (courseId && refreshTrigger) {
-      const cachedData = getCourseData(courseId);
-      if (
-        cachedData &&
-        cachedData.course &&
-        cachedData.lastUpdated > Date.now() - 1000
-      ) {
-        setCourse(cachedData.course);
-        setStats(cachedData.stats);
-      }
-    }
-  }, [refreshTrigger, courseId, getCourseData]);
 
   return {
     course,

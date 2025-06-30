@@ -36,35 +36,25 @@ const TrackedCourseCard = ({ course, onRemove, onViewDetails }) => {
     useEffect(() => {
         const fetchRecommendationRating = async () => {
             try {
-                // This should fetch the stats that include avgRecommendation
-                const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/reviews/course/${course._id}`);
-                if (response.ok) {
-                    const reviews = await response.json();
-                    if (reviews.length > 0) {
-                        // Calculate average recommendation from reviews
-                        const avgRecommendation = reviews.reduce((sum, review) => {
-                            return sum + (review.recommendation || 0);
-                        }, 0) / reviews.length;
-                        
-                        setRecommendationRating(parseFloat(avgRecommendation.toFixed(1)));
-                        setReviewsCount(reviews.length);
+                const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/reviews/stats/${course._id}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.avgRecommendation) {
+                        setRecommendationRating(parseFloat(data.avgRecommendation));
+                        setReviewsCount(data.total || 0);
                     }
                 }
             } catch (error) {
-                console.error('Error fetching recommendation rating:', error);
-                // Fallback to display course rating
-                if (displayCourse.averageRating) {
-                    setRecommendationRating(parseFloat(displayCourse.averageRating));
-                    setReviewsCount(displayCourse.ratingsCount || 0);
-                }
+                console.error('Error fetching recommendation stats:', error);
             }
         };
 
-        // Only fetch if we don't have recommendation rating from cache
+        // Run only if no rating was cached
         if (recommendationRating === null && displayCourse._id) {
             fetchRecommendationRating();
         }
-    }, [course._id, displayCourse.averageRating, displayCourse.ratingsCount, recommendationRating]);
+    }, [recommendationRating, displayCourse._id]);
+
 
     const renderStars = (rating) => {
         const stars = [];

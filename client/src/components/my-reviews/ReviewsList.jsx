@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { getLecturerSlug } from '../../utils/slugUtils'; 
+import { getLecturerSlug } from '../../utils/slugUtils';
 
 const ReviewsList = ({ reviews, onEditClick, onDeleteClick }) => {
     const renderStars = (rating, size = 'w-4 h-4') => {
@@ -73,11 +73,7 @@ const ReviewsList = ({ reviews, onEditClick, onDeleteClick }) => {
     // Helper function to create course slug
     const createCourseSlug = (course) => {
         if (!course || !course.title) return '#';
-        const slug = course.title
-            .replace(/[^\u0590-\u05FF\w\s]/g, '') // Keep Hebrew, letters, numbers, and spaces
-            .replace(/\s+/g, '-') // Replace spaces with hyphens
-            .toLowerCase();
-        return `/course/${course.courseNumber}/${slug}`;
+        return `/course/${course.courseNumber}`;
     };
 
     // Helper function to create lecturer slug
