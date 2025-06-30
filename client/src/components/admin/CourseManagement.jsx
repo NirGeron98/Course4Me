@@ -4,6 +4,7 @@ import { BookOpen, Hash, Save, Trash2, X, ChevronLeft, ChevronRight } from "luci
 import Select from "react-select";
 
 const CourseManagement = ({ lecturers, onMessage, onError }) => {
+    // State management
     const [courses, setCourses] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [showPrerequisites, setShowPrerequisites] = useState(false);
@@ -14,6 +15,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
     const [filteredCourses, setFilteredCourses] = useState([]);
     const coursesPerPage = 5;
 
+    // Form state
     const [courseForm, setCourseForm] = useState({
         courseNumber: "",
         title: "",
@@ -25,10 +27,12 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
         prerequisites: []
     });
 
+    // Fetch courses on component mount
     useEffect(() => {
         fetchCourses();
     }, []);
 
+    // Handle click outside for prerequisites dropdown
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (showPrerequisites && !event.target.closest('.prerequisites-dropdown')) {
@@ -41,6 +45,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
         };
     }, [showPrerequisites]);
 
+    // Filter courses based on search term and update filtered courses
     useEffect(() => {
         const filtered = courses.filter((course) =>
             course.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -48,7 +53,12 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
         setFilteredCourses(filtered);
     }, [searchTerm, courses]);
 
+    // Reset current page only when search term changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
 
+    // Fetch all courses from API
     const fetchCourses = async () => {
         try {
             const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/courses`);
@@ -60,6 +70,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
         }
     };
 
+    // Reset form to initial state
     const resetForm = () => {
         setCourseForm({
             courseNumber: "",
@@ -75,6 +86,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
         setEditId(null);
     };
 
+    // Handle form submission for both adding and editing courses
     const handleCourseSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
@@ -104,6 +116,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
             if (response.status === 200 || response.status === 201) {
                 resetForm();
                 fetchCourses();
+                // Removed setCurrentPage(1) to preserve current page position
             }
         } catch (err) {
             console.error("Error creating course:", err);
@@ -113,6 +126,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
         }
     };
 
+    // Populate form with course data for editing
     const handleEditCourse = (course) => {
         setCourseForm({
             courseNumber: course.courseNumber,
@@ -129,6 +143,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
+    // Delete course with confirmation
     const handleDeleteCourse = async (courseId) => {
         if (!window.confirm("האם אתה בטוח שברצונך למחוק את הקורס?")) return;
         try {
@@ -139,6 +154,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
             if (response.status === 200) {
                 onMessage("קורס נמחק בהצלחה!");
                 fetchCourses();
+                // Adjust current page if needed after deletion
                 const totalPages = Math.ceil((courses.length - 1) / coursesPerPage);
                 if (currentPage > totalPages && totalPages > 0) {
                     setCurrentPage(totalPages);
@@ -150,11 +166,13 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
         }
     };
 
-    const totalPages = Math.ceil(courses.length / coursesPerPage);
+    // Pagination calculations
+    const totalPages = Math.ceil(filteredCourses.length / coursesPerPage);
     const startIndex = (currentPage - 1) * coursesPerPage;
     const endIndex = startIndex + coursesPerPage;
     const currentCourses = filteredCourses.slice(startIndex, endIndex);
 
+    // Pagination handlers
     const handlePrevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
     const handleNextPage = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages));
     const handlePageClick = (pageNumber) => setCurrentPage(pageNumber);
@@ -170,7 +188,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
 
                     <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl p-8 shadow-lg border border-gray-200">
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {/* Course Number */}
+                            {/* Course Number Input */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     מספר קורס *
@@ -188,7 +206,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
                                 </div>
                             </div>
 
-                            {/* Course Title */}
+                            {/* Course Title Input */}
                             <div className="md:col-span-2">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     שם הקורס *
@@ -206,7 +224,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
                                 </div>
                             </div>
 
-                            {/* Credits */}
+                            {/* Credits Input */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     נקודות זכות *
@@ -223,7 +241,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
                                 />
                             </div>
 
-                            {/* Lecturer */}
+                            {/* Lecturer Multi-Select */}
                             <div className="md:col-span-2 xl:col-span-3">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     מרצים (ניתן לבחור יותר מאחד)
@@ -252,8 +270,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
                                 />
                             </div>
 
-
-                            {/* Prerequisites - spanning full width */}
+                            {/* Prerequisites Dropdown - Full Width */}
                             <div className="md:col-span-2 xl:col-span-3">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     דרישות קדם
@@ -280,7 +297,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
                                         </svg>
                                     </button>
 
-                                    {/* Dropdown with checkboxes */}
+                                    {/* Prerequisites Dropdown with Checkboxes */}
                                     {showPrerequisites && (
                                         <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-xl shadow-lg z-10 max-h-64 overflow-y-auto">
                                             {courses.length === 0 ? (
@@ -327,7 +344,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
                                     )}
                                 </div>
 
-                                {/* Selected prerequisites display */}
+                                {/* Selected Prerequisites Display */}
                                 {courseForm.prerequisites.length > 0 && (
                                     <div className="mt-3 flex flex-wrap gap-2">
                                         {courseForm.prerequisites.map((prerequisite, index) => (
@@ -354,7 +371,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
                                 )}
                             </div>
 
-                            {/* Description - spanning full width */}
+                            {/* Course Description Textarea - Full Width */}
                             <div className="md:col-span-2 xl:col-span-3">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     תיאור הקורס
@@ -368,7 +385,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
                                 />
                             </div>
 
-                            {/* Submit Button - spanning full width */}
+                            {/* Submit Button - Full Width */}
                             <div className="md:col-span-2 xl:col-span-3">
                                 <button
                                     onClick={handleCourseSubmit}
@@ -398,6 +415,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
                         קורסים קיימים ({courses.length})
                     </h3>
 
+                    {/* Search Input */}
                     <div className="relative">
                         <input
                             type="text"
@@ -416,8 +434,6 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
                             </button>
                         )}
                     </div>
-
-
 
                     {/* Courses List Container */}
                     <div className="space-y-3 min-h-[500px]">
@@ -457,6 +473,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
                                                     )}
                                                 </div>
                                             </div>
+                                            {/* Edit and Delete Buttons */}
                                             <div className="flex gap-2 items-center opacity-0 group-hover:opacity-100 transition-all">
                                                 <button
                                                     onClick={() => handleEditCourse(course)}
@@ -480,7 +497,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
                         )}
                     </div>
 
-                    {/* Pagination Controls - Fixed position */}
+                    {/* Pagination Controls - Fixed Position */}
                     {filteredCourses.length > coursesPerPage && (
                         <div className="flex items-center justify-center gap-2 mt-4 py-3 border-t border-gray-200">
                             <button
