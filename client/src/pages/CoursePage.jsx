@@ -13,7 +13,7 @@ import CourseStatisticsCard from '../components/course-page/CourseStatisticsCard
 const CoursePage = ({ user }) => {
     const { courseNumber } = useParams();
     const navigate = useNavigate();
-    const { course, stats, loading, error } = useCourseDataWithSync(courseNumber, user?.token, 'courseNumber');
+    const { course, loading, error } = useCourseDataWithSync(courseNumber, user?.token, 'courseNumber');
     const {
         showReviewForm,
         setShowReviewForm,
@@ -92,7 +92,7 @@ const CoursePage = ({ user }) => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-100" dir="rtl">
-            <CourseHeader course={course} stats={stats} reviews={reviews} />
+            <CourseHeader course={course} stats={reviewStats} reviews={reviews} />
 
             <div className="max-w-7xl mx-auto px-4 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

@@ -8,7 +8,7 @@ export const useReviewsWithSync = (courseId, token) => {
     const [filterRating, setFilterRating] = useState('all');
     const [sortBy, setSortBy] = useState('newest');
 
-    const { triggerCourseRefresh, updateCourseData } = useCourseDataContext();
+    const { updateCourseData } = useCourseDataContext();
 
     const fetchReviews = useCallback(async () => {
         try {
@@ -26,11 +26,10 @@ export const useReviewsWithSync = (courseId, token) => {
             const data = await response.json();
             setReviews(data);
 
-            // Recalculate and update course stats
             if (data.length > 0) {
                 const total = data.length;
                 const avg = (key) => data.reduce((sum, r) => sum + (r[key] || 0), 0) / total;
-                
+
                 const calculatedStats = {
                     total,
                     avgInterest: parseFloat(avg('interest').toFixed(1)),
@@ -43,7 +42,6 @@ export const useReviewsWithSync = (courseId, token) => {
                     ).toFixed(1))
                 };
 
-                // Update course data with new stats
                 updateCourseData(courseId, {
                     stats: calculatedStats,
                     averageRating: calculatedStats.overallRating,
@@ -51,7 +49,6 @@ export const useReviewsWithSync = (courseId, token) => {
                     lastUpdated: Date.now()
                 });
             } else {
-                // No reviews - clear stats
                 updateCourseData(courseId, {
                     stats: null,
                     averageRating: null,
@@ -60,16 +57,13 @@ export const useReviewsWithSync = (courseId, token) => {
                 });
             }
 
-            // Trigger refresh for all components using this course
-            triggerCourseRefresh(courseId);
-
         } catch (err) {
             console.error('Error fetching reviews:', err);
             setReviews([]);
         } finally {
             setReviewsLoading(false);
         }
-    }, [courseId, token, updateCourseData, triggerCourseRefresh]);
+    }, [courseId, token, updateCourseData]);
 
     useEffect(() => {
         if (courseId && token) {
@@ -87,13 +81,11 @@ export const useReviewsWithSync = (courseId, token) => {
             }
             return [newReview, ...prev];
         });
-        // Trigger refresh after adding review
         setTimeout(() => fetchReviews(), 100);
     }, [fetchReviews]);
 
     const removeReview = useCallback((reviewId) => {
         setReviews(prev => prev.filter(r => r._id !== reviewId));
-        // Trigger refresh after removing review
         setTimeout(() => fetchReviews(), 100);
     }, [fetchReviews]);
 

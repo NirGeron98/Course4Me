@@ -5,6 +5,8 @@ import {
     BookMarked, Users, Star, X
 } from 'lucide-react';
 import { getLecturerSlug } from '../../utils/slugUtils';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faThumbsUp } from '@fortawesome/free-solid-svg-icons';
 
 const CourseHeader = ({ course, stats }) => {
     const [showAllLecturers, setShowAllLecturers] = useState(false);
@@ -102,7 +104,7 @@ const CourseHeader = ({ course, stats }) => {
                                             {lecturersToShow.map((lecturer, index) => (
                                                 <Link
                                                     key={index}
-                                                    to={`/lecturer/${getLecturerSlug(lecturer)}`}                                                    className="bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-2 hover:bg-white/30 hover:scale-105 transition-all duration-200 group cursor-pointer"
+                                                    to={`/lecturer/${getLecturerSlug(lecturer)}`} className="bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-2 hover:bg-white/30 hover:scale-105 transition-all duration-200 group cursor-pointer"
                                                 >
                                                     <span className="text-white font-medium group-hover:text-white/90">
                                                         {lecturer.name}
@@ -150,7 +152,7 @@ const CourseHeader = ({ course, stats }) => {
                                             {course.lecturers?.map((lecturer, index) => (
                                                 <Link
                                                     key={index}
-                                                    to={`/lecturer/${getLecturerSlug(lecturer)}`}                                                    onClick={() => setShowAllLecturers(false)}
+                                                    to={`/lecturer/${getLecturerSlug(lecturer)}`} onClick={() => setShowAllLecturers(false)}
                                                     className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-4 hover:shadow-lg hover:scale-105 transition-all duration-200 group"
                                                 >
                                                     <div className="flex items-center gap-3">
@@ -190,6 +192,10 @@ const CourseHeader = ({ course, stats }) => {
                                 </div>
                                 <div className="text-white/90 text-sm font-medium">
                                     ציון ההמלצה מתוך {reviewsCount} ביקורות
+                                </div>
+                                <div className="text-white/70 text-xs mt-2 flex items-center justify-center gap-1">
+                                    <FontAwesomeIcon icon={faThumbsUp} className="w-3 h-3" />
+                                    <span>מבוסס על קריטריון ההמלצה בלבד</span>
                                 </div>
                             </div>
                         </div>
