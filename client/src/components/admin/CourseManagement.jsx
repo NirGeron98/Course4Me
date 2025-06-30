@@ -104,7 +104,6 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
             if (response.status === 200 || response.status === 201) {
                 resetForm();
                 fetchCourses();
-                setCurrentPage(1);
             }
         } catch (err) {
             console.error("Error creating course:", err);
