@@ -49,6 +49,25 @@ const CourseHeader = ({ course, stats }) => {
         ? course.lecturers.length - maxLecturersToShow
         : 0;
 
+    // Calculate dynamic position for rating box based on number of lecturers
+    const totalLecturers = course.lecturers?.length || 0;
+    const hasLongCourseTitle = course.title?.length > 50;
+    
+    // Dynamic positioning: more lecturers = move rating box further left
+    const getRatingPosition = () => {
+        if (totalLecturers <= 2) return 'left-0';
+        if (totalLecturers <= 4) return 'left-[-50px]';
+        if (totalLecturers <= 6) return 'left-[-100px]';
+        return 'left-[-150px]'; // For many lecturers
+    };
+
+    // Also consider top position based on content height
+    const getRatingTopPosition = () => {
+        if (hasLongCourseTitle) return 'top-24';
+        if (totalLecturers > 4) return 'top-16';
+        return 'top-20';
+    };
+
     return (
         <div className="relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800"></div>
@@ -59,7 +78,7 @@ const CourseHeader = ({ course, stats }) => {
                     <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl p-4 shadow-lg">
                         <BookOpen className="w-10 h-10 text-white" />
                     </div>
-                    <h1 className="text-3xl lg:text-4xl font-bold text-white leading-tight">
+                    <h1 className="text-3xl lg:text-4xl font-bold text-white leading-tight text-center">
                         {course.title}
                     </h1>
                 </div>
@@ -179,9 +198,9 @@ const CourseHeader = ({ course, stats }) => {
 
                 </div>
 
-                {/* Rating Box - Positioned on the left side */}
+                {/* Rating Box - Positioned dynamically on the left side based on lecturers count */}
                 {displayRating !== null && (
-                    <div className="absolute left-0 top-20 hidden lg:block">
+                    <div className={`absolute ${getRatingPosition()} ${getRatingTopPosition()} hidden lg:block`}>
                         <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl p-6 shadow-lg">
                             <div className="text-center">
                                 <div className="text-3xl font-bold text-white mb-3">

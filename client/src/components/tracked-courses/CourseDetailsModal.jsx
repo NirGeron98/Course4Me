@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { X, BookOpen, Building, Hash, FileText, Award, Users, ArrowLeft } from "lucide-react";
+import { X, BookOpen, Building, Hash, FileText, Award, Users, ArrowLeft, ChevronDown, ChevronUp } from "lucide-react";
 
 const CourseDetailsModal = ({ course, onClose }) => {
   const navigate = useNavigate();
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   if (!course) return null;
 
@@ -35,7 +36,20 @@ const CourseDetailsModal = ({ course, onClose }) => {
     onClose(); // Close modal after navigation
   };
 
+  // Function to truncate description
+  const truncateDescription = (text, maxLength = 300) => {
+    if (!text) return "";
+    if (text.length <= maxLength) return text;
+    
+    // Find the last space before maxLength to avoid cutting words
+    const truncated = text.substring(0, maxLength);
+    const lastSpace = truncated.lastIndexOf(' ');
+    return lastSpace > 0 ? truncated.substring(0, lastSpace) + "..." : truncated + "...";
+  };
+
   const allLecturers = getAllLecturers(course.lecturer || course.lecturers);
+  const description = course.description || course.summary || "";
+  const shouldTruncate = description.length > 300;
 
   return (
     <div
@@ -43,10 +57,10 @@ const CourseDetailsModal = ({ course, onClose }) => {
       onClick={handleBackdropClick}
       dir="rtl"
     >
-      <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden relative transform transition-all duration-300 scale-100">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden relative transform transition-all duration-300 scale-100 flex flex-col">
 
         {/* Elegant Header with integrated info */}
-        <div className="bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 p-6 relative">
+        <div className="bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 p-6 relative flex-shrink-0">
           <button
             onClick={onClose}
             className="absolute top-4 left-4 text-white hover:text-emerald-200 transition-all duration-200 bg-white/20 rounded-full p-2 hover:bg-white/30 hover:scale-110"
@@ -110,7 +124,6 @@ const CourseDetailsModal = ({ course, onClose }) => {
                 </div>
 
                 <div className="space-y-1">
-
                   {/* Display up to 3 lecturers in a vertical list */}
                   {allLecturers.slice(0, 3).map((lecturer, index) => (
                     <div key={index} className="text-center">
@@ -129,20 +142,15 @@ const CourseDetailsModal = ({ course, onClose }) => {
                     </div>
                   )}
                 </div>
-
-
-
               </div>
             )}
           </div>
         </div>
 
-        {/* Main content - focused on description */}
-        <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(95vh - 220px)' }}>
-
+        {/* Main content - with controlled overflow */}
+        <div className="flex-1 overflow-y-auto p-6">
           {/* Secondary Info Row - Compact */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-
             {/* Department */}
             {course.department && (
               <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-4 border border-indigo-100">
@@ -172,9 +180,8 @@ const CourseDetailsModal = ({ course, onClose }) => {
             )}
           </div>
 
-          {/* Course Description - Main Focus */}
-          {/* Course Description - Main Focus */}
-          {(course.description || course.summary) && (
+          {/* Course Description - Main Focus with Controlled Length */}
+          {description && (
             <div className="bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 rounded-2xl p-6 border border-emerald-100 shadow-sm">
               <div className="flex items-center gap-3 mb-5">
                 <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl p-3 shadow-md">
@@ -185,17 +192,40 @@ const CourseDetailsModal = ({ course, onClose }) => {
                 </h3>
               </div>
 
-              {/* ✨ עיצוב חדש - ללא בלוק פנימי לבן מיותר */}
-              <p className="text-gray-700 text-right leading-relaxed whitespace-pre-line text-[15px] md:text-[16px] lg:text-[17px] font-medium">
-                {course.description || course.summary || "אין תיאור זמין"}
-              </p>
+              {/* Description Text with Truncation */}
+              <div className="relative">
+                <p className="text-gray-700 text-right leading-relaxed whitespace-pre-line text-[15px] md:text-[16px] lg:text-[17px] font-medium">
+                  {isDescriptionExpanded || !shouldTruncate 
+                    ? description 
+                    : truncateDescription(description)
+                  }
+                </p>
+
+                {/* Expand/Collapse Button */}
+                {shouldTruncate && (
+                  <div className="mt-4 text-center">
+                    <button
+                      onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-lg font-medium transition-all duration-200 text-sm"
+                    >
+                      <span>
+                        {isDescriptionExpanded ? "הצג פחות" : "הצג עוד"}
+                      </span>
+                      {isDescriptionExpanded ? (
+                        <ChevronUp className="w-4 h-4" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
-
         </div>
 
-        {/* Elegant Footer */}
-        <div className="border-t border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 p-5">
+        {/* Elegant Footer - Fixed at bottom */}
+        <div className="border-t border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 p-5 flex-shrink-0">
           <div className="flex justify-between items-center">
             <button
               onClick={onClose}
