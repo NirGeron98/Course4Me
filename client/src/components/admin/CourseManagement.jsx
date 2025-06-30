@@ -46,7 +46,6 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
             course.title.toLowerCase().includes(searchTerm.toLowerCase())
         );
         setFilteredCourses(filtered);
-        setCurrentPage(1);
     }, [searchTerm, courses]);
 
 
