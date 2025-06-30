@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import AddCoursePopup from "../components/tracked-courses/AddCoursePopup";
 import TrackedCourseCard from "../components/tracked-courses/TrackedCourseCard";
 import CourseDetailsModal from "../components/tracked-courses/CourseDetailsModal";
+import { useCourseDataContext } from "../contexts/CourseDataContext";
 
 const TrackedCourses = () => {
   const [trackedCourses, setTrackedCourses] = useState([]);
@@ -11,6 +12,8 @@ const TrackedCourses = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { fetchCourseStats } = useCourseDataContext();
+
 
   // Set page title
   useEffect(() => {
@@ -21,6 +24,17 @@ const TrackedCourses = () => {
       document.title = 'Course4Me';
     };
   }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+
+    trackedCourses.forEach((course) => {
+      if (course._id) {
+        fetchCourseStats(course._id, token);
+      }
+    });
+  }, [trackedCourses]);
+
 
   // Fetch tracked courses from API
   const fetchTrackedCourses = async () => {

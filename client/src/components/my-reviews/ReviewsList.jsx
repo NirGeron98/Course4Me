@@ -267,7 +267,7 @@ const ReviewsList = ({ reviews, onEditClick, onDeleteClick }) => {
                                     <div className="flex gap-0.5">
                                         {renderStars(parseFloat(
                                             actualReviewType === 'course'
-                                                ? (review.recommendation || review.overallRating || ((review.interest + review.difficulty + (review.workload || review.workload) + review.teachingQuality) / 4))
+                                                ? (review.recommendation || review.overallRating || ((review.interest + review.difficulty + review.workload + review.teachingQuality) / 4))
                                                 : (review.overallRating || ((review.clarity + review.responsiveness + review.availability + review.organization + review.knowledge) / 5))
                                         ), 'w-3 h-3')}
                                     </div>

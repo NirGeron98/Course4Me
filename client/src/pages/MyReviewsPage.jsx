@@ -142,7 +142,7 @@ const MyReviewsPage = ({ user }) => {
                 let rating;
                 if (review.reviewType === 'course') {
                     rating = review.recommendation || review.overallRating ||
-                        ((review.interest + review.difficulty + (review.workload || review.investment) + review.teachingQuality) / 4);
+                        ((review.interest + review.difficulty + review.workload + review.teachingQuality) / 4);
                 } else {
                     rating = review.overallRating ||
                         ((review.clarity + review.responsiveness + review.availability + review.organization + review.knowledge) / 5);
@@ -156,7 +156,7 @@ const MyReviewsPage = ({ user }) => {
                 let rating;
                 if (review.reviewType === 'course') {
                     rating = review.recommendation || review.overallRating ||
-                        ((review.interest + review.difficulty + (review.workload || review.investment) + review.teachingQuality) / 4);
+                        ((review.interest + review.difficulty + review.workload + review.teachingQuality) / 4);
                 } else {
                     rating = review.overallRating ||
                         ((review.clarity + review.responsiveness + review.availability + review.organization + review.knowledge) / 5);
@@ -197,7 +197,7 @@ const MyReviewsPage = ({ user }) => {
                     let aRating, bRating;
                     if (a.reviewType === 'course') {
                         aRating = a.recommendation || a.overallRating ||
-                            ((a.interest + a.difficulty + (a.workload || a.investment) + a.teachingQuality) / 4);
+                            ((a.interest + a.difficulty + a.workload + a.teachingQuality) / 4);
                     } else {
                         aRating = a.overallRating ||
                             ((a.clarity + a.responsiveness + a.availability + a.organization + a.knowledge) / 5);
@@ -205,7 +205,7 @@ const MyReviewsPage = ({ user }) => {
 
                     if (b.reviewType === 'course') {
                         bRating = b.recommendation || b.overallRating ||
-                            ((b.interest + b.difficulty + (b.workload || b.investment) + b.teachingQuality) / 4);
+                            ((b.interest + b.difficulty + b.workload + b.teachingQuality) / 4);
                     } else {
                         bRating = b.overallRating ||
                             ((b.clarity + b.responsiveness + b.availability + b.organization + b.knowledge) / 5);

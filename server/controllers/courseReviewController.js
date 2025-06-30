@@ -47,21 +47,20 @@ exports.createReview = async (req, res) => {
     }
 
     // Create review using the authenticated user's ID
-    // IMPORTANT: Map 'workload' to 'workload' for the database
     const review = new CourseReview({
       course,
       lecturer,
       user: req.user._id,
       interest: Number(interest),
       difficulty: Number(difficulty),
-      workload: Number(workload), // Map workload to workload
+      workload: Number(workload),
       teachingQuality: Number(teachingQuality),
       recommendation: Number(recommendation),
       comment: comment || "",
       isAnonymous: Boolean(isAnonymous),
     });
 
-    console.log("Creating review with workload mapping...");
+    console.log("Creating review with workload...");
 
     const savedReview = await review.save();
     console.log("Review saved successfully");
@@ -216,13 +215,13 @@ exports.updateReview = async (req, res) => {
       return res.status(403).json({ message: "אין הרשאה לעדכן ביקורת זו" });
     }
 
-    // Update the review - map workload to workload
+    // Update the review
     const updatedReview = await CourseReview.findByIdAndUpdate(
       reviewId,
       {
         interest: Number(interest),
         difficulty: Number(difficulty),
-        workload: Number(workload), // Map workload to workload
+        workload: Number(workload),
         teachingQuality: Number(teachingQuality),
         recommendation: Number(recommendation),
         comment: comment || "",
@@ -233,7 +232,7 @@ exports.updateReview = async (req, res) => {
       .populate("user", "fullName _id")
       .populate("lecturer", "name");
 
-    // Process the updated review to handle anonymity and field mapping
+    // Process the updated review to handle anonymity
     const reviewObj = updatedReview.toObject();
 
     if (reviewObj.isAnonymous === true) {

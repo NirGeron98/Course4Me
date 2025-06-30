@@ -25,7 +25,7 @@ const ReviewEditModal = ({ review, user, onClose, onReviewUpdated }) => {
       setFormData({
         interest: review.interest || 3,
         difficulty: review.difficulty || 3,
-        investment: review.investment || 3,
+        workload: review.workload || 3,
         teachingQuality: review.teachingQuality || 3,
         recommendation: review.recommendation || 3,
         comment: review.comment || '',
@@ -220,7 +220,7 @@ const ReviewEditModal = ({ review, user, onClose, onReviewUpdated }) => {
               <>
                 {renderRatingInput('עד כמה הקורס מעניין?', 'interest', <Heart className="w-5 h-5 text-red-500" />, 'red')}
                 {renderRatingInput('עד כמה הקורס קשה?', 'difficulty', <Zap className="w-5 h-5 text-yellow-500" />, 'yellow')}
-                {renderRatingInput('כמה זמן השקעת בקורס?', 'investment', <Clock className="w-5 h-5 text-orange-500" />, 'orange')}
+                {renderRatingInput('כמה זמן השקעת בקורס?', 'workload', <Clock className="w-5 h-5 text-orange-500" />, 'orange')}
                 {renderRatingInput('איכות ההוראה', 'teachingQuality', <Award className="w-5 h-5 text-purple-500" />, 'purple')}
                 {renderRatingInput('עד כמה היית ממליץ על הקורס?', 'recommendation', <ThumbsUp className="w-5 h-5 text-emerald-500" />, 'emerald')}
               </>

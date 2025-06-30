@@ -7,8 +7,7 @@ export const useReviewsWithSync = (courseId, token) => {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [filterRating, setFilterRating] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
-
-  const { updateCourseData } = useCourseDataContext();
+  const { updateCourseData, triggerCourseRefresh } = useCourseDataContext();
 
   const fetchReviews = useCallback(async () => {
     if (!courseId || !token) return;
@@ -56,6 +55,7 @@ export const useReviewsWithSync = (courseId, token) => {
           ratingsCount: calculatedStats.total,
           lastUpdated: Date.now(),
         });
+        triggerCourseRefresh(courseId);
       } else {
         updateCourseData(courseId, {
           stats: null,
@@ -64,6 +64,7 @@ export const useReviewsWithSync = (courseId, token) => {
           lastUpdated: Date.now(),
         });
       }
+      triggerCourseRefresh(courseId);
     } catch (err) {
       console.error("Error fetching reviews:", err);
       setReviews([]);

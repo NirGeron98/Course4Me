@@ -6,55 +6,40 @@ const TrackedCourseCard = ({ course, onRemove, onViewDetails }) => {
     const [displayCourse, setDisplayCourse] = useState(course);
     const [recommendationRating, setRecommendationRating] = useState(null);
     const [reviewsCount, setReviewsCount] = useState(0);
-    const { getCourseData, getRefreshTrigger } = useCourseDataContext();
+    const { getCourseData, getRefreshTrigger, fetchCourseStats } = useCourseDataContext();
     const refreshTrigger = getRefreshTrigger(course._id);
 
     // Update display course when cached data changes
     useEffect(() => {
         const cachedData = getCourseData(course._id);
-        if (cachedData && cachedData.course) {
+        if (cachedData) {
             setDisplayCourse(prev => ({
                 ...prev,
-                ...cachedData.course,
-                averageRating: cachedData.averageRating,
-                ratingsCount: cachedData.ratingsCount
+                ...cachedData,
             }));
 
-            // Calculate recommendation-based rating from stats if available
-            if (cachedData.stats && cachedData.stats.avgRecommendation) {
-                setRecommendationRating(parseFloat(cachedData.stats.avgRecommendation));
+            if (cachedData.stats && cachedData.stats.avgRecommendation !== undefined) {
+                setRecommendationRating(cachedData.stats.avgRecommendation);
                 setReviewsCount(cachedData.stats.total || 0);
             } else {
-                // Fallback to course averageRating (which should be recommendation-based from backend)
-                setRecommendationRating(cachedData.course.averageRating ? parseFloat(cachedData.course.averageRating) : null);
-                setReviewsCount(cachedData.course.ratingsCount || 0);
+                setRecommendationRating(cachedData.averageRating ? parseFloat(cachedData.averageRating) : null);
+                setReviewsCount(cachedData.ratingsCount || 0);
             }
         }
     }, [course._id, getCourseData, refreshTrigger]);
 
-    // Fetch recommendation rating if not available in cache
+    // Fetch stats if not available in cache
     useEffect(() => {
-        const fetchRecommendationRating = async () => {
-            try {
-                const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/reviews/stats/${course._id}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data && data.avgRecommendation) {
-                        setRecommendationRating(parseFloat(data.avgRecommendation));
-                        setReviewsCount(data.total || 0);
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching recommendation stats:', error);
+        const cachedData = getCourseData(course._id);
+        const hasStats = cachedData && cachedData.stats && cachedData.stats.avgRecommendation !== undefined;
+        
+        if (!hasStats) {
+            const token = localStorage.getItem('token');
+            if (token) {
+                fetchCourseStats(course._id, token);
             }
-        };
-
-        // Run only if no rating was cached
-        if (recommendationRating === null && displayCourse._id) {
-            fetchRecommendationRating();
         }
-    }, [recommendationRating, displayCourse._id]);
-
+    }, [course._id, getCourseData, fetchCourseStats]);
 
     const renderStars = (rating) => {
         const stars = [];
@@ -143,7 +128,7 @@ const TrackedCourseCard = ({ course, onRemove, onViewDetails }) => {
                             <span className="text-sm font-medium text-gray-700">דירוג המלצה</span>
                         </div>
                         <span className="text-lg font-bold text-emerald-600">
-                            {recommendationRating.toFixed(1)}/5.0
+                            {recommendationRating ? recommendationRating.toFixed(1) : '0.0'}/5.0
                         </span>
                     </div>
                     <div className="flex items-center justify-between mb-2">
