@@ -31,7 +31,7 @@ const CourseDetailsModal = ({ course, onClose }) => {
 
   // Navigate to course page
   const handleGoToCourse = () => {
-    navigate(`/course/${course._id}`);
+    navigate(`/course/${course.courseNumber}`);
     onClose(); // Close modal after navigation
   };
 

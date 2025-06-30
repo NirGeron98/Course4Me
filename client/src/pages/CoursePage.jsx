@@ -1,5 +1,5 @@
-import { useCourseDataWithSync  } from '../hooks/useCourseDataWithSync';
-import { useReviewsWithSync  } from '../hooks/useReviewsWithSync';
+import { useCourseDataWithSync } from '../hooks/useCourseDataWithSync';
+import { useReviewsWithSync } from '../hooks/useReviewsWithSync';
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { BookOpen, AlertCircle, Loader2 } from 'lucide-react';
@@ -11,17 +11,16 @@ import CourseReviewsSection from '../components/course-page/CourseReviewsSection
 import CourseStatisticsCard from '../components/course-page/CourseStatisticsCard';
 
 const CoursePage = ({ user }) => {
-    const { id } = useParams();
+    const { courseNumber } = useParams();
     const navigate = useNavigate();
-    const { course, stats, loading, error } = useCourseDataWithSync(id, user?.token);
+    const { course, stats, loading, error } = useCourseDataWithSync(courseNumber, user?.token, 'courseNumber');
     const {
         showReviewForm,
         setShowReviewForm,
         stats: reviewStats,
         reviews,
         refetchReviews
-    } = useReviewsWithSync(id, user?.token);
-
+    } = useReviewsWithSync(course?._id, user?.token);
 
     const [editingReview, setEditingReview] = useState(null);
 
@@ -100,7 +99,7 @@ const CoursePage = ({ user }) => {
                     <div className="lg:col-span-2 space-y-6">
                         <CourseDescription course={course} />
                         <CourseReviewsSection
-                            courseId={id}
+                            courseId={course._id}
                             courseTitle={course.title}
                             user={user}
                             onShowReviewForm={handleShowReviewForm}
@@ -111,7 +110,7 @@ const CoursePage = ({ user }) => {
                         {reviewStats && <CourseStatisticsCard stats={reviewStats} />}
                         <QuickActions
                             onShowReviewForm={handleShowReviewForm}
-                            courseId={id}
+                            courseId={course._id}
                             courseName={course.title}
                             user={user}
                         />
@@ -121,7 +120,7 @@ const CoursePage = ({ user }) => {
 
             {showReviewForm && (
                 <CourseReviewFormModal
-                    courseId={id}
+                    courseId={course._id}
                     courseTitle={course.title}
                     user={user}
                     existingReview={editingReview}

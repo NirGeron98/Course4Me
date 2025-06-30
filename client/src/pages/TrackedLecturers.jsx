@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import AddLecturerPopup from "../components/tracked-lecturers/AddLecturerPopup";
 import TrackedLecturerCard from "../components/tracked-lecturers/TrackedLecturerCard";
+import { getLecturerSlug } from '../utils/slugUtils';
 
 const TrackedLecturers = () => {
   const [trackedLecturers, setTrackedLecturers] = useState([]);
@@ -72,7 +73,7 @@ const TrackedLecturers = () => {
 
   // Navigate to lecturer details page
   const handleViewLecturerDetails = (lecturer) => {
-    navigate(`/lecturer/${lecturer._id}`);
+    navigate(`/lecturer/${getLecturerSlug(lecturer)}`);
   };
 
   return (

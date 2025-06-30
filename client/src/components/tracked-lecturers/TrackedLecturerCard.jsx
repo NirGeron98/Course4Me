@@ -1,5 +1,6 @@
 import React from 'react';
 import { User, Star, Building, X, Eye, Mail } from 'lucide-react';
+import { getLecturerSlug } from '../../utils/slugUtils';
 
 const TrackedLecturerCard = ({ lecturer, onRemove, onViewDetails }) => {
     const renderStars = (rating) => {
@@ -23,9 +24,14 @@ const TrackedLecturerCard = ({ lecturer, onRemove, onViewDetails }) => {
         return stars;
     };
 
+    const handleViewDetails = () => {
+        // Navigate using lecturer slug instead of _id
+        window.location.href = `/lecturer/${getLecturerSlug(lecturer)}`;
+    };
+
     return (
         <div
-            onClick={() => onViewDetails(lecturer)}
+            onClick={handleViewDetails}
             className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1 border border-purple-100"
         >
             {/* Header */}

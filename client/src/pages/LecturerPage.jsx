@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { User, AlertCircle, Loader2, Star } from 'lucide-react';
-import { resolveLecturerBySlug } from '../utils/slugUtils';
 import LecturerReviewFormModal from '../components/lecturer-page/LecturerReviewFormModal';
 import LecturerHeader from '../components/lecturer-page/LecturerHeader';
 import LecturerReviewsSection from '../components/lecturer-page/LecturerReviewsSection';
@@ -9,7 +8,7 @@ import LecturerStatisticsCard from '../components/lecturer-page/LecturerStatisti
 import LecturerQuickActions from '../components/lecturer-page/LecturerQuickActions';
 
 const LecturerPage = ({ user }) => {
-    const { id } = useParams();
+    const { slug } = useParams();
     const navigate = useNavigate();
     const [lecturer, setLecturer] = useState(null);
     const [reviews, setReviews] = useState([]);
@@ -46,7 +45,9 @@ const LecturerPage = ({ user }) => {
 
     const refreshLecturerRating = async () => {
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/lecturers/${id}`, {
+            if (!lecturer?._id) return;
+            
+            const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/lecturers/${lecturer._id}`, {
                 headers: {
                     'Content-Type': 'application/json',
                     ...(user?.token && { 'Authorization': `Bearer ${user.token}` })
@@ -67,14 +68,28 @@ const LecturerPage = ({ user }) => {
         await refreshLecturerRating();
     };
 
-    // Fetch lecturer data
+    // Fetch lecturer data by slug
     useEffect(() => {
         const fetchLecturer = async () => {
             try {
                 setLecturerLoading(true);
                 setError(null);
 
-                const lecturerData = await resolveLecturerBySlug(id, user?.token);
+                const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/lecturers/by-slug/${slug}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(user?.token && { 'Authorization': `Bearer ${user.token}` })
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('מרצה לא נמצא');
+                    }
+                    throw new Error('שגיאה בטעינת המרצה');
+                }
+
+                const lecturerData = await response.json();
                 setLecturer(lecturerData);
             } catch (err) {
                 console.error('Error fetching lecturer:', err);
@@ -84,10 +99,10 @@ const LecturerPage = ({ user }) => {
             }
         };
 
-        if (id) {
+        if (slug) {
             fetchLecturer();
         }
-    }, [id, user?.token]);
+    }, [slug, user?.token]);
 
     // Fetch reviews data
     useEffect(() => {
@@ -358,7 +373,7 @@ const LecturerPage = ({ user }) => {
                             sortBy={sortBy}
                             setSortBy={setSortBy}
                             filteredReviews={filteredReviews}
-                            reviewsLoading={false} // Always false since we wait for all data
+                            reviewsLoading={false}
                             onWriteReview={() => setShowReviewForm(true)}
                             onEditReview={handleEditReview}
                             user={user}
@@ -374,7 +389,7 @@ const LecturerPage = ({ user }) => {
 
                         <LecturerQuickActions
                             onShowReviewForm={() => setShowReviewForm(true)}
-                            lecturerId={id}
+                            lecturerId={lecturer?._id}
                             lecturerName={lecturer?.name}
                             user={user}
                             reviews={reviews}

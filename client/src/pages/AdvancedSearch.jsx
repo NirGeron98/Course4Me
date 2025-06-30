@@ -6,6 +6,7 @@ import SearchTypeToggle from '../components/search/SearchTypeToggle';
 import SearchFilters from '../components/search/SearchFilters';
 import SearchResults from '../components/search/SearchResults';
 import CourseDetailsModal from '../components/tracked-courses/CourseDetailsModal';
+import { getLecturerSlug } from '../utils/slugUtils';
 
 const AdvancedSearch = ({ user }) => {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ const AdvancedSearch = ({ user }) => {
     searchTerm: '',
     departments: [], // Array of department names
     academicInstitution: '',
-    
+
     // Course-specific filters
     courseNumber: '',
     credits: '',
@@ -23,7 +24,7 @@ const AdvancedSearch = ({ user }) => {
     maxRating: '',
     hasReviews: false,
     lecturer: '',
-    
+
     // Lecturer-specific filters
     lecturerName: '',
     lecturerEmail: '',
@@ -66,7 +67,7 @@ const AdvancedSearch = ({ user }) => {
   // Set page title
   useEffect(() => {
     document.title = 'חיפוש מתקדם - Course4Me';
-    
+
     return () => {
       document.title = 'Course4Me';
     };
@@ -121,9 +122,9 @@ const AdvancedSearch = ({ user }) => {
       ...filters,
       [key]: value
     };
-    
+
     setFilters(newFilters);
-    
+
     // Update the appropriate filter store
     if (searchType === 'courses') {
       setCourseFilters(newFilters);
@@ -154,13 +155,13 @@ const AdvancedSearch = ({ user }) => {
     };
 
     setFilters(clearedFilters);
-    
+
     if (searchType === 'courses') {
       setCourseFilters(clearedFilters);
     } else {
       setLecturerFilters(clearedFilters);
     }
-    
+
     setResults([]);
     setHasSearched(false);
   };
@@ -168,7 +169,7 @@ const AdvancedSearch = ({ user }) => {
   const performSearch = async () => {
     setLoading(true);
     setHasSearched(true);
-    
+
     try {
       const token = localStorage.getItem("token");
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
@@ -191,7 +192,7 @@ const AdvancedSearch = ({ user }) => {
         if (filters.departments && filters.departments.length > 0) {
           filteredResults = filteredResults.filter(course => {
             if (!course.department) return false;
-            
+
             // Handle both old format (comma-separated string) and new format (array)
             let courseDepartments = [];
             if (Array.isArray(course.department)) {
@@ -200,9 +201,9 @@ const AdvancedSearch = ({ user }) => {
               // Split by comma for backward compatibility
               courseDepartments = course.department.split(',').map(d => d.trim());
             }
-            
+
             // Check if any selected department matches course departments
-            return filters.departments.some(selectedDept => 
+            return filters.departments.some(selectedDept =>
               courseDepartments.includes(selectedDept)
             );
           });
@@ -210,7 +211,7 @@ const AdvancedSearch = ({ user }) => {
 
         // Apply academic institution filter
         if (filters.academicInstitution) {
-          filteredResults = filteredResults.filter(course => 
+          filteredResults = filteredResults.filter(course =>
             course.academicInstitution === filters.academicInstitution
           );
         }
@@ -234,7 +235,7 @@ const AdvancedSearch = ({ user }) => {
         if (filters.lecturer) {
           filteredResults = filteredResults.filter(course => {
             if (!course.lecturers || !Array.isArray(course.lecturers)) return false;
-            return course.lecturers.some(lec => 
+            return course.lecturers.some(lec =>
               lec._id === filters.lecturer || lec === filters.lecturer
             );
           });
@@ -252,7 +253,7 @@ const AdvancedSearch = ({ user }) => {
 
         // Apply has reviews filter
         if (filters.hasReviews) {
-          filteredResults = filteredResults.filter(course => 
+          filteredResults = filteredResults.filter(course =>
             course.ratingsCount > 0 || course.reviewsCount > 0
           );
         }
@@ -276,7 +277,7 @@ const AdvancedSearch = ({ user }) => {
         if (filters.departments && filters.departments.length > 0) {
           filteredResults = filteredResults.filter(lecturer => {
             if (!lecturer.department) return false;
-            
+
             // Handle both old format (comma-separated string) and new format (array)
             let lecturerDepartments = [];
             if (Array.isArray(lecturer.department)) {
@@ -285,9 +286,9 @@ const AdvancedSearch = ({ user }) => {
               // Split by comma for backward compatibility
               lecturerDepartments = lecturer.department.split(',').map(d => d.trim());
             }
-            
+
             // Check if any selected department matches lecturer departments
-            return filters.departments.some(selectedDept => 
+            return filters.departments.some(selectedDept =>
               lecturerDepartments.includes(selectedDept)
             );
           });
@@ -295,7 +296,7 @@ const AdvancedSearch = ({ user }) => {
 
         // Apply academic institution filter for lecturers
         if (filters.academicInstitution) {
-          filteredResults = filteredResults.filter(lecturer => 
+          filteredResults = filteredResults.filter(lecturer =>
             lecturer.academicInstitution === filters.academicInstitution
           );
         }
@@ -319,7 +320,7 @@ const AdvancedSearch = ({ user }) => {
 
         // Apply has reviews filter for lecturers
         if (filters.hasLecturerReviews) {
-          filteredResults = filteredResults.filter(lecturer => 
+          filteredResults = filteredResults.filter(lecturer =>
             lecturer.ratingsCount > 0 || lecturer.reviewsCount > 0
           );
         }
@@ -339,7 +340,7 @@ const AdvancedSearch = ({ user }) => {
   };
 
   const handleLecturerSelect = (lecturer) => {
-    navigate(`/lecturer/${lecturer._id}`);
+    navigate(`/lecturer/${getLecturerSlug(lecturer)}`);
   };
 
   const handleSearchTypeChange = (newType) => {
@@ -363,8 +364,8 @@ const AdvancedSearch = ({ user }) => {
           </div>
 
           {/* Search Type Toggle */}
-          <SearchTypeToggle 
-            searchType={searchType} 
+          <SearchTypeToggle
+            searchType={searchType}
             onSearchTypeChange={handleSearchTypeChange}
           />
         </div>

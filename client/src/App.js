@@ -1,4 +1,3 @@
-// App.js - Updated with Advanced Search Route and My Reviews
 import React, { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
@@ -121,13 +120,13 @@ function App() {
               element={user ? <TrackedLecturers /> : <Navigate to="/login" />}
             />
             <Route
-              path="/course/:id"
+              path="/course/:courseNumber"
               element={
                 user ? <CoursePage user={user} /> : <Navigate to="/login" />
               }
             />
             <Route
-              path="/lecturer/:id"
+              path="/lecturer/:slug"
               element={
                 user ? <LecturerPage user={user} /> : <Navigate to="/login" />
               }

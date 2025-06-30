@@ -1,24 +1,30 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useCourseDataContext } from '../contexts/CourseDataContext';
 
-export const useCourseDataWithSync = (courseId, token) => {
+export const useCourseDataWithSync = (identifier, token, identifierType = 'id') => {
     const [course, setCourse] = useState(null);
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     
     const { updateCourseData, getCourseData, getRefreshTrigger } = useCourseDataContext();
-    const refreshTrigger = getRefreshTrigger(courseId);
 
     const fetchCourseAndStats = useCallback(async () => {
-        if (!courseId || !token) return;
+        if (!identifier || !token) return;
         
         try {
             setLoading(true);
             const baseUrl = process.env.REACT_APP_API_BASE_URL;
 
-            // Fetch course details
-            const courseRes = await fetch(`${baseUrl}/api/courses/${courseId}`, {
+            // Choose endpoint based on identifier type
+            let courseEndpoint;
+            if (identifierType === 'courseNumber') {
+                courseEndpoint = `${baseUrl}/api/courses/by-number/${identifier}`;
+            } else {
+                courseEndpoint = `${baseUrl}/api/courses/${identifier}`;
+            }
+
+            const courseRes = await fetch(courseEndpoint, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
@@ -31,8 +37,8 @@ export const useCourseDataWithSync = (courseId, token) => {
 
             const courseData = await courseRes.json();
 
-            // Fetch reviews and calculate stats
-            const reviewsRes = await fetch(`${baseUrl}/api/reviews/course/${courseId}`, {
+            // Use the actual course ID for reviews
+            const reviewsRes = await fetch(`${baseUrl}/api/reviews/course/${courseData._id}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
@@ -43,7 +49,6 @@ export const useCourseDataWithSync = (courseId, token) => {
             if (reviewsRes.ok) {
                 const reviewsData = await reviewsRes.json();
                 
-                // Calculate stats from reviews
                 if (reviewsData.length > 0) {
                     const total = reviewsData.length;
                     const avg = (key) => reviewsData.reduce((sum, r) => sum + (r[key] || 0), 0) / total;
@@ -62,7 +67,6 @@ export const useCourseDataWithSync = (courseId, token) => {
                 }
             }
 
-            // Update course data with calculated rating
             const updatedCourseData = {
                 ...courseData,
                 averageRating: calculatedStats?.overallRating || null,
@@ -72,8 +76,8 @@ export const useCourseDataWithSync = (courseId, token) => {
             setCourse(updatedCourseData);
             setStats(calculatedStats);
 
-            // Update global cache
-            updateCourseData(courseId, {
+            // Update global cache using course ID
+            updateCourseData(courseData._id, {
                 course: updatedCourseData,
                 stats: calculatedStats,
                 lastUpdated: Date.now()
@@ -84,22 +88,25 @@ export const useCourseDataWithSync = (courseId, token) => {
         } finally {
             setLoading(false);
         }
-    }, [courseId, token, updateCourseData]);
+    }, [identifier, token, identifierType, updateCourseData]);
 
-    // Initial fetch and refresh on trigger
+    // Get refresh trigger for the course ID (if we have it)
+    const refreshTrigger = getRefreshTrigger(course?._id);
+
     useEffect(() => {
         fetchCourseAndStats();
     }, [fetchCourseAndStats, refreshTrigger]);
 
-    // Try to get cached data first
+    // Try to get cached data first (only if we have course ID)
     useEffect(() => {
-        const cachedData = getCourseData(courseId);
-        if (cachedData && cachedData.course) {
-            setCourse(cachedData.course);
-            setStats(cachedData.stats);
-            setLoading(false);
+        if (course?._id) {
+            const cachedData = getCourseData(course._id);
+            if (cachedData && cachedData.course) {
+                setCourse(cachedData.course);
+                setStats(cachedData.stats);
+            }
         }
-    }, [courseId, getCourseData]);
+    }, [course?._id, getCourseData]);
 
     return { 
         course, 

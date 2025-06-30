@@ -94,9 +94,14 @@ const TrackedCourseCard = ({ course, onRemove, onViewDetails }) => {
         return "מרצה לא מזוהה";
     };
 
+    const handleViewDetails = () => {
+        // Navigate using courseNumber instead of _id
+        window.location.href = `/course/${displayCourse.courseNumber}`;
+    };
+
     return (
         <div
-            onClick={() => onViewDetails(displayCourse)}
+            onClick={handleViewDetails}
             className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1 border border-emerald-100"
         >
             {/* Course Header */}

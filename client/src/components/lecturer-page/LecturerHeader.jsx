@@ -103,7 +103,7 @@ const LecturerHeader = ({ lecturer, courses, reviews = [], renderStars }) => {
                                                 {coursesToShow.map((course) => (
                                                     <Link
                                                         key={course._id}
-                                                        to={`/course/${course._id}`}
+                                                        to={`/course/${course.courseNumber}`}
                                                         className="bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3 hover:bg-white/30 hover:scale-105 transition-all duration-200 group cursor-pointer w-full"
                                                     >
                                                         <div className="font-semibold text-white text-sm mb-1 group-hover:text-white/90 text-center">
@@ -186,7 +186,7 @@ const LecturerHeader = ({ lecturer, courses, reviews = [], renderStars }) => {
                                 {courses.map((course) => (
                                     <Link
                                         key={course._id}
-                                        to={`/course/${course._id}`}
+                                        to={`/course/${course.courseNumber}`}
                                         onClick={() => setShowAllCourses(false)}
                                         className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-xl p-4 hover:shadow-lg hover:scale-105 transition-all duration-200 group"
                                     >

@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { Users, ChevronLeft, ChevronRight, User, Building, X, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { getLecturerSlug } from '../../utils/slugUtils';
 
-const LecturerCarousel = ({ 
-  lecturers, 
-  visibleLecturers, 
-  carouselIndex, 
-  onPrev, 
+const LecturerCarousel = ({
+  lecturers,
+  visibleLecturers,
+  carouselIndex,
+  onPrev,
   onNext,
-  setCarouselIndex 
+  setCarouselIndex
 }) => {
   const navigate = useNavigate();
   const [selectedLecturer, setSelectedLecturer] = useState(null);
@@ -23,7 +24,7 @@ const LecturerCarousel = ({
 
   const handleConfirm = () => {
     if (selectedLecturer) {
-      navigate(`/lecturer/${selectedLecturer._id}`);
+      navigate(`/lecturer/${getLecturerSlug(selectedLecturer)}`);
     }
     closeModal();
   };
@@ -38,28 +39,27 @@ const LecturerCarousel = ({
 
     const totalPages = Math.ceil(lecturers.length / 3);
     const currentPage = Math.floor(carouselIndex / 3);
-    
+
     if (totalPages <= 8) {
       return Array.from({ length: totalPages }).map((_, index) => (
         <button
           key={index}
           onClick={() => setCarouselIndex(index * 3)}
-          className={`w-2 h-2 rounded-full transition-colors flex-shrink-0 ${
-            currentPage === index ? 'bg-purple-600' : 'bg-gray-300'
-          }`}
+          className={`w-2 h-2 rounded-full transition-colors flex-shrink-0 ${currentPage === index ? 'bg-purple-600' : 'bg-gray-300'
+            }`}
         />
       ));
     }
-    
+
     const dots = [];
     const maxVisibleDots = 5;
     let startPage = Math.max(0, currentPage - Math.floor(maxVisibleDots / 2));
     let endPage = Math.min(totalPages - 1, startPage + maxVisibleDots - 1);
-    
+
     if (endPage - startPage < maxVisibleDots - 1) {
       startPage = Math.max(0, endPage - maxVisibleDots + 1);
     }
-    
+
     if (startPage > 0) {
       dots.push(
         <button
@@ -76,19 +76,18 @@ const LecturerCarousel = ({
         );
       }
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
       dots.push(
         <button
           key={i}
           onClick={() => setCarouselIndex(i * 3)}
-          className={`w-2 h-2 rounded-full transition-colors flex-shrink-0 ${
-            currentPage === i ? 'bg-purple-600' : 'bg-gray-300'
-          }`}
+          className={`w-2 h-2 rounded-full transition-colors flex-shrink-0 ${currentPage === i ? 'bg-purple-600' : 'bg-gray-300'
+            }`}
         />
       );
     }
-    
+
     if (endPage < totalPages - 1) {
       if (endPage < totalPages - 2) {
         dots.push(
@@ -105,7 +104,7 @@ const LecturerCarousel = ({
         />
       );
     }
-    
+
     return dots;
   };
 
@@ -158,7 +157,7 @@ const LecturerCarousel = ({
                 </div>
                 <p className="truncate">{lecturer.email}</p>
               </div>
-              
+
               {/* Click indicator */}
               <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
                 <span className="text-xs text-purple-600 font-medium flex items-center gap-1">

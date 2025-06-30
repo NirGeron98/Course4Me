@@ -10,6 +10,12 @@ const CourseItem = ({ course, onViewDetails, onAdd, isAdding }) => {
     return null;
   };
 
+  // Handle view details with courseNumber
+  const handleViewDetails = () => {
+    // Navigate using courseNumber instead of _id
+    window.location.href = `/course/${course.courseNumber}`;
+  };
+
   return (
     <div className="group bg-white hover:bg-emerald-50 border-2 border-gray-100 hover:border-emerald-200 rounded-2xl p-5 transition-all duration-300 hover:shadow-lg" dir="rtl">
       <div className="flex items-center justify-between">
@@ -70,7 +76,7 @@ const CourseItem = ({ course, onViewDetails, onAdd, isAdding }) => {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onViewDetails(course);
+              handleViewDetails();
             }}
             disabled={isAdding}
             className="group/btn flex items-center justify-center w-10 h-10 bg-blue-100 hover:bg-blue-200 text-blue-600 hover:text-blue-700 rounded-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
