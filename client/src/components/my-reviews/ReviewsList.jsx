@@ -79,12 +79,8 @@ const ReviewsList = ({ reviews, onEditClick, onDeleteClick }) => {
     // Helper function to create lecturer slug
     const createLecturerSlug = (lecturer) => {
         if (!lecturer || !lecturer.name) return '#';
-        const slug = lecturer.name
-            .replace(/[^\u0590-\u05FF\w\s]/g, '') // Keep Hebrew, letters, numbers, and spaces
-            .replace(/\s+/g, '-') // Replace spaces with hyphens
-            .toLowerCase();
-        return `/lecturer/${getLecturerSlug(lecturer)}/${slug}`;
-    };;
+        return `/lecturer/${getLecturerSlug(lecturer)}`;
+    };
 
     if (reviews.length === 0) {
         return (
