@@ -137,7 +137,9 @@ const Login = ({ onLogin, user }) => {
               {isLoading ? (
                 <div className="flex items-center justify-center space-x-2">
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span className="mr-2">מתחבר...</span>
+                  <div className="ml-4">
+                    <span className="mr-2">מתחבר...</span>
+                  </div>
                 </div>
               ) : (
                 "התחבר"
