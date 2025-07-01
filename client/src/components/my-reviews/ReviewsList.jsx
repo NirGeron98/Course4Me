@@ -101,26 +101,6 @@ const ReviewsList = ({ reviews, onEditClick, onDeleteClick }) => {
             {reviews.map((review) => {
                 // Detect actual review type based on fields
                 const actualReviewType = detectReviewType(review);
-
-                console.log('Review processing:', {
-                    reviewId: review._id,
-                    providedType: review.reviewType,
-                    detectedType: actualReviewType,
-                    hasLecturerFields: {
-                        clarity: review.clarity,
-                        responsiveness: review.responsiveness,
-                        availability: review.availability,
-                        organization: review.organization,
-                        knowledge: review.knowledge
-                    },
-                    hasCourseFields: {
-                        interest: review.interest,
-                        difficulty: review.difficulty,
-                        workload: review.workload,
-                        teachingQuality: review.teachingQuality
-                    }
-                });
-
                 return (
                     <div
                         key={review._id}

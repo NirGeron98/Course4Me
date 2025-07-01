@@ -24,12 +24,6 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm, o
 
     // Function to get display name based on anonymity setting
     const getDisplayName = (review) => {
-        console.log('Review in getDisplayName:', {
-            isAnonymous: review.isAnonymous,
-            userFullName: review.user?.fullName,
-            fullReview: review
-        });
-
         if (review.isAnonymous === true) {
             return 'משתמש אנונימי';
         }

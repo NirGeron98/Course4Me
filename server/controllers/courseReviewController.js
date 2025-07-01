@@ -17,7 +17,6 @@ exports.createReview = async (req, res) => {
       isAnonymous,
     } = req.body;
 
-    console.log("Request body received:", req.body);
 
     // Handle both single lecturer and multiple lecturers
     const lecturerList = lecturers && lecturers.length > 0 ? lecturers : (lecturer ? [lecturer] : []);
@@ -64,10 +63,8 @@ exports.createReview = async (req, res) => {
       isAnonymous: Boolean(isAnonymous),
     });
 
-    console.log("Creating review with workload...");
 
     const savedReview = await review.save();
-    console.log("Review saved successfully");
 
     // Update the course's average rating based on recommendation score
     const allReviews = await CourseReview.find({ course });

@@ -41,11 +41,6 @@ const CourseReviewFormModal = ({
 
     useEffect(() => {
         if (existingReview) {
-            console.log('Loading existing review:', {
-                review: existingReview,
-                isAnonymous: existingReview.isAnonymous,
-                isAnonymousType: typeof existingReview.isAnonymous
-            });
             
             // Handle both single lecturer and multiple lecturers
             let selectedLecturers = [];
@@ -71,7 +66,6 @@ const CourseReviewFormModal = ({
                 isAnonymous: Boolean(existingReview.isAnonymous) // Ensure it's a boolean
             };
             
-            console.log('Setting form data:', newFormData);
             setFormData(newFormData);
         }
     }, [existingReview]);
@@ -206,9 +200,6 @@ const CourseReviewFormModal = ({
                 ? normalizedFormData
                 : { ...normalizedFormData, course: courseId };
 
-            console.log('Sending to server:', requestData);
-            console.log('isAnonymous being sent:', requestData.isAnonymous, 'type:', typeof requestData.isAnonymous);
-
             const response = await fetch(url, {
                 method,
                 headers: {
@@ -225,7 +216,6 @@ const CourseReviewFormModal = ({
             }
 
             const newReview = await response.json();
-            console.log('Received from server:', newReview);
             onReviewSubmitted(newReview);
         } catch (err) {
             console.error('Submit error:', err);
@@ -287,12 +277,6 @@ const CourseReviewFormModal = ({
                     type="button"
                     onClick={() => {
                         const newValue = !formData.isAnonymous;
-                        console.log('Toggle clicked:', { 
-                            current: formData.isAnonymous, 
-                            new: newValue,
-                            currentType: typeof formData.isAnonymous,
-                            newType: typeof newValue
-                        });
                         setFormData({ ...formData, isAnonymous: newValue });
                     }}
                     className={`relative inline-flex h-8 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${

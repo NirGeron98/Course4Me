@@ -389,6 +389,7 @@ exports.updateLecturerReview = async (req, res) => {
     const { reviewId } = req.params;
 
     const {
+      courses,
       clarity,
       responsiveness,
       availability,
@@ -410,22 +411,32 @@ exports.updateLecturerReview = async (req, res) => {
       return res.status(403).json({ message: "אין הרשאה לעדכן ביקורת זו" });
     }
 
+    // Prepare update data
+    const updateData = {
+      clarity: parseInt(clarity),
+      responsiveness: parseInt(responsiveness),
+      availability: parseInt(availability),
+      organization: parseInt(organization),
+      knowledge: parseInt(knowledge),
+      comment: comment?.trim() || "",
+      isAnonymous,
+    };
+
+    // Handle courses update if provided
+    if (courses && Array.isArray(courses)) {
+      updateData.courses = courses;
+      updateData.course = courses[0]; // For backward compatibility
+    }
+
     // Update the review
     const updatedReview = await LecturerReview.findByIdAndUpdate(
       reviewId,
-      {
-        clarity: parseInt(clarity),
-        responsiveness: parseInt(responsiveness),
-        availability: parseInt(availability),
-        organization: parseInt(organization),
-        knowledge: parseInt(knowledge),
-        comment: comment?.trim() || "",
-        isAnonymous,
-      },
+      updateData,
       { new: true, runValidators: true }
     )
       .populate("user", "fullName")
       .populate("course", "title courseNumber")
+      .populate("courses", "title courseNumber")
       .populate("lecturer", "name");
 
     // Recalculate lecturer's average rating

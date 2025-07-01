@@ -29,13 +29,7 @@ const LecturerReviewsSection = ({
     const isAdmin = user?.user?.role === 'admin';
 
     // Function to get display name based on anonymity setting
-    const getDisplayName = (review) => {
-        console.log('Lecturer review in getDisplayName:', {
-            isAnonymous: review.isAnonymous,
-            userFullName: review.user?.fullName,
-            displayName: review.displayName
-        }); // Debug log
-        
+    const getDisplayName = (review) => {        
         if (review.isAnonymous === true) {
             return 'משתמש אנונימי';
         }

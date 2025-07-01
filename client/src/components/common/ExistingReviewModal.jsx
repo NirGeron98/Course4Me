@@ -112,18 +112,6 @@ const ExistingReviewModal = ({ onEdit, onCancel, existingReview, reviewType = 'l
         }
     };
 
-    // Debug log to check the data
-    console.log('ExistingReviewModal - Review data:', {
-        actualReviewType,
-        interest: existingReview.interest,
-        difficulty: existingReview.difficulty,
-        workload: existingReview.workload,
-        teachingQuality: existingReview.teachingQuality,
-        recommendation: existingReview.recommendation,
-        overallRating,
-        criteria
-    });
-
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4" dir="rtl">
             <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in duration-300">

@@ -62,7 +62,6 @@ const cleanExistingReviews = async () => {
     console.error("❌ Cleanup failed:", error);
   } finally {
     await mongoose.connection.close();
-    console.log("Database connection closed");
   }
 };
 
