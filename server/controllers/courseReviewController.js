@@ -7,9 +7,10 @@ exports.createReview = async (req, res) => {
     const {
       course,
       lecturer,
+      lecturers,
       interest,
       difficulty,
-      workload, // Frontend sends 'workload'
+      workload,
       teachingQuality,
       recommendation,
       comment,
@@ -18,10 +19,13 @@ exports.createReview = async (req, res) => {
 
     console.log("Request body received:", req.body);
 
+    // Handle both single lecturer and multiple lecturers
+    const lecturerList = lecturers && lecturers.length > 0 ? lecturers : (lecturer ? [lecturer] : []);
+
     // Validate required fields
     if (
       !course ||
-      !lecturer ||
+      lecturerList.length === 0 ||
       !interest ||
       !difficulty ||
       !workload ||
@@ -33,23 +37,23 @@ exports.createReview = async (req, res) => {
       });
     }
 
-    // Check if review already exists for this course-lecturer-user combination
+    // Check if review already exists for this course-user combination
     const existing = await CourseReview.findOne({
       course,
-      lecturer,
       user: req.user._id,
     });
 
     if (existing) {
       return res.status(400).json({
-        message: "כבר כתבת ביקורת עבור קורס זה עם מרצה זה",
+        message: "כבר כתבת ביקורת עבור קורס זה",
       });
     }
 
     // Create review using the authenticated user's ID
     const review = new CourseReview({
       course,
-      lecturer,
+      lecturers: lecturerList,
+      lecturer: lecturerList[0], // For backward compatibility
       user: req.user._id,
       interest: Number(interest),
       difficulty: Number(difficulty),
@@ -79,7 +83,8 @@ exports.createReview = async (req, res) => {
     // Return the review with populated fields
     const populatedReview = await CourseReview.findById(savedReview._id)
       .populate("user", "fullName _id")
-      .populate("lecturer", "name");
+      .populate("lecturer", "name")
+      .populate("lecturers", "name");
 
     // Process the returned review to handle anonymity
     const reviewObj = populatedReview.toObject();
@@ -130,6 +135,7 @@ exports.getReviewsByCourse = async (req, res) => {
     const reviews = await CourseReview.find(query)
       .populate("user", "fullName _id")
       .populate("lecturer", "name")
+      .populate("lecturers", "name")
       .sort({ createdAt: -1 });
 
     // Process reviews to handle anonymous ones and map workload to workload
@@ -163,6 +169,7 @@ exports.getAllReviews = async (req, res) => {
       .populate("user", "fullName _id")
       .populate("course", "title courseNumber")
       .populate("lecturer", "name")
+      .populate("lecturers", "name")
       .sort({ createdAt: -1 });
 
     // Process reviews to handle anonymous ones and map workload to workload
@@ -194,9 +201,11 @@ exports.updateReview = async (req, res) => {
   try {
     const { reviewId } = req.params;
     const {
+      lecturer,
+      lecturers,
       interest,
       difficulty,
-      workload, // Frontend sends 'workload'
+      workload,
       teachingQuality,
       recommendation,
       comment,
@@ -215,10 +224,15 @@ exports.updateReview = async (req, res) => {
       return res.status(403).json({ message: "אין הרשאה לעדכן ביקורת זו" });
     }
 
+    // Handle both single lecturer and multiple lecturers
+    const lecturerList = lecturers && lecturers.length > 0 ? lecturers : (lecturer ? [lecturer] : existingReview.lecturers || [existingReview.lecturer]);
+
     // Update the review
     const updatedReview = await CourseReview.findByIdAndUpdate(
       reviewId,
       {
+        lecturers: lecturerList,
+        lecturer: lecturerList[0], // For backward compatibility
         interest: Number(interest),
         difficulty: Number(difficulty),
         workload: Number(workload),
@@ -230,7 +244,8 @@ exports.updateReview = async (req, res) => {
       { new: true, runValidators: true }
     )
       .populate("user", "fullName _id")
-      .populate("lecturer", "name");
+      .populate("lecturer", "name")
+      .populate("lecturers", "name");
 
     // Process the updated review to handle anonymity
     const reviewObj = updatedReview.toObject();

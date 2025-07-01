@@ -11,6 +11,7 @@ import {
   MessageCircle,
   Loader2,
 } from 'lucide-react';
+import Select from 'react-select';
 
 const LecturerReviewFormModal = ({
   lecturerId,
@@ -104,7 +105,8 @@ const LecturerReviewFormModal = ({
     if (!existingReview) {
       fetchCourses();
     } else {
-      setLoadingCourses(false);
+      // Also fetch courses for existing review editing
+      fetchCourses();
     }
   }, [lecturerId, user.token, existingReview]);
 
@@ -138,8 +140,9 @@ const LecturerReviewFormModal = ({
 
       let requestData;
       if (existingReview) {
-        // For updates, don't send lecturer and course IDs
+        // For updates, send the updated courses along with ratings
         requestData = {
+          courses: formData.courses, // Send updated courses array
           clarity: parseInt(formData.clarity),
           responsiveness: parseInt(formData.responsiveness),
           availability: parseInt(formData.availability),
@@ -188,13 +191,12 @@ const LecturerReviewFormModal = ({
     }
   };
 
-  // Handle course selection (multiple selection)
-  const handleCourseToggle = (courseId) => {
+  // Handle course selection (multiple selection with react-select)
+  const handleCoursesChange = (selectedOptions) => {
+    const selectedCourseIds = selectedOptions ? selectedOptions.map(option => option.value) : [];
     setFormData(prev => ({
       ...prev,
-      courses: prev.courses.includes(courseId)
-        ? prev.courses.filter(id => id !== courseId) // Remove if already selected
-        : [...prev.courses, courseId] // Add if not selected
+      courses: selectedCourseIds
     }));
   };
 
@@ -353,81 +355,165 @@ const LecturerReviewFormModal = ({
                   </p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  <p className="text-sm text-gray-600 mb-3">
-                    בחר את הקורסים שלמדת עם המרצה (אפשר לבחור יותר מקורס אחד):
-                  </p>
-                  <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
-                    {courses.map((course) => (
-                      <label
-                        key={course._id}
-                        className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                          formData.courses.includes(course._id)
-                            ? 'border-purple-500 bg-purple-50 text-purple-700'
-                            : 'border-gray-200 hover:border-purple-300 hover:bg-purple-25'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={formData.courses.includes(course._id)}
-                          onChange={() => handleCourseToggle(course._id)}
-                          className="sr-only"
-                        />
-                        <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center ${
-                          formData.courses.includes(course._id)
-                            ? 'border-purple-500 bg-purple-500'
-                            : 'border-gray-300'
-                        }`}>
-                          {formData.courses.includes(course._id) && (
-                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-medium">{course.title}</div>
-                          <div className="text-sm text-gray-500">({course.courseNumber})</div>
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-                  {formData.courses.length > 0 && (
-                    <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <div className="text-sm text-blue-700">
-                        <strong>קורסים נבחרו:</strong> {formData.courses.length} מתוך {courses.length}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <Select
+                  isMulti
+                  value={courses
+                    .filter(course => formData.courses.includes(course._id))
+                    .map(course => ({
+                      value: course._id,
+                      label: `${course.title} (${course.courseNumber})`
+                    }))}
+                  onChange={handleCoursesChange}
+                  options={courses.map(course => ({
+                    value: course._id,
+                    label: `${course.title} (${course.courseNumber})`
+                  }))}
+                  placeholder="בחר קורסים..."
+                  isSearchable={true}
+                  className="react-select-container"
+                  classNamePrefix="react-select"
+                  styles={{
+                    control: (provided) => ({
+                      ...provided,
+                      minHeight: '42px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '0.5rem',
+                      fontSize: '16px',
+                      '&:hover': {
+                        borderColor: '#8b5cf6',
+                      },
+                      '&:focus-within': {
+                        borderColor: '#8b5cf6',
+                        boxShadow: '0 0 0 2px rgba(139, 92, 246, 0.1)',
+                      }
+                    }),
+                    multiValue: (provided) => ({
+                      ...provided,
+                      backgroundColor: '#f3e8ff',
+                      borderRadius: '6px',
+                    }),
+                    multiValueLabel: (provided) => ({
+                      ...provided,
+                      color: '#581c87',
+                      fontWeight: '500',
+                    }),
+                    multiValueRemove: (provided) => ({
+                      ...provided,
+                      color: '#581c87',
+                      ':hover': {
+                        backgroundColor: '#e9d5ff',
+                        color: '#6b21a8',
+                      },
+                    }),
+                    placeholder: (provided) => ({
+                      ...provided,
+                      color: '#9ca3af',
+                    }),
+                    option: (provided, state) => ({
+                      ...provided,
+                      backgroundColor: state.isSelected 
+                        ? '#8b5cf6' 
+                        : state.isFocused 
+                          ? '#faf5ff' 
+                          : 'white',
+                      color: state.isSelected ? 'white' : '#374151',
+                      ':active': {
+                        backgroundColor: '#7c3aed',
+                      }
+                    })
+                  }}
+                  noOptionsMessage={() => "לא נמצאו קורסים"}
+                />
               )}
             </div>
           )}
 
           {existingReview && (
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center gap-2 text-blue-700 mb-2">
-                <Award className="w-5 h-5" />
-                <span className="font-medium">קורסים בביקורת הקיימת:</span>
-              </div>
-              <div className="space-y-1">
-                {/* Handle both old format (single course) and new format (multiple courses) */}
-                {existingReview.courses && Array.isArray(existingReview.courses) ? (
-                  existingReview.courses.map((course, index) => (
-                    <div key={index} className="text-sm text-blue-600">
-                      • {course.title} ({course.courseNumber})
-                    </div>
-                  ))
-                ) : existingReview.course ? (
-                  <div className="text-sm text-blue-600">
-                    • {existingReview.course.title} ({existingReview.course.courseNumber})
-                  </div>
-                ) : (
-                  <div className="text-sm text-blue-600">לא מוגדרים קורסים</div>
-                )}
-              </div>
-              <p className="text-sm text-blue-600 mt-2">
-                עריכת ביקורת קיימת - לא ניתן לשנות את הקורסים
-              </p>
+            <div className="mb-6">
+              <label className="block text-gray-700 font-medium mb-2 flex items-center gap-2">
+                <Award className="w-5 h-5 text-purple-500" />
+                עדכן קורסים *
+              </label>
+              {loadingCourses ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="w-5 h-5 animate-spin text-purple-500" />
+                  <span className="mr-2 text-gray-600">טוען קורסים...</span>
+                </div>
+              ) : courses.length === 0 ? (
+                <div className="text-center py-4 text-gray-500 bg-gray-50 rounded-lg">
+                  לא נמצאו קורסים עבור מרצה זה
+                </div>
+              ) : (
+                <Select
+                  isMulti
+                  value={courses
+                    .filter(course => formData.courses.includes(course._id))
+                    .map(course => ({
+                      value: course._id,
+                      label: `${course.title} (${course.courseNumber})`
+                    }))}
+                  onChange={handleCoursesChange}
+                  options={courses.map(course => ({
+                    value: course._id,
+                    label: `${course.title} (${course.courseNumber})`
+                  }))}
+                  placeholder="בחר קורסים לעדכון..."
+                  isSearchable={true}
+                  className="react-select-container"
+                  classNamePrefix="react-select"
+                  styles={{
+                    control: (provided) => ({
+                      ...provided,
+                      minHeight: '42px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '0.5rem',
+                      fontSize: '16px',
+                      '&:hover': {
+                        borderColor: '#8b5cf6',
+                      },
+                      '&:focus-within': {
+                        borderColor: '#8b5cf6',
+                        boxShadow: '0 0 0 2px rgba(139, 92, 246, 0.1)',
+                      }
+                    }),
+                    multiValue: (provided) => ({
+                      ...provided,
+                      backgroundColor: '#f3e8ff',
+                      borderRadius: '6px',
+                    }),
+                    multiValueLabel: (provided) => ({
+                      ...provided,
+                      color: '#581c87',
+                      fontWeight: '500',
+                    }),
+                    multiValueRemove: (provided) => ({
+                      ...provided,
+                      color: '#581c87',
+                      ':hover': {
+                        backgroundColor: '#e9d5ff',
+                        color: '#6b21a8',
+                      },
+                    }),
+                    placeholder: (provided) => ({
+                      ...provided,
+                      color: '#9ca3af',
+                    }),
+                    option: (provided, state) => ({
+                      ...provided,
+                      backgroundColor: state.isSelected 
+                        ? '#8b5cf6' 
+                        : state.isFocused 
+                          ? '#faf5ff' 
+                          : 'white',
+                      color: state.isSelected ? 'white' : '#374151',
+                      ':active': {
+                        backgroundColor: '#7c3aed',
+                      }
+                    })
+                  }}
+                  noOptionsMessage={() => "לא נמצאו קורסים"}
+                />
+              )}
             </div>
           )}
 

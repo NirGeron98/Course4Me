@@ -7,10 +7,14 @@ const courseReviewSchema = new mongoose.Schema(
       ref: "Course",
       required: true,
     },
+    lecturers: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Lecturer",
+    }],
+    // Keep the old lecturer field for backward compatibility
     lecturer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Lecturer",
-      required: true,
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -59,8 +63,22 @@ const courseReviewSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Compound index to ensure one review per user per course per lecturer
-courseReviewSchema.index({ course: 1, lecturer: 1, user: 1 }, { unique: true });
+// Compound index to ensure one review per user per course per lecturer combination
+// Note: For multiple lecturers, uniqueness is enforced at application level
+courseReviewSchema.index({ course: 1, user: 1 });
+
+// Pre-save middleware to handle backward compatibility
+courseReviewSchema.pre('save', function(next) {
+  // If lecturers array is empty but lecturer field exists, migrate to lecturers array
+  if (this.lecturer && (!this.lecturers || this.lecturers.length === 0)) {
+    this.lecturers = [this.lecturer];
+  }
+  // If lecturers array exists but lecturer field is empty, set lecturer to first in array
+  else if (this.lecturers && this.lecturers.length > 0 && !this.lecturer) {
+    this.lecturer = this.lecturers[0];
+  }
+  next();
+});
 
 // Virtual field for detailed average rating (average of criteria except recommendation)
 courseReviewSchema.virtual("detailedAverageRating").get(function () {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Heart, Zap, Clock, TrendingUp, Award, MessageCircle, Loader2, User, Eye, EyeOff, ThumbsUp } from 'lucide-react';
+import { X, Heart, Zap, Clock, Award, MessageCircle, Loader2, User, Eye, EyeOff, ThumbsUp } from 'lucide-react';
+import Select from 'react-select';
 import ExistingReviewModal from '../common/ExistingReviewModal';
 
 const CourseReviewFormModal = ({
@@ -16,7 +17,8 @@ const CourseReviewFormModal = ({
     const [showExistingReviewModal, setShowExistingReviewModal] = useState(false);
     const [userExistingReview, setUserExistingReview] = useState(null);
     const [formData, setFormData] = useState({
-        lecturer: '',
+        lecturers: [],
+        lecturer: '', // Keep for backward compatibility
         interest: 3,
         difficulty: 3,
         workload: 3,
@@ -28,14 +30,12 @@ const CourseReviewFormModal = ({
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
 
-    // Check for existing review when lecturer is selected
-    const checkForExistingReview = (selectedLecturerId) => {
-        if (!user?.user || !selectedLecturerId) return null;
+    // Check for existing review when lecturers are selected
+    const checkForExistingReview = () => {
+        if (!user?.user) return null;
         
         return allReviews.find(review => 
-            review.user && review.user._id === user.user._id &&
-            ((typeof review.lecturer === 'object' && review.lecturer._id === selectedLecturerId) ||
-             (typeof review.lecturer === 'string' && review.lecturer === selectedLecturerId))
+            review.user && review.user._id === user.user._id
         );
     };
 
@@ -47,10 +47,21 @@ const CourseReviewFormModal = ({
                 isAnonymousType: typeof existingReview.isAnonymous
             });
             
+            // Handle both single lecturer and multiple lecturers
+            let selectedLecturers = [];
+            if (existingReview.lecturers && existingReview.lecturers.length > 0) {
+                selectedLecturers = existingReview.lecturers.map(lec => 
+                    typeof lec === 'object' ? lec._id : lec
+                );
+            } else if (existingReview.lecturer) {
+                selectedLecturers = [typeof existingReview.lecturer === 'object' 
+                    ? existingReview.lecturer._id 
+                    : existingReview.lecturer];
+            }
+            
             const newFormData = {
-                lecturer: existingReview.lecturer && typeof existingReview.lecturer === 'object'
-                    ? existingReview.lecturer._id
-                    : existingReview.lecturer || '',
+                lecturers: selectedLecturers,
+                lecturer: selectedLecturers[0] || '', // For backward compatibility
                 interest: Number(existingReview.interest) || 3,
                 difficulty: Number(existingReview.difficulty) || 3,
                 workload: Number(existingReview.workload) || 3,
@@ -85,6 +96,7 @@ const CourseReviewFormModal = ({
                     if (courseLecturers.length === 1 && !existingReview) {
                         setFormData(prev => ({
                             ...prev,
+                            lecturers: [courseLecturers[0]._id],
                             lecturer: courseLecturers[0]._id
                         }));
                     }
@@ -115,20 +127,30 @@ const CourseReviewFormModal = ({
         fetchData();
     }, [courseId, user.token]);
 
-    const handleLecturerChange = (selectedLecturerId) => {
+    const handleLecturersChange = (selectedOptions) => {
+        const selectedLecturerIds = selectedOptions ? selectedOptions.map(option => option.value) : [];
+        
         // If we're editing an existing review, don't check for duplicates
         if (existingReview) {
-            setFormData({ ...formData, lecturer: selectedLecturerId });
+            setFormData({ 
+                ...formData, 
+                lecturers: selectedLecturerIds,
+                lecturer: selectedLecturerIds[0] || '' // For backward compatibility
+            });
             return;
         }
 
-        const existingUserReview = checkForExistingReview(selectedLecturerId);
+        const existingUserReview = checkForExistingReview();
         
         if (existingUserReview) {
             setUserExistingReview(existingUserReview);
             setShowExistingReviewModal(true);
         } else {
-            setFormData({ ...formData, lecturer: selectedLecturerId });
+            setFormData({ 
+                ...formData, 
+                lecturers: selectedLecturerIds,
+                lecturer: selectedLecturerIds[0] || '' // For backward compatibility
+            });
         }
     };
 
@@ -146,7 +168,7 @@ const CourseReviewFormModal = ({
         setShowExistingReviewModal(false);
         setUserExistingReview(null);
         // Reset lecturer selection
-        setFormData({ ...formData, lecturer: '' });
+        setFormData({ ...formData, lecturers: [], lecturer: '' });
     };
 
     const handleSubmit = async (e) => {
@@ -154,8 +176,8 @@ const CourseReviewFormModal = ({
         setSubmitting(true);
         setError('');
 
-        if (!formData.lecturer) {
-            setError('יש לבחור מרצה');
+        if (formData.lecturers.length === 0) {
+            setError('יש לבחור לפחות מרצה אחד');
             setSubmitting(false);
             return;
         }
@@ -169,7 +191,8 @@ const CourseReviewFormModal = ({
 
             // Ensure all values are properly typed and cleaned
             const normalizedFormData = {
-                lecturer: typeof formData.lecturer === 'object' ? formData.lecturer._id : formData.lecturer,
+                lecturers: formData.lecturers,
+                lecturer: formData.lecturers[0] || formData.lecturer, // For backward compatibility
                 interest: Number(formData.interest),
                 difficulty: Number(formData.difficulty),
                 workload: Number(formData.workload),
@@ -324,7 +347,7 @@ const CourseReviewFormModal = ({
                         <div className="mb-3">
                             <label className="block text-gray-700 font-medium mb-2 flex items-center gap-2">
                                 <User className="w-5 h-5 text-emerald-500" />
-                                {lecturers.length === 1 ? 'מרצה נבחר אוטומטית' : 'בחר מרצה *'}
+                                {lecturers.length === 1 ? 'מרצה נבחר אוטומטית' : 'בחר מרצים *'}
                             </label>
                             {loadingLecturers ? (
                                 <div className="flex items-center justify-center py-4">
@@ -348,19 +371,75 @@ const CourseReviewFormModal = ({
                                     </p>
                                 </div>
                             ) : (
-                                <select
-                                    value={formData.lecturer}
-                                    onChange={(e) => handleLecturerChange(e.target.value)}
-                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                                    required
-                                >
-                                    <option value="">בחר מרצה...</option>
-                                    {lecturers.map((lecturer) => (
-                                        <option key={lecturer._id} value={lecturer._id}>
-                                            {lecturer.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                <Select
+                                    isMulti
+                                    value={lecturers
+                                        .filter(lecturer => formData.lecturers.includes(lecturer._id))
+                                        .map(lecturer => ({
+                                            value: lecturer._id,
+                                            label: lecturer.name
+                                        }))}
+                                    onChange={handleLecturersChange}
+                                    options={lecturers.map(lecturer => ({
+                                        value: lecturer._id,
+                                        label: lecturer.name
+                                    }))}
+                                    placeholder="בחר מרצים..."
+                                    isSearchable={true}
+                                    className="react-select-container"
+                                    classNamePrefix="react-select"
+                                    styles={{
+                                        control: (provided) => ({
+                                            ...provided,
+                                            minHeight: '42px',
+                                            border: '1px solid #d1d5db',
+                                            borderRadius: '0.5rem',
+                                            fontSize: '16px',
+                                            '&:hover': {
+                                                borderColor: '#10b981',
+                                            },
+                                            '&:focus-within': {
+                                                borderColor: '#10b981',
+                                                boxShadow: '0 0 0 2px rgba(16, 185, 129, 0.1)',
+                                            }
+                                        }),
+                                        multiValue: (provided) => ({
+                                            ...provided,
+                                            backgroundColor: '#dcfce7',
+                                            borderRadius: '6px',
+                                        }),
+                                        multiValueLabel: (provided) => ({
+                                            ...provided,
+                                            color: '#166534',
+                                            fontWeight: '500',
+                                        }),
+                                        multiValueRemove: (provided) => ({
+                                            ...provided,
+                                            color: '#166534',
+                                            ':hover': {
+                                                backgroundColor: '#bbf7d0',
+                                                color: '#15803d',
+                                            },
+                                        }),
+                                        placeholder: (provided) => ({
+                                            ...provided,
+                                            color: '#9ca3af',
+                                        }),
+                                        option: (provided, state) => ({
+                                            ...provided,
+                                            backgroundColor: state.isSelected 
+                                                ? '#10b981' 
+                                                : state.isFocused 
+                                                    ? '#f0fdf4' 
+                                                    : 'white',
+                                            color: state.isSelected ? 'white' : '#374151',
+                                            ':active': {
+                                                backgroundColor: '#059669',
+                                            }
+                                        })
+                                    }}
+                                    noOptionsMessage={() => "לא נמצאו מרצים"}
+                                />
                             )}
                         </div>
 
@@ -400,7 +479,7 @@ const CourseReviewFormModal = ({
                             </button>
                             <button
                                 type="submit"
-                                disabled={submitting || (!formData.lecturer && !existingReview)}
+                                disabled={submitting || (formData.lecturers.length === 0 && !existingReview)}
                                 className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                             >
                                 {submitting ? (

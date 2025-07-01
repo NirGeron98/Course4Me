@@ -34,6 +34,16 @@ const MyReviewsPage = ({ user }) => {
     const [uniqueCourses, setUniqueCourses] = useState([]);
     const [uniqueDepartments, setUniqueDepartments] = useState([]);
 
+      // Set page title
+  useEffect(() => {
+    document.title = 'הביקורות שלי - Course4Me';
+    
+    // Cleanup function to reset title when component unmounts
+    return () => {
+      document.title = 'Course4Me';
+    };
+  }, []);
+
     const fetchMyReviews = useCallback(async () => {
         try {
             setLoading(true);
