@@ -7,10 +7,16 @@ const lecturerReviewSchema = new mongoose.Schema(
       ref: "Lecturer",
       required: true,
     },
+    courses: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course",
+      required: false, // Make it optional for backward compatibility
+    }],
+    // Keep the old course field for backward compatibility
     course: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Course",
-      required: true,
+      required: false, // Keep as optional since we now have courses array
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -58,8 +64,31 @@ const lecturerReviewSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Compound index to ensure one review per user per lecturer per course
-lecturerReviewSchema.index({ lecturer: 1, course: 1, user: 1 }, { unique: true });
+// Compound indexes for both old and new formats
+// Old format: one review per user per lecturer per course
+lecturerReviewSchema.index({ lecturer: 1, course: 1, user: 1 }, { unique: true, sparse: true });
+// New format: one review per user per lecturer (with multiple courses)
+lecturerReviewSchema.index({ lecturer: 1, user: 1, courses: 1 }, { unique: false });
+
+// Pre-save middleware to ensure backward compatibility
+lecturerReviewSchema.pre('save', function(next) {
+  // If courses array is empty but course exists, populate courses array
+  if ((!this.courses || this.courses.length === 0) && this.course) {
+    this.courses = [this.course];
+  }
+  // If courses array exists but course is empty, set course to first item
+  if (this.courses && this.courses.length > 0 && !this.course) {
+    this.course = this.courses[0];
+  }
+  
+  // Ensure at least one course is specified
+  if ((!this.courses || this.courses.length === 0) && !this.course) {
+    const error = new Error('יש לציין לפחות קורס אחד');
+    return next(error);
+  }
+  
+  next();
+});
 
 // Virtual field for overall rating (average of all criteria)
 lecturerReviewSchema.virtual("overallRating").get(function () {

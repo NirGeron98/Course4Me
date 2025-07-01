@@ -23,7 +23,7 @@ const LecturerReviewFormModal = ({
   const [courses, setCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [formData, setFormData] = useState({
-    course: '',
+    courses: [], // Changed from 'course' to 'courses' array
     clarity: 3,
     responsiveness: 3,
     availability: 3,
@@ -37,8 +37,16 @@ const LecturerReviewFormModal = ({
 
   useEffect(() => {
     if (existingReview) {
+      // Handle both old format (single course) and new format (multiple courses)
+      let coursesArray = [];
+      if (existingReview.courses && Array.isArray(existingReview.courses)) {
+        coursesArray = existingReview.courses.map(course => course._id || course);
+      } else if (existingReview.course) {
+        coursesArray = [existingReview.course._id || existingReview.course];
+      }
+      
       setFormData({
-        course: existingReview.course?._id || '',
+        courses: coursesArray,
         clarity: existingReview.clarity,
         responsiveness: existingReview.responsiveness,
         availability: existingReview.availability,
@@ -77,7 +85,7 @@ const LecturerReviewFormModal = ({
           if (lecturerCourses.length === 1) {
             setFormData(prev => ({
               ...prev,
-              course: lecturerCourses[0]._id
+              courses: [lecturerCourses[0]._id] // Set as array
             }));
           }
         } else {
@@ -105,8 +113,8 @@ const LecturerReviewFormModal = ({
     setSubmitting(true);
     setError('');
 
-    if (!existingReview && !formData.course) {
-      setError('יש לבחור קורס');
+    if (!existingReview && (!formData.courses || formData.courses.length === 0)) {
+      setError('יש לבחור לפחות קורס אחד');
       setSubmitting(false);
       return;
     }
@@ -141,10 +149,10 @@ const LecturerReviewFormModal = ({
           isAnonymous: formData.isAnonymous
         };
       } else {
-        // For new reviews, include lecturer and course IDs
+        // For new reviews, include lecturer and courses IDs
         requestData = {
           lecturer: lecturerId,
-          course: formData.course,
+          courses: formData.courses, // Send array of course IDs
           clarity: parseInt(formData.clarity),
           responsiveness: parseInt(formData.responsiveness),
           availability: parseInt(formData.availability),
@@ -178,6 +186,16 @@ const LecturerReviewFormModal = ({
     } finally {
       setSubmitting(false);
     }
+  };
+
+  // Handle course selection (multiple selection)
+  const handleCourseToggle = (courseId) => {
+    setFormData(prev => ({
+      ...prev,
+      courses: prev.courses.includes(courseId)
+        ? prev.courses.filter(id => id !== courseId) // Remove if already selected
+        : [...prev.courses, courseId] // Add if not selected
+    }));
   };
 
   const renderRatingInput = (label, field, icon, colorType) => {
@@ -311,7 +329,7 @@ const LecturerReviewFormModal = ({
             <div className="mb-3">
               <label className="block text-gray-700 font-medium mb-2 flex items-center gap-2">
                 <Award className="w-5 h-5 text-purple-500" />
-                {courses.length === 1 ? 'קורס נבחר אוטומטית' : 'בחר קורס *'}
+                {courses.length === 1 ? 'קורס נבחר אוטומטית' : 'בחר קורסים *'}
               </label>
               {loadingCourses ? (
                 <div className="flex items-center justify-center py-4">
@@ -335,33 +353,81 @@ const LecturerReviewFormModal = ({
                   </p>
                 </div>
               ) : (
-                <select
-                  value={formData.course}
-                  onChange={(e) =>
-                    setFormData({ ...formData, course: e.target.value })
-                  }
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  required
-                >
-                  <option value="">בחר קורס...</option>
-                  {courses.map((course) => (
-                    <option key={course._id} value={course._id}>
-                      {course.title} ({course.courseNumber})
-                    </option>
-                  ))}
-                </select>
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-600 mb-3">
+                    בחר את הקורסים שלמדת עם המרצה (אפשר לבחור יותר מקורס אחד):
+                  </p>
+                  <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
+                    {courses.map((course) => (
+                      <label
+                        key={course._id}
+                        className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                          formData.courses.includes(course._id)
+                            ? 'border-purple-500 bg-purple-50 text-purple-700'
+                            : 'border-gray-200 hover:border-purple-300 hover:bg-purple-25'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.courses.includes(course._id)}
+                          onChange={() => handleCourseToggle(course._id)}
+                          className="sr-only"
+                        />
+                        <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center ${
+                          formData.courses.includes(course._id)
+                            ? 'border-purple-500 bg-purple-500'
+                            : 'border-gray-300'
+                        }`}>
+                          {formData.courses.includes(course._id) && (
+                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium">{course.title}</div>
+                          <div className="text-sm text-gray-500">({course.courseNumber})</div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                  {formData.courses.length > 0 && (
+                    <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="text-sm text-blue-700">
+                        <strong>קורסים נבחרו:</strong> {formData.courses.length} מתוך {courses.length}
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           )}
 
           {existingReview && (
             <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center gap-2 text-blue-700">
+              <div className="flex items-center gap-2 text-blue-700 mb-2">
                 <Award className="w-5 h-5" />
-                <span className="font-medium">
-                  קורס: {existingReview.course?.title} ({existingReview.course?.courseNumber})
-                </span>
+                <span className="font-medium">קורסים בביקורת הקיימת:</span>
               </div>
+              <div className="space-y-1">
+                {/* Handle both old format (single course) and new format (multiple courses) */}
+                {existingReview.courses && Array.isArray(existingReview.courses) ? (
+                  existingReview.courses.map((course, index) => (
+                    <div key={index} className="text-sm text-blue-600">
+                      • {course.title} ({course.courseNumber})
+                    </div>
+                  ))
+                ) : existingReview.course ? (
+                  <div className="text-sm text-blue-600">
+                    • {existingReview.course.title} ({existingReview.course.courseNumber})
+                  </div>
+                ) : (
+                  <div className="text-sm text-blue-600">לא מוגדרים קורסים</div>
+                )}
+              </div>
+              <p className="text-sm text-blue-600 mt-2">
+                עריכת ביקורת קיימת - לא ניתן לשנות את הקורסים
+              </p>
             </div>
           )}
 
@@ -403,7 +469,7 @@ const LecturerReviewFormModal = ({
             </button>
             <button
               type="submit"
-              disabled={submitting || (!existingReview && !formData.course)}
+              disabled={submitting || (!existingReview && (!formData.courses || formData.courses.length === 0))}
               className="flex-1 bg-purple-500 hover:bg-purple-600 text-white py-3 rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? (

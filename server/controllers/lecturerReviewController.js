@@ -51,6 +51,7 @@ exports.getReviewsByLecturer = async (req, res) => {
       reviews = await LecturerReview.find(query)
         .populate("user", "fullName _id")
         .populate("course", "title courseNumber")
+        .populate("courses", "title courseNumber")
         .populate("lecturer", "name")
         .sort({ createdAt: -1 });
     } catch (reviewsError) {
@@ -78,6 +79,7 @@ exports.getReviewsByLecturer = async (req, res) => {
         reviews = await LecturerReview.find(query)
           .populate("user", "fullName _id")
           .populate("course", "title courseNumber")
+          .populate("courses", "title courseNumber")
           .populate("lecturer", "name")
           .sort({ createdAt: -1 });
       } catch (populateError) {
@@ -153,7 +155,8 @@ exports.createLecturerReview = async (req, res) => {
   try {
     const {
       lecturer,
-      course,
+      course, // Keep for backward compatibility
+      courses, // New field for multiple courses
       clarity,
       responsiveness,
       availability,
@@ -163,24 +166,35 @@ exports.createLecturerReview = async (req, res) => {
       isAnonymous,
     } = req.body;
 
+    // Handle both single course (old) and multiple courses (new) format
+    let coursesToUse = [];
+    if (courses && Array.isArray(courses)) {
+      coursesToUse = courses;
+    } else if (course) {
+      coursesToUse = [course];
+    }
+
     // Validate required fields
-    if (!lecturer || !course) {
+    if (!lecturer || (!coursesToUse || coursesToUse.length === 0)) {
       return res.status(400).json({
-        message: "מרצה וקורס הם שדות חובה",
+        message: "מרצה ולפחות קורס אחד הם שדות חובה",
       });
     }
 
-    // Validate that lecturer and course are valid ObjectIds
+    // Validate that lecturer is a valid ObjectId
     if (!lecturer.match(/^[0-9a-fA-F]{24}$/)) {
       return res.status(400).json({
         message: "מזהה מרצה לא תקין",
       });
     }
 
-    if (!course.match(/^[0-9a-fA-F]{24}$/)) {
-      return res.status(400).json({
-        message: "מזהה קורס לא תקין",
-      });
+    // Validate that all courses are valid ObjectIds
+    for (const courseId of coursesToUse) {
+      if (!courseId.match(/^[0-9a-fA-F]{24}$/)) {
+        return res.status(400).json({
+          message: "מזהה קורס לא תקין",
+        });
+      }
     }
 
     // Validate ratings
@@ -206,16 +220,30 @@ exports.createLecturerReview = async (req, res) => {
       });
     }
 
-    // Check if review already exists for this lecturer-course-user combination
-    const existing = await LecturerReview.findOne({
-      lecturer,
-      course,
-      user: req.user._id,
-    });
+    // Check if review already exists
+    // For backward compatibility, check both old format (lecturer+course+user) and new format (lecturer+user)
+    let existing;
+    
+    if (coursesToUse.length === 1) {
+      // Single course - check old format first
+      existing = await LecturerReview.findOne({
+        lecturer,
+        course: coursesToUse[0],
+        user: req.user._id,
+      });
+    }
+    
+    if (!existing) {
+      // Check if user already has any review for this lecturer (new format)
+      existing = await LecturerReview.findOne({
+        lecturer,
+        user: req.user._id,
+      });
+    }
 
     if (existing) {
       return res.status(400).json({
-        message: "כבר כתבת ביקורת עבור מרצה זה בקורס זה",
+        message: "כבר כתבת ביקורת עבור מרצה זה",
       });
     }
 
@@ -230,7 +258,8 @@ exports.createLecturerReview = async (req, res) => {
     // Create review using the authenticated user's ID
     const review = new LecturerReview({
       lecturer,
-      course,
+      courses: coursesToUse,
+      course: coursesToUse[0], // For backward compatibility, keep the first course
       user: req.user._id,
       clarity: parseInt(clarity),
       responsiveness: parseInt(responsiveness),
@@ -269,6 +298,7 @@ exports.createLecturerReview = async (req, res) => {
     const populatedReview = await LecturerReview.findById(review._id)
       .populate("user", "fullName")
       .populate("course", "title courseNumber")
+      .populate("courses", "title courseNumber")
       .populate("lecturer", "name");
 
     // Process the returned review to handle anonymity
