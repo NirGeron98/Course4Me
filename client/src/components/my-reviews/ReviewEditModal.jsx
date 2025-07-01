@@ -14,15 +14,36 @@ import {
   Users,
   Star
 } from 'lucide-react';
+import Select from 'react-select';
 
 const ReviewEditModal = ({ review, user, onClose, onReviewUpdated }) => {
   const [formData, setFormData] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  
+  // New state for multi-select data
+  const [lecturers, setLecturers] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [loadingLecturers, setLoadingLecturers] = useState(false);
+  const [loadingCourses, setLoadingCourses] = useState(false);
 
   useEffect(() => {
     if (review.reviewType === 'course') {
+      // Handle both single lecturer and multiple lecturers
+      let selectedLecturers = [];
+      if (review.lecturers && review.lecturers.length > 0) {
+        selectedLecturers = review.lecturers.map(lec => 
+          typeof lec === 'object' ? lec._id : lec
+        );
+      } else if (review.lecturer) {
+        selectedLecturers = [typeof review.lecturer === 'object' 
+          ? review.lecturer._id 
+          : review.lecturer];
+      }
+      
       setFormData({
+        lecturers: selectedLecturers,
+        lecturer: selectedLecturers[0] || '', // For backward compatibility
         interest: review.interest || 3,
         difficulty: review.difficulty || 3,
         workload: review.workload || 3,
@@ -32,7 +53,16 @@ const ReviewEditModal = ({ review, user, onClose, onReviewUpdated }) => {
         isAnonymous: Boolean(review.isAnonymous)
       });
     } else {
+      // Handle both old format (single course) and new format (multiple courses)
+      let coursesArray = [];
+      if (review.courses && Array.isArray(review.courses)) {
+        coursesArray = review.courses.map(course => course._id || course);
+      } else if (review.course) {
+        coursesArray = [review.course._id || review.course];
+      }
+      
       setFormData({
+        courses: coursesArray,
         clarity: review.clarity || 3,
         responsiveness: review.responsiveness || 3,
         availability: review.availability || 3,
@@ -44,15 +74,124 @@ const ReviewEditModal = ({ review, user, onClose, onReviewUpdated }) => {
     }
   }, [review]);
 
+  // Fetch lecturers for course reviews
+  useEffect(() => {
+    if (review.reviewType === 'course' && review.course) {
+      const fetchLecturers = async () => {
+        setLoadingLecturers(true);
+        try {
+          const courseResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/courses/${review.course._id}`, {
+            headers: {
+              'Authorization': `Bearer ${user.token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (courseResponse.ok) {
+            const courseData = await courseResponse.json();
+            setLecturers(courseData.lecturers || []);
+          } else {
+            throw new Error('Failed to fetch course lecturers');
+          }
+        } catch (err) {
+          console.error('Error fetching lecturers:', err);
+          setError('שגיאה בטעינת רשימת המרצים');
+        } finally {
+          setLoadingLecturers(false);
+        }
+      };
+
+      fetchLecturers();
+    }
+  }, [review, user.token]);
+
+  // Fetch courses for lecturer reviews
+  useEffect(() => {
+    if (review.reviewType === 'lecturer' && review.lecturer) {
+      const fetchCourses = async () => {
+        setLoadingCourses(true);
+        try {
+          const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/courses`, {
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            const allCourses = await response.json();
+            const lecturerCourses = allCourses.filter(
+              (course) =>
+                course.lecturers &&
+                course.lecturers.some((lec) => lec._id === review.lecturer._id)
+            );
+            setCourses(lecturerCourses);
+          } else {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to fetch courses');
+          }
+        } catch (err) {
+          console.error('Error fetching courses:', err);
+          setError('שגיאה בטעינת רשימת הקורסים');
+        } finally {
+          setLoadingCourses(false);
+        }
+      };
+
+      fetchCourses();
+    }
+  }, [review, user.token]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     setError('');
 
+    // Validation for course reviews
+    if (review.reviewType === 'course' && (!formData.lecturers || formData.lecturers.length === 0)) {
+      setError('יש לבחור לפחות מרצה אחד');
+      setSubmitting(false);
+      return;
+    }
+
+    // Validation for lecturer reviews
+    if (review.reviewType === 'lecturer' && (!formData.courses || formData.courses.length === 0)) {
+      setError('יש לבחור לפחות קורס אחד');
+      setSubmitting(false);
+      return;
+    }
+
     try {
       const endpoint = review.reviewType === 'course' 
         ? `${process.env.REACT_APP_API_BASE_URL}/api/reviews/${review._id}`
         : `${process.env.REACT_APP_API_BASE_URL}/api/lecturer-reviews/${review._id}`;
+
+      // Prepare request data based on review type
+      let requestData;
+      if (review.reviewType === 'course') {
+        requestData = {
+          lecturers: formData.lecturers,
+          lecturer: formData.lecturers[0] || formData.lecturer, // For backward compatibility
+          interest: Number(formData.interest),
+          difficulty: Number(formData.difficulty),
+          workload: Number(formData.workload),
+          teachingQuality: Number(formData.teachingQuality),
+          recommendation: Number(formData.recommendation),
+          comment: String(formData.comment || '').trim(),
+          isAnonymous: Boolean(formData.isAnonymous)
+        };
+      } else {
+        requestData = {
+          courses: formData.courses,
+          clarity: parseInt(formData.clarity),
+          responsiveness: parseInt(formData.responsiveness),
+          availability: parseInt(formData.availability),
+          organization: parseInt(formData.organization),
+          knowledge: parseInt(formData.knowledge),
+          comment: String(formData.comment || '').trim(),
+          isAnonymous: Boolean(formData.isAnonymous)
+        };
+      }
 
       const response = await fetch(endpoint, {
         method: 'PUT',
@@ -60,7 +199,7 @@ const ReviewEditModal = ({ review, user, onClose, onReviewUpdated }) => {
           'Authorization': `Bearer ${user.token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(requestData),
       });
 
       if (!response.ok) {
@@ -75,6 +214,61 @@ const ReviewEditModal = ({ review, user, onClose, onReviewUpdated }) => {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  // Multi-select styling
+  const selectStyles = {
+    control: (provided, state) => ({
+      ...provided,
+      border: `1px solid ${state.isFocused ? (review.reviewType === 'course' ? '#10b981' : '#8b5cf6') : '#d1d5db'}`,
+      borderRadius: '0.5rem',
+      padding: '0.25rem',
+      boxShadow: state.isFocused ? `0 0 0 2px ${review.reviewType === 'course' ? '#10b98120' : '#8b5cf620'}` : 'none',
+      '&:hover': {
+        border: `1px solid ${review.reviewType === 'course' ? '#10b981' : '#8b5cf6'}`,
+      },
+    }),
+    multiValue: (provided) => ({
+      ...provided,
+      backgroundColor: review.reviewType === 'course' ? '#dcfce7' : '#f3e8ff',
+      borderRadius: '0.375rem',
+    }),
+    multiValueLabel: (provided) => ({
+      ...provided,
+      color: review.reviewType === 'course' ? '#059669' : '#7c3aed',
+      fontWeight: '500',
+    }),
+    multiValueRemove: (provided) => ({
+      ...provided,
+      color: review.reviewType === 'course' ? '#059669' : '#7c3aed',
+      '&:hover': {
+        backgroundColor: review.reviewType === 'course' ? '#10b981' : '#8b5cf6',
+        color: 'white',
+      },
+    }),
+    placeholder: (provided) => ({
+      ...provided,
+      color: '#9ca3af',
+    }),
+  };
+
+  // Handle lecturer selection for course reviews
+  const handleLecturerChange = (selectedOptions) => {
+    const selectedIds = selectedOptions ? selectedOptions.map(option => option.value) : [];
+    setFormData(prev => ({
+      ...prev,
+      lecturers: selectedIds,
+      lecturer: selectedIds[0] || '' // For backward compatibility
+    }));
+  };
+
+  // Handle course selection for lecturer reviews
+  const handleCourseChange = (selectedOptions) => {
+    const selectedIds = selectedOptions ? selectedOptions.map(option => option.value) : [];
+    setFormData(prev => ({
+      ...prev,
+      courses: selectedIds
+    }));
   };
 
   const renderRatingInput = (label, field, icon, color) => (
@@ -184,32 +378,108 @@ const ReviewEditModal = ({ review, user, onClose, onReviewUpdated }) => {
             </div>
           )}
 
-          {/* Course Info Display */}
-          <div className="mb-6 p-4 bg-gray-50 rounded-xl">
-            <div className="flex items-center gap-4">
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-800">{review.course?.title}</h3>
-                <p className="text-gray-600">{review.lecturer?.name}</p>
+          {/* Multi-select for Lecturers (Course Reviews) or Courses (Lecturer Reviews) */}
+          {review.reviewType === 'course' ? (
+            <div className="mb-6 p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 bg-emerald-100 rounded-lg">
+                  <Users className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-emerald-800">בחירת מרצים</h3>
+                  <p className="text-emerald-600 text-sm">בחר את המרצים שלימדו אותך בקורס זה</p>
+                </div>
               </div>
-              {review.course?.courseNumber && (
-                <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded text-sm">
-                  {review.course.courseNumber}
-                </span>
+              
+              {loadingLecturers ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="w-5 h-5 animate-spin text-emerald-500" />
+                  <span className="mr-2 text-emerald-600">טוען מרצים...</span>
+                </div>
+              ) : (
+                <Select
+                  isMulti
+                  value={lecturers
+                    .filter(lecturer => formData.lecturers?.includes(lecturer._id))
+                    .map(lecturer => ({
+                      value: lecturer._id,
+                      label: lecturer.name
+                    }))}
+                  onChange={handleLecturerChange}
+                  options={lecturers.map(lecturer => ({
+                    value: lecturer._id,
+                    label: lecturer.name
+                  }))}
+                  styles={selectStyles}
+                  placeholder="בחר מרצים..."
+                  noOptionsMessage={() => 'לא נמצאו מרצים'}
+                  className="text-right"
+                  isRtl={true}
+                />
               )}
-              {review.course?.department && (
-                <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm">
-                  {review.course.department}
-                </span>
-              )}
-              <span className={`px-2 py-1 rounded text-sm font-medium ${
-                review.reviewType === 'course'
-                  ? 'bg-emerald-100 text-emerald-700'
-                  : 'bg-purple-100 text-purple-700'
-              }`}>
-                {review.reviewType === 'course' ? 'דירוג קורס' : 'דירוג מרצה'}
-              </span>
+              
+              <div className="mt-3 p-3 bg-emerald-100 rounded-lg">
+                <p className="text-emerald-700 text-sm">
+                  <strong>קורס:</strong> {review.course?.title}
+                  {review.course?.courseNumber && (
+                    <span className="mr-2 bg-emerald-200 text-emerald-800 px-2 py-1 rounded text-xs">
+                      {review.course.courseNumber}
+                    </span>
+                  )}
+                </p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="mb-6 p-4 bg-purple-50 rounded-xl border border-purple-200">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Award className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-purple-800">בחירת קורסים</h3>
+                  <p className="text-purple-600 text-sm">בחר את הקורסים שלמדת אצל המרצה</p>
+                </div>
+              </div>
+              
+              {loadingCourses ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="w-5 h-5 animate-spin text-purple-500" />
+                  <span className="mr-2 text-purple-600">טוען קורסים...</span>
+                </div>
+              ) : (
+                <Select
+                  isMulti
+                  value={courses
+                    .filter(course => formData.courses?.includes(course._id))
+                    .map(course => ({
+                      value: course._id,
+                      label: `${course.title}${course.courseNumber ? ` (${course.courseNumber})` : ''}`
+                    }))}
+                  onChange={handleCourseChange}
+                  options={courses.map(course => ({
+                    value: course._id,
+                    label: `${course.title}${course.courseNumber ? ` (${course.courseNumber})` : ''}`
+                  }))}
+                  styles={selectStyles}
+                  placeholder="בחר קורסים..."
+                  noOptionsMessage={() => 'לא נמצאו קורסים'}
+                  className="text-right"
+                  isRtl={true}
+                />
+              )}
+              
+              <div className="mt-3 p-3 bg-purple-100 rounded-lg">
+                <p className="text-purple-700 text-sm">
+                  <strong>מרצה:</strong> {review.lecturer?.name}
+                  {review.lecturer?.department && (
+                    <span className="mr-2 bg-purple-200 text-purple-800 px-2 py-1 rounded text-xs">
+                      {review.lecturer.department}
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Anonymous Toggle */}
           <AnonymousToggle />
