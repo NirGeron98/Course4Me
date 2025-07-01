@@ -6,7 +6,7 @@ import DeleteConfirmationModal from '../common/DeleteConfirmationModal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen, faTrash } from '@fortawesome/free-solid-svg-icons';
 
-const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm }) => {
+const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm, onReviewDeleted }) => {
     const [reviews, setReviews] = useState([]);
     const [lecturers, setLecturers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -169,6 +169,11 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
             setReviews(prev => prev.filter(r => r._id !== reviewToDelete._id));
             setShowDeleteModal(false);
             setReviewToDelete(null);
+            
+            // Call the callback to refresh all data in parent component
+            if (onReviewDeleted) {
+                onReviewDeleted();
+            }
         } catch (error) {
             alert(error.message);
         }
@@ -183,6 +188,11 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm })
         fetchData();
         setEditingReview(null);
         setShowReviewForm(false);
+        
+        // Call the callback to refresh all data in parent component
+        if (onReviewDeleted) {
+            onReviewDeleted();
+        }
     };
 
     const handleEditReview = (review) => {

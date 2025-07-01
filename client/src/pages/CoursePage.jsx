@@ -13,7 +13,7 @@ import CourseStatisticsCard from '../components/course-page/CourseStatisticsCard
 const CoursePage = ({ user }) => {
     const { courseNumber } = useParams();
     const navigate = useNavigate();
-    const { course, loading, error } = useCourseDataWithSync(courseNumber, user?.token, 'courseNumber');
+    const { course, loading, error, refetch: refetchCourse } = useCourseDataWithSync(courseNumber, user?.token, 'courseNumber');
     const {
         showReviewForm,
         setShowReviewForm,
@@ -26,6 +26,19 @@ const CoursePage = ({ user }) => {
 
 
     const [editingReview, setEditingReview] = useState(null);
+
+    // Function to refresh all data after review operations
+    const refreshAllData = async () => {
+        try {
+            // Refresh both course data and reviews data
+            await Promise.all([
+                refetchCourse(),
+                refetchReviews()
+            ]);
+        } catch (error) {
+            console.error('Error refreshing data:', error);
+        }
+    };
 
     const handleShowReviewForm = (existingReview = null) => {
         if (existingReview) {
@@ -42,8 +55,15 @@ const CoursePage = ({ user }) => {
     };
 
     const handleReviewSubmitted = async (reviewData) => {
-        await refetchReviews();
-        handleCloseReviewForm();
+        try {
+            // Refresh all data to ensure everything is up to date
+            await refreshAllData();
+            handleCloseReviewForm();
+        } catch (error) {
+            console.error('Error after review submission:', error);
+            // Still close the form even if refresh fails
+            handleCloseReviewForm();
+        }
     };
 
     if (loading || reviewsLoading) {
@@ -107,6 +127,7 @@ const CoursePage = ({ user }) => {
                             courseTitle={course.title}
                             user={user}
                             onShowReviewForm={handleShowReviewForm}
+                            onReviewDeleted={refreshAllData}
                         />
                     </div>
 
@@ -117,6 +138,7 @@ const CoursePage = ({ user }) => {
                             courseId={course._id}
                             courseName={course.title}
                             user={user}
+                            onDataChanged={refreshAllData}
                         />
                     </div>
                 </div>

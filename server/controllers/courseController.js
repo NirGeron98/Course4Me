@@ -1,5 +1,6 @@
 const Course = require("../models/Course");
 const Lecturer = require("../models/Lecturer");
+const CourseReview = require("../models/CourseReview");
 
 // Get all courses
 exports.getAllCourses = async (req, res) => {
@@ -9,7 +10,35 @@ exports.getAllCourses = async (req, res) => {
       "name email department"
     );
 
-    res.status(200).json(courses);
+    // Recalculate ratings for all courses in real-time
+    const coursesWithUpdatedRatings = await Promise.all(
+      courses.map(async (course) => {
+        const reviews = await CourseReview.find({ course: course._id });
+        
+        let averageRating = null;
+        let ratingsCount = 0;
+        
+        if (reviews.length > 0) {
+          const validRatings = reviews
+            .map(r => Number(r.recommendation))
+            .filter(rating => !isNaN(rating));
+          
+          if (validRatings.length > 0) {
+            averageRating = (validRatings.reduce((sum, rating) => sum + rating, 0) / validRatings.length).toFixed(2);
+            ratingsCount = validRatings.length;
+          }
+        }
+        
+        // Update the course object with fresh ratings
+        const courseObj = course.toObject();
+        courseObj.averageRating = averageRating ? parseFloat(averageRating) : null;
+        courseObj.ratingsCount = ratingsCount;
+        
+        return courseObj;
+      })
+    );
+
+    res.status(200).json(coursesWithUpdatedRatings);
   } catch (err) {
     console.error("Error fetching courses:", err);
     res.status(500).json({ message: "שגיאת שרת פנימית" });
@@ -245,7 +274,35 @@ exports.searchCourses = async (req, res) => {
       );
     }
 
-    res.status(200).json(courses);
+    // Recalculate ratings for all courses in real-time
+    const coursesWithUpdatedRatings = await Promise.all(
+      courses.map(async (course) => {
+        const reviews = await CourseReview.find({ course: course._id });
+        
+        let averageRating = null;
+        let ratingsCount = 0;
+        
+        if (reviews.length > 0) {
+          const validRatings = reviews
+            .map(r => Number(r.recommendation))
+            .filter(rating => !isNaN(rating));
+          
+          if (validRatings.length > 0) {
+            averageRating = (validRatings.reduce((sum, rating) => sum + rating, 0) / validRatings.length).toFixed(2);
+            ratingsCount = validRatings.length;
+          }
+        }
+        
+        // Update the course object with fresh ratings
+        const courseObj = course.toObject();
+        courseObj.averageRating = averageRating ? parseFloat(averageRating) : null;
+        courseObj.ratingsCount = ratingsCount;
+        
+        return courseObj;
+      })
+    );
+
+    res.status(200).json(coursesWithUpdatedRatings);
   } catch (err) {
     console.error("Error searching courses:", err);
     res.status(500).json({ message: "שגיאת שרת פנימית" });
@@ -281,7 +338,35 @@ exports.getCoursesByLecturer = async (req, res) => {
       .populate("createdBy", "fullName email")
       .sort({ createdAt: -1 });
 
-    res.status(200).json(courses);
+    // Recalculate ratings for all courses in real-time
+    const coursesWithUpdatedRatings = await Promise.all(
+      courses.map(async (course) => {
+        const reviews = await CourseReview.find({ course: course._id });
+        
+        let averageRating = null;
+        let ratingsCount = 0;
+        
+        if (reviews.length > 0) {
+          const validRatings = reviews
+            .map(r => Number(r.recommendation))
+            .filter(rating => !isNaN(rating));
+          
+          if (validRatings.length > 0) {
+            averageRating = (validRatings.reduce((sum, rating) => sum + rating, 0) / validRatings.length).toFixed(2);
+            ratingsCount = validRatings.length;
+          }
+        }
+        
+        // Update the course object with fresh ratings
+        const courseObj = course.toObject();
+        courseObj.averageRating = averageRating ? parseFloat(averageRating) : null;
+        courseObj.ratingsCount = ratingsCount;
+        
+        return courseObj;
+      })
+    );
+
+    res.status(200).json(coursesWithUpdatedRatings);
   } catch (err) {
     console.error("Error fetching courses by lecturer:", err);
     res.status(500).json({ message: "שגיאת שרת פנימית" });

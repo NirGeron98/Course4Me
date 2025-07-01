@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { HeartHandshake, Plus, Check, Copy } from 'lucide-react';
 import ExistingReviewModal from '../common/ExistingReviewModal';
 
-const CourseQuickActions = ({ onShowReviewForm, courseId, courseName, user }) => {
+const CourseQuickActions = ({ onShowReviewForm, courseId, courseName, user, onDataChanged }) => {
     const [isFollowing, setIsFollowing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [copySuccess, setCopySuccess] = useState(false);
@@ -122,6 +122,10 @@ const CourseQuickActions = ({ onShowReviewForm, courseId, courseName, user }) =>
     
             if (response.ok) {
                 setIsFollowing(!isFollowing);
+                // Call callback to refresh parent data if provided
+                if (onDataChanged) {
+                    onDataChanged();
+                }
             } else {
                 const error = await response.json();
                 console.error('Follow error:', error);
