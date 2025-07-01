@@ -129,15 +129,6 @@ const Login = ({ onLogin, user }) => {
               </button>
             </div>
 
-            <div className="text-left">
-              <Link
-                to="/forgot-password"
-                className="text-sm text-emerald-600 hover:text-emerald-700 hover:underline transition-colors"
-              >
-                שכחתי סיסמה
-              </Link>
-            </div>
-
             <button
               type="submit"
               disabled={isLoading}
