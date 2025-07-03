@@ -4,6 +4,7 @@ import ReviewFilters from '../components/my-reviews/ReviewFilters';
 import ReviewsList from '../components/my-reviews/ReviewsList';
 import ReviewEditModal from '../components/my-reviews/ReviewEditModal';
 import DeleteConfirmationModal from '../components/common/DeleteConfirmationModal';
+import ElegantLoadingSpinner from '../components/common/ElegantLoadingSpinner';
 
 const MyReviewsPage = ({ user }) => {
     const [reviews, setReviews] = useState([]);
@@ -34,6 +35,48 @@ const MyReviewsPage = ({ user }) => {
     const [uniqueCourses, setUniqueCourses] = useState([]);
     const [uniqueDepartments, setUniqueDepartments] = useState([]);
 
+    // Cache configuration
+    const CACHE_KEY = `my_reviews_${user?.user?._id}`;
+    const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
+
+    // Cache helper functions
+    const isCacheValid = () => {
+        const cacheData = localStorage.getItem(CACHE_KEY);
+        if (!cacheData) return false;
+        
+        const { timestamp } = JSON.parse(cacheData);
+        return Date.now() - timestamp < CACHE_DURATION;
+    };
+
+    const saveToCache = (data) => {
+        try {
+            const cacheData = {
+                reviews: data,
+                timestamp: Date.now()
+            };
+            localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+        } catch (error) {
+            // Storage full or disabled, ignore
+        }
+    };
+
+    const getFromCache = () => {
+        try {
+            const cacheData = localStorage.getItem(CACHE_KEY);
+            if (!cacheData) return null;
+            
+            const { reviews } = JSON.parse(cacheData);
+            return reviews;
+        } catch (error) {
+            localStorage.removeItem(CACHE_KEY);
+            return null;
+        }
+    };
+
+    const clearCache = () => {
+        localStorage.removeItem(CACHE_KEY);
+    };
+
       // Set page title
   useEffect(() => {
     document.title = 'הביקורות שלי - Course4Me';
@@ -44,8 +87,28 @@ const MyReviewsPage = ({ user }) => {
     };
   }, []);
 
-    const fetchMyReviews = useCallback(async () => {
+    const fetchMyReviews = useCallback(async (forceRefresh = false) => {
         try {
+            // Check cache first unless force refresh
+            if (!forceRefresh && isCacheValid()) {
+                const cachedReviews = getFromCache();
+                if (cachedReviews && cachedReviews.length >= 0) {
+                    setReviews(cachedReviews);
+                    
+                    // Extract unique values for filters
+                    const lecturers = [...new Set(cachedReviews.map(r => r.lecturer?.name).filter(Boolean))];
+                    const courses = [...new Set(cachedReviews.map(r => r.course?.title).filter(Boolean))];
+                    const departments = [...new Set(cachedReviews.map(r => r.course?.department).filter(Boolean))];
+
+                    setUniqueLecturers(lecturers);
+                    setUniqueCourses(courses);
+                    setUniqueDepartments(departments);
+                    
+                    setLoading(false);
+                    return;
+                }
+            }
+
             setLoading(true);
 
             // Fetch both course reviews and lecturer reviews
@@ -83,6 +146,9 @@ const MyReviewsPage = ({ user }) => {
             }
 
             setReviews(allMyReviews);
+            
+            // Save to cache
+            saveToCache(allMyReviews);
 
             // Extract unique values for filters
             const lecturers = [...new Set(allMyReviews.map(r => r.lecturer?.name).filter(Boolean))];
@@ -97,7 +163,7 @@ const MyReviewsPage = ({ user }) => {
         } finally {
             setLoading(false);
         }
-    }, [user]);
+    }, [user, CACHE_KEY]);
 
     const applyFilters = useCallback(() => {
         let filtegray = [...reviews];
@@ -295,7 +361,36 @@ const MyReviewsPage = ({ user }) => {
             if (!response.ok) throw new Error("שגיאה במחיקת הביקורת");
 
             // Remove from local state
-            setReviews(prev => prev.filter(r => r._id !== reviewToDelete._id));
+            const updatedReviews = reviews.filter(r => r._id !== reviewToDelete._id);
+            setReviews(updatedReviews);
+            
+            // Update cache
+            saveToCache(updatedReviews);
+
+            // Notify other tabs/components about review deletion
+            const reviewEvent = new CustomEvent('reviewDeleted', {
+                detail: { reviewId: reviewToDelete._id, timestamp: Date.now() }
+            });
+            window.dispatchEvent(reviewEvent);
+
+            // Update localStorage for cross-tab synchronization
+            localStorage.setItem('reviewDeleted', JSON.stringify({
+                reviewId: reviewToDelete._id,
+                timestamp: Date.now()
+            }));
+            
+            // Clear dashboard stats cache for updating the review count
+            const dashboardCache = window.localStorage.getItem('dashboard_stats');
+            if (dashboardCache) {
+                window.localStorage.removeItem('dashboard_stats');
+                window.localStorage.removeItem('dashboard_stats_timestamp');
+            }
+            
+            // Refresh dashboard data if the global function is available
+            if (window.refreshDashboardData) {
+                window.refreshDashboardData();
+            }
+            
             setShowDeleteModal(false);
             setReviewToDelete(null);
         } catch (error) {
@@ -309,24 +404,89 @@ const MyReviewsPage = ({ user }) => {
     };
 
     const handleReviewUpdated = (updatedReview) => {
-        setReviews(prev => prev.map(r =>
+        const updatedReviews = reviews.map(r =>
             r._id === updatedReview._id ? updatedReview : r
-        ));
+        );
+        setReviews(updatedReviews);
+        
+        // Update cache
+        saveToCache(updatedReviews);
+
+        // Notify other tabs/components about review update
+        const reviewEvent = new CustomEvent('reviewUpdated', {
+            detail: { reviewId: updatedReview._id, timestamp: Date.now() }
+        });
+        window.dispatchEvent(reviewEvent);
+
+        // Update localStorage for cross-tab synchronization
+        localStorage.setItem('reviewUpdated', JSON.stringify({
+            reviewId: updatedReview._id,
+            timestamp: Date.now()
+        }));
+        
+        // Clear dashboard stats cache
+        const dashboardCache = window.localStorage.getItem('dashboard_stats');
+        if (dashboardCache) {
+            window.localStorage.removeItem('dashboard_stats');
+            window.localStorage.removeItem('dashboard_stats_timestamp');
+        }
+        
+        // Refresh dashboard data if the global function is available
+        if (window.refreshDashboardData) {
+            window.refreshDashboardData();
+        }
+        
         setShowEditModal(false);
         setEditingReview(null);
     };
 
+    // Listen for review changes from other components
+    useEffect(() => {
+        const handleStorageChange = (e) => {
+            if (e.key === 'reviewAdded' || e.key === 'reviewUpdated' || e.key === 'reviewDeleted') {
+                // Force refresh when a review is added/updated/deleted
+                fetchMyReviews(true);
+                // Clean up the flag
+                localStorage.removeItem(e.key);
+            }
+        };
+
+        // Listen for custom events for review changes within the same tab
+        const handleReviewChange = () => {
+            fetchMyReviews(true);
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        window.addEventListener('reviewAdded', handleReviewChange);
+        window.addEventListener('reviewUpdated', handleReviewChange);
+        window.addEventListener('reviewDeleted', handleReviewChange);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('reviewAdded', handleReviewChange);
+            window.removeEventListener('reviewUpdated', handleReviewChange);
+            window.removeEventListener('reviewDeleted', handleReviewChange);
+        };
+    }, [fetchMyReviews]);
+
+    // Check if we need to refresh on component mount (e.g., after navigation)
+    useEffect(() => {
+        const shouldRefresh = localStorage.getItem('reviewAdded') || 
+                            localStorage.getItem('reviewUpdated') ||
+                            localStorage.getItem('reviewDeleted') ||
+                            sessionStorage.getItem('refreshMyReviews');
+        
+        if (shouldRefresh) {
+            fetchMyReviews(true);
+            localStorage.removeItem('reviewAdded');
+            localStorage.removeItem('reviewUpdated');
+            localStorage.removeItem('reviewDeleted');
+            sessionStorage.removeItem('refreshMyReviews');
+        }
+    }, [fetchMyReviews]);
+
     if (loading) {
-        return (
-            <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
-                <div className="max-w-7xl mx-auto">
-                    <div className="text-center py-8 sm:py-12">
-                        <Loader2 className="w-8 h-8 sm:w-12 sm:h-12 text-gray-500 animate-spin mx-auto mb-4" />
-                        <p className="text-gray-600 text-base sm:text-lg">טוען ביקורות...</p>
-                    </div>
-                </div>
-            </div>
-        );
+        return <ElegantLoadingSpinner message="טוען ביקורות..." />;
     }
 
     return (

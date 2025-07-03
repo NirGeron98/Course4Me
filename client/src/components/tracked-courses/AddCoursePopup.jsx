@@ -99,6 +99,57 @@ const AddCoursePopup = ({ onClose, onCourseAdded, user }) => {
 
       // Update tracked course IDs to remove this course from available list
       setTrackedCourseIds(prev => [...prev, course._id]);
+
+      // Notify other tabs/components about tracked course addition
+      const trackingEvent = new CustomEvent('trackedCourseAdded', {
+        detail: { courseId: course._id, timestamp: Date.now() }
+      });
+      window.dispatchEvent(trackingEvent);
+
+      // Update localStorage for cross-tab synchronization
+      localStorage.setItem('trackedCourseChanged', JSON.stringify({
+        courseId: course._id,
+        action: 'added',
+        timestamp: Date.now()
+      }));
+
+      // Update TrackedCourses cache
+      try {
+        const trackedCoursesCache = localStorage.getItem('tracked_courses_data');
+        if (trackedCoursesCache) {
+          const cacheData = JSON.parse(trackedCoursesCache);
+          // Fetch latest course data to ensure we have complete information
+          const token = localStorage.getItem("token");
+          const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-courses/${course._id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }).catch(err => null);
+          
+          if (res && res.data) {
+            // Add the new course to cache
+            cacheData.trackedCourses.push(res.data);
+            cacheData.timestamp = Date.now();
+            localStorage.setItem('tracked_courses_data', JSON.stringify(cacheData));
+          } else {
+            // If we couldn't get the specific course details, invalidate cache
+            localStorage.removeItem('tracked_courses_data');
+          }
+        }
+      } catch (error) {
+        // If there's any error, invalidate the cache
+        localStorage.removeItem('tracked_courses_data');
+      }
+
+      // Clear dashboard cache so it refreshes on next visit
+      const dashboardCacheItem = localStorage.getItem('dashboard_tracked_courses');
+      if (dashboardCacheItem) {
+        localStorage.removeItem('dashboard_tracked_courses');
+        localStorage.removeItem('dashboard_tracked_courses_timestamp');
+      }
+      
+      // Refresh dashboard data if the global function is available
+      if (window.refreshDashboardData) {
+        window.refreshDashboardData();
+      }
       
       // Call parent callback
       onCourseAdded();
@@ -140,7 +191,7 @@ const AddCoursePopup = ({ onClose, onCourseAdded, user }) => {
             </button>
 
             <div className="flex items-center space-x-4 ml-12">
-              <div className="bg-white/20 rounded-full p-3">
+              <div className="ml-3 bg-white/20 rounded-full p-3">
                 <BookOpen className="w-8 h-8 text-white" />
               </div>
               <div className="flex-1 text-right">

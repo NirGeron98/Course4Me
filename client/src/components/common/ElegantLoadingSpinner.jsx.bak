@@ -98,15 +98,13 @@ export const StatsCards = ({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {showCacheMessage && (
-        <div className="col-span-1 sm:col-span-2 bg-blue-50 p-2 rounded-lg text-center text-sm text-blue-700">
+        <div className="col-span-1 sm:col-span-2 bg-blue-50 p-2 rounded-lg text-center text-sm text-blue-700 animate-fadeIn">
           נטען מהמטמון ומתרענן ברקע...
         </div>
       )}
 
       {/* Tracked Courses Stats Card */}
-      <div
-        className="bg-gradient-to-br from-emerald-50 to-teal-100 rounded-xl p-5 shadow-md"
-      >
+      <div className="bg-gradient-to-br from-emerald-50 to-teal-100 rounded-xl p-5 shadow-md animate-fadeIn">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-medium text-emerald-800">קורסים במעקב</h3>
@@ -119,9 +117,7 @@ export const StatsCards = ({
       </div>
 
       {/* Reviews Stats Card */}
-      <div
-        className="bg-gradient-to-br from-indigo-50 to-blue-100 rounded-xl p-5 shadow-md"
-      >
+      <div className="bg-gradient-to-br from-indigo-50 to-blue-100 rounded-xl p-5 shadow-md animate-fadeIn">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-medium text-blue-800">ביקורות שכתבתי</h3>

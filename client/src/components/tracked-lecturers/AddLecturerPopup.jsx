@@ -87,6 +87,22 @@ const AddLecturerPopup = ({ onClose, onLecturerAdded }) => {
       // Remove the added lecturer from the available list
       setAllLecturers(prev => prev.filter(lecturer => lecturer._id !== lecturerId));
       setFilteredLecturers(prev => prev.filter(lecturer => lecturer._id !== lecturerId));
+
+      // Notify other tabs/components about tracked lecturer addition
+      const trackingEvent = new CustomEvent('trackedLecturerAdded', {
+        detail: { lecturerId, timestamp: Date.now() }
+      });
+      window.dispatchEvent(trackingEvent);
+
+      // Update localStorage for cross-tab synchronization
+      localStorage.setItem('trackedLecturerChanged', JSON.stringify({
+        lecturerId,
+        action: 'added',
+        timestamp: Date.now()
+      }));
+
+      // Clear cached data
+      localStorage.removeItem('tracked_lecturers_data');
       
       onLecturerAdded();
     } catch (err) {

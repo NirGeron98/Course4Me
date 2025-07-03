@@ -1,12 +1,74 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, MessageSquare, TrendingUp, Users } from 'lucide-react';
 
-const StatsCards = ({ stats, allCoursesCount, lecturersCount }) => {
+const StatsCards = ({ 
+  coursesCount, 
+  reviewsCount,
+  refreshData,
+  isLoadedFromCache = false,
+  allCoursesCount, 
+  lecturersCount 
+}) => {
   const navigate = useNavigate();
+  const [showCacheMessage, setShowCacheMessage] = useState(isLoadedFromCache);
+
+  useEffect(() => {
+    setShowCacheMessage(isLoadedFromCache);
+    if (isLoadedFromCache) {
+      const timer = setTimeout(() => setShowCacheMessage(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoadedFromCache]);
+
+  // Listen for changes to tracked courses or reviews that should update stats
+  useEffect(() => {
+    const handleTrackedCourseChanged = () => {
+      // When a tracked course is added/removed, refresh stats data
+      if (refreshData) {
+        refreshData();
+      }
+    };
+
+    const handleReviewChanged = () => {
+      // When a review is added/updated/deleted, refresh stats data
+      if (refreshData) {
+        refreshData();
+      }
+    };
+
+    // Listen for localStorage changes from other tabs
+    const handleStorageChange = (event) => {
+      if (event.key === 'trackedCourseChanged' || 
+          event.key === 'reviewAdded' || 
+          event.key === 'reviewUpdated') {
+        // Changes that should trigger stats update
+        if (refreshData) {
+          refreshData();
+        }
+      }
+    };
+
+    // Add event listeners
+    window.addEventListener('trackedCourseAdded', handleTrackedCourseChanged);
+    window.addEventListener('trackedCourseRemoved', handleTrackedCourseChanged);
+    window.addEventListener('reviewAdded', handleReviewChanged);
+    window.addEventListener('reviewUpdated', handleReviewChanged);
+    window.addEventListener('storage', handleStorageChange);
+
+    // Clean up event listeners on unmount
+    return () => {
+      window.removeEventListener('trackedCourseAdded', handleTrackedCourseChanged);
+      window.removeEventListener('trackedCourseRemoved', handleTrackedCourseChanged);
+      window.removeEventListener('reviewAdded', handleReviewChanged);
+      window.removeEventListener('reviewUpdated', handleReviewChanged);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [refreshData]);
 
   return (
     <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      
       {/* Tracked Courses */}
       <div
         onClick={() => navigate('/tracked-courses')}
@@ -17,7 +79,7 @@ const StatsCards = ({ stats, allCoursesCount, lecturersCount }) => {
             <BookOpen className="w-6 h-6 text-emerald-600" />
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-gray-800">{stats.coursesCount}</h3>
+            <h3 className="text-2xl font-bold text-gray-800">{coursesCount}</h3>
             <p className="text-gray-600">הקורסים שלי</p>
           </div>
         </div>
@@ -33,7 +95,7 @@ const StatsCards = ({ stats, allCoursesCount, lecturersCount }) => {
             <MessageSquare className="w-6 h-6 text-gray-600" />
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-gray-800">{stats.reviewsCount}</h3>
+            <h3 className="text-2xl font-bold text-gray-800">{reviewsCount}</h3>
             <p className="text-gray-600">ביקורות שכתבתי</p>
           </div>
         </div>

@@ -33,7 +33,7 @@ const LecturerItem = ({ lecturer, onViewDetails, onAdd, isAdding }) => {
         {/* Lecturer Info */}
         <div className="flex-1">
           <div className="flex items-start space-x-3">
-            <div className="bg-purple-100 group-hover:bg-purple-200 rounded-full p-2 transition-colors">
+            <div className="ml-3 bg-purple-100 group-hover:bg-purple-200 rounded-full p-2 transition-colors">
               <User className="w-5 h-5 text-purple-600" />
             </div>
             

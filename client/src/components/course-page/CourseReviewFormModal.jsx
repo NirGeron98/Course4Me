@@ -216,6 +216,14 @@ const CourseReviewFormModal = ({
             }
 
             const newReview = await response.json();
+            
+            // Signal that a review was added
+            localStorage.setItem('reviewAdded', 'true');
+            sessionStorage.setItem('refreshMyReviews', 'true');
+            
+            // Dispatch custom event for same-tab updates
+            window.dispatchEvent(new CustomEvent('reviewAdded'));
+            
             onReviewSubmitted(newReview);
         } catch (err) {
             console.error('Submit error:', err);

@@ -126,6 +126,32 @@ const CourseQuickActions = ({ onShowReviewForm, courseId, courseName, user, onDa
                 if (onDataChanged) {
                     onDataChanged();
                 }
+
+                // Notify other tabs/components about tracked course change
+                const eventType = isFollowing ? 'trackedCourseRemoved' : 'trackedCourseAdded';
+                const trackingEvent = new CustomEvent(eventType, {
+                    detail: { courseId, timestamp: Date.now() }
+                });
+                window.dispatchEvent(trackingEvent);
+
+                // Update localStorage for cross-tab synchronization
+                localStorage.setItem('trackedCourseChanged', JSON.stringify({
+                    courseId,
+                    action: isFollowing ? 'removed' : 'added',
+                    timestamp: Date.now()
+                }));
+
+                // Clear dashboard cache so it refreshes on next visit
+                const dashboardCache = window.localStorage.getItem('dashboard_tracked_courses');
+                if (dashboardCache) {
+                    window.localStorage.removeItem('dashboard_tracked_courses');
+                    window.localStorage.removeItem('dashboard_tracked_courses_timestamp');
+                }
+                
+                // Refresh dashboard data if the global function is available
+                if (window.refreshDashboardData) {
+                    window.refreshDashboardData();
+                }
             } else {
                 const error = await response.json();
                 console.error('Follow error:', error);

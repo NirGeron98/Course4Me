@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { Plus } from "lucide-react";
 import AddCoursePopup from "../components/tracked-courses/AddCoursePopup";
 import TrackedCourseCard from "../components/tracked-courses/TrackedCourseCard";
 import CourseDetailsModal from "../components/tracked-courses/CourseDetailsModal";
 import { useCourseDataContext } from "../contexts/CourseDataContext";
+import ElegantLoadingSpinner from '../components/common/ElegantLoadingSpinner';
 
 const TrackedCourses = () => {
   const [trackedCourses, setTrackedCourses] = useState([]);
@@ -14,6 +15,48 @@ const TrackedCourses = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { fetchCourseStats } = useCourseDataContext();
 
+  // Cache configuration
+  const CACHE_KEY = 'tracked_courses_data';
+  const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+  // Cache helper functions
+  const isCacheValid = () => {
+    const cacheData = localStorage.getItem(CACHE_KEY);
+    if (!cacheData) return false;
+    
+    const { timestamp } = JSON.parse(cacheData);
+    return Date.now() - timestamp < CACHE_DURATION;
+  };
+
+  const saveToCache = (data) => {
+    try {
+      const cacheData = {
+        trackedCourses: data,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+    } catch (error) {
+      // Storage full or disabled, ignore
+      console.error('שגיאה בשמירת נתונים במטמון:', error);
+    }
+  };
+
+  const getFromCache = () => {
+    try {
+      const cacheData = localStorage.getItem(CACHE_KEY);
+      if (!cacheData) return null;
+      
+      const { trackedCourses } = JSON.parse(cacheData);
+      return trackedCourses;
+    } catch (error) {
+      localStorage.removeItem(CACHE_KEY);
+      return null;
+    }
+  };
+
+  const clearCache = () => {
+    localStorage.removeItem(CACHE_KEY);
+  };
 
   // Set page title
   useEffect(() => {
@@ -29,32 +72,94 @@ const TrackedCourses = () => {
     const token = localStorage.getItem('token');
 
     trackedCourses.forEach((course) => {
-      if (course._id) {
-        fetchCourseStats(course._id, token);
+      if (course.course && course.course._id) {
+        fetchCourseStats(course.course._id, token);
       }
     });
-  }, [trackedCourses]);
+  }, [trackedCourses, fetchCourseStats]);
 
 
-  // Fetch tracked courses from API
-  const fetchTrackedCourses = async () => {
+  // Fetch tracked courses from API with cache support
+  const fetchTrackedCourses = useCallback(async (forceRefresh = false) => {
     try {
+      // Check cache first unless force refresh is requested
+      if (!forceRefresh && isCacheValid()) {
+        const cachedData = getFromCache();
+        if (cachedData && Array.isArray(cachedData)) {
+          setTrackedCourses(cachedData);
+          setIsLoading(false);
+          return;
+        }
+      }
+
       setIsLoading(true);
       const token = localStorage.getItem("token");
       const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-courses`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setTrackedCourses(res.data);
+      
+      // Filter out any tracked courses with null/undefined course objects
+      const validTrackedCourses = res.data.filter(({ course }) => course && course._id);
+      setTrackedCourses(validTrackedCourses);
+      
+      // Save to cache
+      saveToCache(validTrackedCourses);
     } catch (err) {
       console.error("Failed to fetch tracked courses:", err);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   // Initialize component and fetch data on mount
   useEffect(() => {
     fetchTrackedCourses();
+  }, [fetchTrackedCourses]);
+
+  // Listen for tracked course changes from other components/tabs
+  useEffect(() => {
+    const handleTrackedCourseAdded = () => {
+      // Refresh tracked courses when a new one is added
+      fetchTrackedCourses(true);
+    };
+
+    const handleTrackedCourseRemoved = () => {
+      // Refresh tracked courses when one is removed
+      fetchTrackedCourses(true);
+    };
+
+    // האזנה לאירוע טעינה מקדימה של קורסים במעקב
+    const handleTrackedCoursesPreloaded = () => {
+      // בדיקה אם המטמון תקף לפני רענון הנתונים
+      if (isCacheValid()) {
+        fetchTrackedCourses();
+      }
+    };
+
+    // Listen for localStorage changes from other tabs
+    const handleStorageChange = (event) => {
+      if (event.key === 'trackedCourseChanged') {
+        // A tracked course was changed in another tab
+        // Force refresh data from API
+        fetchTrackedCourses(true);
+        // Clean up the flag
+        localStorage.removeItem(event.key);
+      }
+    };
+
+    // Add event listeners
+    window.addEventListener('trackedCourseAdded', handleTrackedCourseAdded);
+    window.addEventListener('trackedCourseRemoved', handleTrackedCourseRemoved);
+    window.addEventListener('trackedCoursesPreloaded', handleTrackedCoursesPreloaded);
+    window.addEventListener('storage', handleStorageChange);
+
+    // Clean up event listeners on unmount
+    return () => {
+      window.removeEventListener('trackedCourseAdded', handleTrackedCourseAdded);
+      window.removeEventListener('trackedCourseRemoved', handleTrackedCourseRemoved);
+      window.removeEventListener('trackedCoursesPreloaded', handleTrackedCoursesPreloaded);
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   // Popup handlers
@@ -63,7 +168,7 @@ const TrackedCourses = () => {
 
   // Callback for when a new course is added
   const onCourseAdded = () => {
-    fetchTrackedCourses();
+    fetchTrackedCourses(true); // Force refresh to get fresh data
     closePopup();
   };
 
@@ -77,9 +182,36 @@ const TrackedCourses = () => {
       });
 
       // Update local state to remove the course immediately
-      setTrackedCourses(prevCourses =>
-        prevCourses.filter(({ course }) => course._id !== courseId)
-      );
+      const updatedCourses = trackedCourses.filter(({ course }) => course._id !== courseId);
+      setTrackedCourses(updatedCourses);
+      
+      // Update cache with the new list
+      saveToCache(updatedCourses);
+
+      // Notify other tabs/components about tracked course removal
+      const trackingEvent = new CustomEvent('trackedCourseRemoved', {
+        detail: { courseId, timestamp: Date.now() }
+      });
+      window.dispatchEvent(trackingEvent);
+
+      // Update localStorage for cross-tab synchronization
+      localStorage.setItem('trackedCourseChanged', JSON.stringify({
+        courseId,
+        action: 'removed',
+        timestamp: Date.now()
+      }));
+
+      // Clear dashboard cache so it refreshes on next visit
+      const dashboardCache = window.localStorage.getItem('dashboard_tracked_courses');
+      if (dashboardCache) {
+        window.localStorage.removeItem('dashboard_tracked_courses');
+        window.localStorage.removeItem('dashboard_tracked_courses_timestamp');
+      }
+      
+      // Refresh dashboard data if the global function is available
+      if (window.refreshDashboardData) {
+        window.refreshDashboardData();
+      }
     } catch (err) {
       console.error("Failed to remove course from tracking:", err);
     }
@@ -142,13 +274,7 @@ const TrackedCourses = () => {
       <div className="max-w-7xl mx-auto p-6 pb-12">
         {/* Loading spinner and message */}
         {isLoading ? (
-          <div className="flex flex-col justify-center items-center py-20">
-            <div className="relative">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-200"></div>
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-500 border-t-transparent absolute top-0 left-0"></div>
-            </div>
-            <p className="mt-4 text-gray-600 font-medium">טוען קורסים...</p>
-          </div>
+          <ElegantLoadingSpinner message="טוען קורסים..." />
         ) : (
           <>
             {/* Empty state - shown when no courses or all courses are null */}

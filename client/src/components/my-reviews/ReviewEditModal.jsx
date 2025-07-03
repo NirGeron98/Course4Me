@@ -206,6 +206,14 @@ const ReviewEditModal = ({ review, user, onClose, onReviewUpdated }) => {
       }
 
       const updatedReview = await response.json();
+      
+      // Signal that a review was updated
+      localStorage.setItem('reviewUpdated', 'true');
+      sessionStorage.setItem('refreshMyReviews', 'true');
+      
+      // Dispatch custom event for same-tab updates
+      window.dispatchEvent(new CustomEvent('reviewUpdated'));
+      
       onReviewUpdated({ ...updatedReview, reviewType: review.reviewType });
     } catch (err) {
       setError(err.message);

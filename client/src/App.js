@@ -20,12 +20,17 @@ import ProfileManagement from "./pages/ProfileManagement";
 import AdvancedSearch from "./pages/AdvancedSearch";
 import MyReviewsPage from "./pages/MyReviewsPage";
 import { CourseDataProvider } from "./contexts/CourseDataContext";
+import { initializeCacheCleanup } from "./utils/cacheUtils";
+import preloadUserData from "./utils/preloadUserData";
 
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Initialize cache cleanup on app start
+    initializeCacheCleanup();
+    
     const token = localStorage.getItem("token");
     const userFullName = localStorage.getItem("userFullName");
     const userRole = localStorage.getItem("userRole");
@@ -46,8 +51,44 @@ function App() {
     setLoading(false);
   }, []);
 
-  const handleLogin = (userData) => {
+  const handleLogin = async (userData) => {
+    localStorage.setItem("token", userData.token);
+    localStorage.setItem("userFullName", userData.user.fullName);
+    localStorage.setItem("userRole", userData.user.role);
+    localStorage.setItem("userId", userData.user._id);
+    localStorage.setItem("requiresPasswordReset", userData.requiresPasswordReset || false);
+    
     setUser(userData);
+    
+    // טעינה מקדימה של כל הנתונים הדרושים כחלק מתהליך ההתחברות
+    if (userData.token && userData.user._id) {
+      try {
+        // שולח אירוע לוקאלי לעדכן את הממשק המשתמש שמתבצעת טעינת נתונים
+        const loadingEvent = new CustomEvent('userDataPreloading', { 
+          detail: { status: 'loading' } 
+        });
+        window.dispatchEvent(loadingEvent);
+        
+        // טעינת כל הנתונים מהשרת - עכשיו בצורה סינכרונית כדי שנחכה לסיום הטעינה
+        const loadedData = await preloadUserData(userData.token, userData.user._id);
+        console.log("טעינת נתונים הושלמה בהצלחה");
+        
+        // שולח אירוע לוקאלי לעדכן את הממשק משתמש שהטעינה הסתיימה
+        const completedEvent = new CustomEvent('userDataPreloaded', { 
+          detail: { status: 'completed', data: loadedData } 
+        });
+        window.dispatchEvent(completedEvent);
+        
+      } catch (error) {
+        console.error("שגיאה בטעינת נתונים:", error);
+        
+        // שולח אירוע לוקאלי לעדכן את הממשק משתמש שהטעינה נכשלה
+        const errorEvent = new CustomEvent('userDataPreloaded', { 
+          detail: { status: 'error', error } 
+        });
+        window.dispatchEvent(errorEvent);
+      }
+    }
   };
 
   const handleLogout = () => {

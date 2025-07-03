@@ -1,16 +1,59 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import AddLecturerPopup from "../components/tracked-lecturers/AddLecturerPopup";
 import TrackedLecturerCard from "../components/tracked-lecturers/TrackedLecturerCard";
 import { getLecturerSlug } from '../utils/slugUtils';
+import ElegantLoadingSpinner from '../components/common/ElegantLoadingSpinner';
 
 const TrackedLecturers = () => {
   const [trackedLecturers, setTrackedLecturers] = useState([]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+
+  // Cache configuration
+  const CACHE_KEY = 'tracked_lecturers_data';
+  const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+  // Cache helper functions
+  const isCacheValid = () => {
+    const cacheData = localStorage.getItem(CACHE_KEY);
+    if (!cacheData) return false;
+    
+    const { timestamp } = JSON.parse(cacheData);
+    return Date.now() - timestamp < CACHE_DURATION;
+  };
+
+  const saveToCache = (data) => {
+    try {
+      const cacheData = {
+        trackedLecturers: data,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+    } catch (error) {
+      // Storage full or disabled, ignore
+    }
+  };
+
+  const getFromCache = () => {
+    try {
+      const cacheData = localStorage.getItem(CACHE_KEY);
+      if (!cacheData) return null;
+      
+      const { trackedLecturers } = JSON.parse(cacheData);
+      return trackedLecturers;
+    } catch (error) {
+      localStorage.removeItem(CACHE_KEY);
+      return null;
+    }
+  };
+
+  const clearCache = () => {
+    localStorage.removeItem(CACHE_KEY);
+  };
 
   // Set page title
   useEffect(() => {
@@ -23,8 +66,18 @@ const TrackedLecturers = () => {
   }, []);
 
   // Fetch tracked lecturers from API
-  const fetchTrackedLecturers = async () => {
+  const fetchTrackedLecturers = useCallback(async (forceRefresh = false) => {
     try {
+      // Check cache first unless force refresh
+      if (!forceRefresh && isCacheValid()) {
+        const cachedData = getFromCache();
+        if (cachedData && Array.isArray(cachedData)) {
+          setTrackedLecturers(cachedData);
+          setIsLoading(false);
+          return;
+        }
+      }
+
       setIsLoading(true);
       const token = localStorage.getItem("token");
       const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-lecturers`, {
@@ -34,17 +87,47 @@ const TrackedLecturers = () => {
       // Filter out any tracked lecturers with null/undefined lecturer objects
       const validTrackedLecturers = res.data.filter(({ lecturer }) => lecturer && lecturer._id);
       setTrackedLecturers(validTrackedLecturers);
+      
+      // Save to cache
+      saveToCache(validTrackedLecturers);
     } catch (err) {
       console.error("Failed to fetch tracked lecturers:", err);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  // Listen for tracked lecturer changes from other components/tabs
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'trackedLecturerChanged') {
+        // Force refresh when a lecturer is added/removed from tracking
+        fetchTrackedLecturers(true);
+        // Clean up the flag
+        localStorage.removeItem(e.key);
+      }
+    };
+
+    // Listen for custom events for lecturer tracking changes within the same tab
+    const handleTrackedLecturerChange = () => {
+      fetchTrackedLecturers(true);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('trackedLecturerAdded', handleTrackedLecturerChange);
+    window.addEventListener('trackedLecturerRemoved', handleTrackedLecturerChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('trackedLecturerAdded', handleTrackedLecturerChange);
+      window.removeEventListener('trackedLecturerRemoved', handleTrackedLecturerChange);
+    };
+  }, [fetchTrackedLecturers]);
 
   // Initialize component and fetch data on mount
   useEffect(() => {
     fetchTrackedLecturers();
-  }, []);
+  }, [fetchTrackedLecturers]);
 
   // Popup handlers
   const openPopup = () => setIsPopupOpen(true);
@@ -67,8 +150,26 @@ const TrackedLecturers = () => {
 
       // Update local state to remove the lecturer immediately
       setTrackedLecturers(prevLecturers =>
-        prevLecturers.filter(({ lecturer }) => lecturer && lecturer._id !== lecturerId)
+        prevLecturers.filter(({ lecturer }) => lecturer._id !== lecturerId)
       );
+
+      // Update cache
+      const updatedLecturers = trackedLecturers.filter(({ lecturer }) => lecturer._id !== lecturerId);
+      saveToCache(updatedLecturers);
+
+      // Notify other tabs/components about tracked lecturer removal
+      const trackingEvent = new CustomEvent('trackedLecturerRemoved', {
+        detail: { lecturerId, timestamp: Date.now() }
+      });
+      window.dispatchEvent(trackingEvent);
+
+      // Update localStorage for cross-tab synchronization
+      localStorage.setItem('trackedLecturerChanged', JSON.stringify({
+        lecturerId,
+        action: 'removed',
+        timestamp: Date.now()
+      }));
+
     } catch (err) {
       console.error("Failed to remove lecturer from tracking:", err);
     }
@@ -124,13 +225,7 @@ const TrackedLecturers = () => {
       <div className="max-w-7xl mx-auto p-6 pb-12">
         {/* Loading spinner and message */}
         {isLoading ? (
-          <div className="flex flex-col justify-center items-center py-20">
-            <div className="relative">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-200"></div>
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-500 border-t-transparent absolute top-0 left-0"></div>
-            </div>
-            <p className="mt-4 text-gray-600 font-medium">טוען מרצים...</p>
-          </div>
+          <ElegantLoadingSpinner message="טוען מרצים..." />
         ) : (
           <>
             {/* Empty state - shown when no lecturers or all lecturers are null */}
