@@ -143,11 +143,17 @@ const SearchFilters = ({
                                             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                         >
                                             <option value="">כל הנקודות</option>
+                                            <option value="0.5">0.5 נק"ז</option>
                                             <option value="1">1 נק"ז</option>
+                                            <option value="1.5">1.5 נק"ז</option>
                                             <option value="2">2 נק"ז</option>
+                                            <option value="2.5">2.5 נק"ז</option>
                                             <option value="3">3 נק"ז</option>
+                                            <option value="3.5">3.5 נק"ז</option>
                                             <option value="4">4 נק"ז</option>
+                                            <option value="4.5">4.5 נק"ז</option>
                                             <option value="5">5 נק"ז</option>
+                                            <option value="5.5">5.5 נק"ז</option>
                                             <option value="6">6 נק"ז</option>
                                         </select>
                                     </div>
