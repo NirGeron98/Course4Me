@@ -40,6 +40,7 @@ const ForgotPassword = () => {
       setIsSuccess(true);
       
     } catch (err) {
+      console.error('Forgot password error:', err);
       setMessage(err.response?.data?.message || 'שגיאה בשליחת הבקשה');
       setIsSuccess(false);
     } finally {
@@ -87,7 +88,7 @@ const ForgotPassword = () => {
                   </div>
                 ) : (
                   <div className="flex items-center justify-center space-x-2">
-                    <Send className="ml-3 w-5 h-5" />
+                    <Send className="w-5 h-5" />
                     <span className="mr-2">שלח סיסמה זמנית</span>
                   </div>
                 )}

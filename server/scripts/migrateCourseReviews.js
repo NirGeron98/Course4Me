@@ -5,12 +5,8 @@ require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 const migrateCourseReviews = async () => {
   try {
-    console.log('Starting course reviews migration...');
-    console.log('Connecting to MongoDB...');
     await mongoose.connect(process.env.MONGO_URI);
-    console.log('Connected successfully');
 
-    console.log('Finding course reviews to migrate...');
     const reviews = await CourseReview.find({
       $or: [
         { lecturers: { $exists: false } },
@@ -18,8 +14,6 @@ const migrateCourseReviews = async () => {
       ],
       lecturer: { $exists: true, $ne: null }
     });
-
-    console.log(`Found ${reviews.length} course reviews to migrate`);
 
     let migratedCount = 0;
     for (const review of reviews) {
@@ -32,19 +26,15 @@ const migrateCourseReviews = async () => {
         });
         
         migratedCount++;
-        console.log(`Migrated course review ${review._id}: ${migratedCount}/${reviews.length}`);
       } catch (error) {
         console.error(`Error migrating course review ${review._id}:`, error);
       }
     }
 
-    console.log(`Migration completed! Migrated ${migratedCount} course reviews.`);
   } catch (error) {
     console.error('Migration failed:', error);
   } finally {
-    console.log('Disconnecting from MongoDB...');
     await mongoose.connection.close();
-    console.log('Migration finished');
   }
 };
 

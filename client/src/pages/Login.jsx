@@ -55,13 +55,23 @@ const Login = ({ onLogin, user }) => {
         withCredentials: true,
       });
 
-
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userFullName", res.data.user.fullName);
       localStorage.setItem("userRole", res.data.user.role);
       localStorage.setItem("userId", res.data.user._id);
+      
+      // Store if password reset is required
+      if (res.data.requiresPasswordReset) {
+        localStorage.setItem("requiresPasswordReset", "true");
+      }
 
       onLogin(res.data);
+
+      // Check if user needs to reset password
+      if (res.data.requiresPasswordReset) {
+        navigate("/reset-password");
+        return;
+      }
 
       const urlParams = new URLSearchParams(location.search);
       const redirectPath = urlParams.get("redirect");
@@ -73,7 +83,6 @@ const Login = ({ onLogin, user }) => {
       }
 
     } catch (err) {
-      console.error("Login error:", err);
       setMessage(err.response?.data?.message || "התחברות נכשלה");
     } finally {
       setIsLoading(false);
@@ -127,6 +136,15 @@ const Login = ({ onLogin, user }) => {
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
+            </div>
+
+            <div className="text-center mb-4">
+              <Link
+                to="/forgot-password"
+                className="text-emerald-600 hover:text-emerald-700 font-medium hover:underline transition-colors text-sm"
+              >
+                שכחתי סיסמה
+              </Link>
             </div>
 
             <button

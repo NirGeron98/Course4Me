@@ -7,15 +7,17 @@ const Navbar = ({ user, onLogout }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  // Don't show navbar on auth pages
-  const authPages = ['/login', '/signup', '/forgot-password'];
-  const shouldShowNavbar = user && !authPages.includes(location.pathname);
+  
+  // Don't show navbar on auth pages or when password reset is required
+  const authPages = ['/login', '/signup', '/forgot-password', '/reset-password'];
+  const requiresPasswordReset = user?.requiresPasswordReset || localStorage.getItem("requiresPasswordReset") === "true";
+  const shouldShowNavbar = user && !authPages.includes(location.pathname) && !requiresPasswordReset;
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userFullName");
     localStorage.removeItem("userRole");
+    localStorage.removeItem("requiresPasswordReset");
     onLogout();
     navigate("/login");
   };

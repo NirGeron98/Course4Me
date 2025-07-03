@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import TrackedCourses from "./pages/TrackedCourses";
 import TrackedLecturers from "./pages/TrackedLecturers";
 import CoursePage from "./pages/CoursePage";
@@ -29,6 +30,7 @@ function App() {
     const userFullName = localStorage.getItem("userFullName");
     const userRole = localStorage.getItem("userRole");
     const userId = localStorage.getItem("userId");
+    const requiresPasswordReset = localStorage.getItem("requiresPasswordReset");
 
     if (token && userFullName && userRole && userId) {
       setUser({
@@ -38,6 +40,7 @@ function App() {
           role: userRole,
           _id: userId,
         },
+        requiresPasswordReset: requiresPasswordReset === "true"
       });
     }
     setLoading(false);
@@ -49,6 +52,25 @@ function App() {
 
   const handleLogout = () => {
     setUser(null);
+  };
+
+  const updateUser = (updatedUserData) => {
+    setUser(updatedUserData);
+  };
+
+  // Component to protect routes when password reset is required
+  const ProtectedRoute = ({ children }) => {
+    const requiresPasswordReset = user?.requiresPasswordReset || localStorage.getItem("requiresPasswordReset") === "true";
+    
+    if (!user) {
+      return <Navigate to="/login" />;
+    }
+    
+    if (requiresPasswordReset) {
+      return <Navigate to="/reset-password" />;
+    }
+    
+    return children;
   };
 
   if (loading) {
@@ -93,60 +115,62 @@ function App() {
               path="/forgot-password"
               element={user ? <Navigate to="/dashboard" /> : <ForgotPassword />}
             />
+            <Route
+              path="/reset-password"
+              element={
+                user ? (
+                  <ResetPassword user={user} onLogout={handleLogout} updateUser={updateUser} />
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
 
             {/* Protected Routes */}
             <Route
               path="/dashboard"
-              element={user ? <Dashboard /> : <Navigate to="/login" />}
+              element={<ProtectedRoute><Dashboard /></ProtectedRoute>}
             />
             <Route
               path="/search"
-              element={
-                user ? <AdvancedSearch user={user} /> : <Navigate to="/login" />
-              }
+              element={<ProtectedRoute><AdvancedSearch user={user} /></ProtectedRoute>}
             />
             <Route
               path="/my-reviews"
-              element={
-                user ? <MyReviewsPage user={user} /> : <Navigate to="/login" />
-              }
+              element={<ProtectedRoute><MyReviewsPage user={user} /></ProtectedRoute>}
             />
             <Route
               path="/tracked-courses"
-              element={user ? <TrackedCourses /> : <Navigate to="/login" />}
+              element={<ProtectedRoute><TrackedCourses /></ProtectedRoute>}
             />
             <Route
               path="/lecturers"
-              element={user ? <TrackedLecturers /> : <Navigate to="/login" />}
+              element={<ProtectedRoute><TrackedLecturers /></ProtectedRoute>}
             />
             <Route
               path="/course/:courseNumber"
-              element={
-                user ? <CoursePage user={user} /> : <Navigate to="/login" />
-              }
+              element={<ProtectedRoute><CoursePage user={user} /></ProtectedRoute>}
             />
             <Route
               path="/lecturer/:slug"
-              element={
-                user ? <LecturerPage user={user} /> : <Navigate to="/login" />
-              }
+              element={<ProtectedRoute><LecturerPage user={user} /></ProtectedRoute>}
             />
             <Route
               path="/profile"
-              element={user ? <ProfileManagement /> : <Navigate to="/login" />}
+              element={<ProtectedRoute><ProfileManagement /></ProtectedRoute>}
             />
 
             {/* Admin Routes */}
             <Route
               path="/admin"
               element={
-                user?.user?.role === "admin" ? (
-                  <AdminPanel user={user} />
-                ) : user ? (
-                  <Navigate to="/dashboard" />
-                ) : (
-                  <Navigate to="/login" />
-                )
+                <ProtectedRoute>
+                  {user?.user?.role === "admin" ? (
+                    <AdminPanel user={user} />
+                  ) : (
+                    <Navigate to="/dashboard" />
+                  )}
+                </ProtectedRoute>
               }
             />
 

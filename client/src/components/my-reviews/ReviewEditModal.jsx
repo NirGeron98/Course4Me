@@ -94,7 +94,6 @@ const ReviewEditModal = ({ review, user, onClose, onReviewUpdated }) => {
             throw new Error('Failed to fetch course lecturers');
           }
         } catch (err) {
-          console.error('Error fetching lecturers:', err);
           setError('שגיאה בטעינת רשימת המרצים');
         } finally {
           setLoadingLecturers(false);
@@ -131,7 +130,6 @@ const ReviewEditModal = ({ review, user, onClose, onReviewUpdated }) => {
             throw new Error(errorData.message || 'Failed to fetch courses');
           }
         } catch (err) {
-          console.error('Error fetching courses:', err);
           setError('שגיאה בטעינת רשימת הקורסים');
         } finally {
           setLoadingCourses(false);

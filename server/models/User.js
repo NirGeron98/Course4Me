@@ -39,6 +39,18 @@ const userSchema = new mongoose.Schema(
     isActive: {
       type: Boolean,
       default: true
+    },
+    tempPassword: {
+      type: String,
+      default: null
+    },
+    tempPasswordExpires: {
+      type: Date,
+      default: null
+    },
+    isUsingTempPassword: {
+      type: Boolean,
+      default: false
     }
   },
   { 
