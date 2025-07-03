@@ -278,7 +278,7 @@ const ResetPassword = ({ user, onLogout, updateUser }) => {
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center space-x-2">
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <Loader2 className="ml-3 w-5 h-5 animate-spin" />
                     <span className="mr-2">משנה סיסמה...</span>
                   </div>
                 ) : (
