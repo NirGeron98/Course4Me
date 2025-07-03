@@ -369,15 +369,98 @@ const MyReviewsPage = ({ user }) => {
 
             // Notify other tabs/components about review deletion
             const reviewEvent = new CustomEvent('reviewDeleted', {
-                detail: { reviewId: reviewToDelete._id, timestamp: Date.now() }
+                detail: { 
+                    reviewId: reviewToDelete._id,
+                    lecturerId: reviewToDelete.lecturer?._id, 
+                    courseId: reviewToDelete.course?._id,
+                    reviewType: reviewToDelete.reviewType,
+                    timestamp: Date.now() 
+                }
             });
             window.dispatchEvent(reviewEvent);
 
             // Update localStorage for cross-tab synchronization
             localStorage.setItem('reviewDeleted', JSON.stringify({
                 reviewId: reviewToDelete._id,
+                lecturerId: reviewToDelete.lecturer?._id, 
+                courseId: reviewToDelete.course?._id,
+                reviewType: reviewToDelete.reviewType,
                 timestamp: Date.now()
             }));
+            
+            // Also update tracked_lecturers_data cache if this is a lecturer review
+            if (reviewToDelete.reviewType === 'lecturer' && reviewToDelete.lecturer?._id) {
+                try {
+                    const lecturerId = reviewToDelete.lecturer._id;
+                    const token = user.token;
+                    
+                    // Get the updated lecturer data to ensure accurate ratings
+                    const lecturerResponse = await fetch(
+                        `${process.env.REACT_APP_API_BASE_URL}/api/lecturers/${lecturerId}`,
+                        {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        }
+                    );
+                    
+                    if (lecturerResponse.ok) {
+                        const updatedLecturerData = await lecturerResponse.json();
+                        
+                        console.log("Lecturer data after review deletion:", updatedLecturerData);
+                        console.log("Ratings count:", updatedLecturerData.ratingsCount);
+                        console.log("Average rating:", updatedLecturerData.averageRating);
+                        
+                        // Dispatch a special event specifically for the lecturer card update
+                        window.dispatchEvent(new CustomEvent('lecturerDataUpdated', {
+                            detail: {
+                                lecturerId,
+                                data: updatedLecturerData,
+                                timestamp: Date.now(),
+                                action: 'reviewDeleted'
+                            }
+                        }));
+                        
+                        // Remove all related lecturer caches to ensure fresh data
+                        localStorage.removeItem('tracked_lecturers_data');
+                        
+                        // Force a refresh of the tracked lecturers cache for cross-tab sync
+                        localStorage.setItem('trackedLecturerChanged', JSON.stringify({
+                            lecturerId: lecturerId,
+                            action: 'updated',
+                            timestamp: Date.now(),
+                            data: updatedLecturerData
+                        }));
+                        
+                        // Update lecturer data in any open cards or cached data
+                        // This is important - directly modify other caches that might contain this lecturer
+                        const dashboardLecturers = localStorage.getItem('dashboard_lecturers');
+                        if (dashboardLecturers) {
+                            try {
+                                const lecturers = JSON.parse(dashboardLecturers);
+                                if (Array.isArray(lecturers)) {
+                                    const updatedLecturers = lecturers.map(l => {
+                                        if (l._id === lecturerId) {
+                                            return updatedLecturerData;
+                                        }
+                                        return l;
+                                    });
+                                    localStorage.setItem('dashboard_lecturers', JSON.stringify(updatedLecturers));
+                                    localStorage.setItem('dashboard_lecturers_timestamp', Date.now().toString());
+                                }
+                            } catch (err) {
+                                console.error("Error updating dashboard lecturers:", err);
+                                localStorage.removeItem('dashboard_lecturers');
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error updating lecturer cache:', error);
+                    // On error, force a refresh of the entire cache
+                    localStorage.removeItem('tracked_lecturers_data');
+                }
+            }
             
             // Clear dashboard stats cache for updating the review count
             const dashboardCache = window.localStorage.getItem('dashboard_stats');

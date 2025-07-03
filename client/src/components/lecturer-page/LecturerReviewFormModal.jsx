@@ -187,8 +187,77 @@ const LecturerReviewFormModal = ({
       localStorage.setItem('reviewAdded', 'true');
       sessionStorage.setItem('refreshMyReviews', 'true');
       
+      // Update tracked lecturers cache
+      try {
+        const lecturerResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/lecturers/${lecturerId}`, {
+          headers: {
+            'Authorization': `Bearer ${user.token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (lecturerResponse.ok) {
+          const updatedLecturerData = await lecturerResponse.json();
+          
+          // Update tracked lecturers cache if it exists
+          const cacheKey = 'tracked_lecturers_data';
+          const cachedData = localStorage.getItem(cacheKey);
+          
+          if (cachedData) {
+            try {
+              const { trackedLecturers } = JSON.parse(cachedData);
+              
+              if (Array.isArray(trackedLecturers)) {
+                // Find if lecturer is in tracked list
+                const lecturerIndex = trackedLecturers.findIndex(
+                  item => item.lecturer && item.lecturer._id === lecturerId
+                );
+                
+                if (lecturerIndex >= 0) {
+                  // Update the lecturer data
+                  trackedLecturers[lecturerIndex].lecturer = updatedLecturerData;
+                  
+                  // Save updated cache
+                  localStorage.setItem(cacheKey, JSON.stringify({
+                    trackedLecturers: trackedLecturers,
+                    timestamp: Date.now()
+                  }));
+                  
+                  // Also update localStorage for cross-tab synchronization
+                  localStorage.setItem('trackedLecturerChanged', JSON.stringify({
+                    lecturerId,
+                    action: 'updated',
+                    timestamp: Date.now(),
+                    data: updatedLecturerData
+                  }));
+                }
+              }
+            } catch (error) {
+              console.error('Error updating tracked lecturers cache:', error);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching updated lecturer data:', error);
+      }
+      
       // Dispatch custom event for same-tab updates
-      window.dispatchEvent(new CustomEvent('reviewAdded'));
+      window.dispatchEvent(new CustomEvent('reviewAdded', {
+        detail: { 
+          lecturerId: lecturerId,
+          reviewId: newReview._id,
+          timestamp: Date.now() 
+        }
+      }));
+      
+      // Also dispatch a tracked lecturer update event (similar to tracked lecturer added/removed events)
+      window.dispatchEvent(new CustomEvent('trackedLecturerUpdated', {
+        detail: { 
+          lecturerId: lecturerId,
+          reviewId: newReview._id,
+          timestamp: Date.now() 
+        }
+      }));
       
       onReviewSubmitted(newReview);
     } catch (err) {

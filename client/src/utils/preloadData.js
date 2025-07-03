@@ -5,7 +5,6 @@ export const preloadUserData = async (token, userId) => {
   if (!token || !userId) return false;
   
   try {
-    console.log("מתחיל טעינה מקדימה של נתוני משתמש...");
     
     const requests = [
       axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-courses`, {
@@ -79,7 +78,6 @@ export const preloadUserData = async (token, userId) => {
     
     localStorage.setItem('tracked_lecturers_data', JSON.stringify(trackedLecturersCache));
 
-    console.log("טעינה מקדימה הסתיימה בהצלחה");
     return true;
   } catch (error) {
     console.error("שגיאה בטעינה מקדימה:", error);

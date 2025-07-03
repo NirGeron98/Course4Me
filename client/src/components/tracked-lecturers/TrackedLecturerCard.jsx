@@ -69,7 +69,7 @@ const TrackedLecturerCard = ({ lecturer, onRemove, onViewDetails }) => {
             </div>
 
             {/* Rating */}
-            {lecturer.averageRating ? (
+            {lecturer.averageRating && lecturer.ratingsCount > 0 ? (
                 <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-lg p-4 mb-4">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-medium text-gray-700">דירוג</span>

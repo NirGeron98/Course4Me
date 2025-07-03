@@ -93,7 +93,6 @@ export const preloadUserData = async (token, userId) => {
     
     updateLoadingProgress('הטעינה הושלמה', 100);
 
-    console.log('נטענו מראש כל נתוני המשתמש בהצלחה');
     return userData;
   } catch (error) {
     console.error('שגיאה בטעינה מקדימה של נתוני המשתמש:', error);

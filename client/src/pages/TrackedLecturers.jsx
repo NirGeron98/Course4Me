@@ -101,7 +101,7 @@ const TrackedLecturers = () => {
   useEffect(() => {
     const handleStorageChange = (e) => {
       if (e.key === 'trackedLecturerChanged') {
-        // Force refresh when a lecturer is added/removed from tracking
+        // Force refresh when a lecturer is added/removed/updated from tracking
         fetchTrackedLecturers(true);
         // Clean up the flag
         localStorage.removeItem(e.key);
@@ -113,14 +113,153 @@ const TrackedLecturers = () => {
       fetchTrackedLecturers(true);
     };
 
+    // Listen for review events that should update the lecturer data
+    const handleReviewEvent = async (event) => {
+      try {
+        // Check if we have valid lecturer data in the event
+        const lecturerId = event.detail?.lecturerId;
+        
+        // If we have a lecturer ID, fetch the specific lecturer's updated data
+        if (lecturerId) {
+          console.log(`Updating lecturer data for ID: ${lecturerId}`);
+          
+          const token = localStorage.getItem("token");
+          
+          // First get the lecturer's updated data directly from the API to ensure accurate ratings
+          const lecturerRes = await axios.get(
+            `${process.env.REACT_APP_API_BASE_URL}/api/lecturers/${lecturerId}`, 
+            {headers: { Authorization: `Bearer ${token}` }}
+          );
+          
+          // Now update the specific lecturer in our tracked list
+          if (lecturerRes.status === 200) {
+            const updatedLecturerData = lecturerRes.data;
+            
+            console.log("Got updated lecturer data:", updatedLecturerData.name, 
+                        "Avg Rating:", updatedLecturerData.averageRating, 
+                        "Ratings Count:", updatedLecturerData.ratingsCount);
+            
+            // Update in the state
+            setTrackedLecturers(prev => prev.map(item => {
+              if (item.lecturer && item.lecturer._id === lecturerId) {
+                return { ...item, lecturer: updatedLecturerData };
+              }
+              return item;
+            }));
+            
+            // Update in cache - this is critical to fix the display issue
+            const cachedData = getFromCache();
+            if (cachedData && Array.isArray(cachedData)) {
+              const updatedCache = cachedData.map(item => {
+                if (item.lecturer && item.lecturer._id === lecturerId) {
+                  return { ...item, lecturer: updatedLecturerData };
+                }
+                return item;
+              });
+              
+              // Clear the old cache and save new data
+              localStorage.removeItem(CACHE_KEY);
+              saveToCache(updatedCache);
+              
+              // Also force a cross-tab sync
+              localStorage.setItem('trackedLecturerChanged', JSON.stringify({
+                lecturerId: lecturerId,
+                action: 'updated',
+                timestamp: Date.now()
+              }));
+            }
+          } else {
+            // If we couldn't get specific lecturer data, refresh everything
+            fetchTrackedLecturers(true);
+          }
+        } else {
+          // If no specific lecturer ID was provided, refresh everything
+          fetchTrackedLecturers(true);
+        }
+      } catch (err) {
+        console.error("Error updating lecturer after review event:", err);
+        // In case of error, fall back to refreshing everything
+        fetchTrackedLecturers(true);
+      }
+    };
+
+    // Handle specific lecturer data updates directly
+    const handleLecturerDataUpdated = (event) => {
+      if (event.detail && event.detail.lecturerId && event.detail.data) {
+        console.log("Direct lecturer data update received for:", event.detail.data.name);
+        console.log("Updated ratings count:", event.detail.data.ratingsCount);
+        console.log("Updated average rating:", event.detail.data.averageRating);
+        
+        // For review deletions, we need to be extra careful to update completely
+        const isReviewDeleted = event.detail.action === 'reviewDeleted';
+        
+        if (isReviewDeleted) {
+          // Force a full refresh instead of just updating the cache
+          console.log("Review deletion detected - forcing full refresh");
+          fetchTrackedLecturers(true);
+          return;
+        }
+        
+        // For other updates, update the specific lecturer in our state
+        setTrackedLecturers(prev => prev.map(item => {
+          if (item.lecturer && item.lecturer._id === event.detail.lecturerId) {
+            // Create a fresh object to ensure React detects the change
+            return { 
+              ...item, 
+              lecturer: {
+                ...event.detail.data,
+                // Make absolutely sure rating data is updated correctly
+                averageRating: event.detail.data.ratingsCount > 0 ? event.detail.data.averageRating : null,
+                ratingsCount: event.detail.data.ratingsCount || 0
+              } 
+            };
+          }
+          return item;
+        }));
+        
+        // Also update the cache - completely replacing it to ensure freshness
+        clearCache();
+        
+        // Get fresh data from the API
+        const token = localStorage.getItem("token");
+        fetch(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-lecturers`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then(res => res.json())
+        .then(data => {
+          // Filter out any tracked lecturers with null/undefined lecturer objects
+          const validTrackedLecturers = data.filter(({ lecturer }) => lecturer && lecturer._id);
+          
+          // Save to cache
+          saveToCache(validTrackedLecturers);
+          
+          // Update the state
+          setTrackedLecturers(validTrackedLecturers);
+        })
+        .catch(err => {
+          console.error("Failed to fetch updated tracked lecturers:", err);
+        });
+      }
+    };
+
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('trackedLecturerAdded', handleTrackedLecturerChange);
     window.addEventListener('trackedLecturerRemoved', handleTrackedLecturerChange);
+    window.addEventListener('trackedLecturerUpdated', handleTrackedLecturerChange);
+    window.addEventListener('reviewAdded', handleReviewEvent);
+    window.addEventListener('reviewUpdated', handleReviewEvent);
+    window.addEventListener('reviewDeleted', handleReviewEvent);
+    window.addEventListener('lecturerDataUpdated', handleLecturerDataUpdated);
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('trackedLecturerAdded', handleTrackedLecturerChange);
       window.removeEventListener('trackedLecturerRemoved', handleTrackedLecturerChange);
+      window.removeEventListener('trackedLecturerUpdated', handleTrackedLecturerChange);
+      window.removeEventListener('reviewAdded', handleReviewEvent);
+      window.removeEventListener('reviewUpdated', handleReviewEvent);
+      window.removeEventListener('reviewDeleted', handleReviewEvent);
+      window.removeEventListener('lecturerDataUpdated', handleLecturerDataUpdated);
     };
   }, [fetchTrackedLecturers]);
 

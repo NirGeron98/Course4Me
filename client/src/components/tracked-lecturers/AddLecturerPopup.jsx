@@ -78,7 +78,9 @@ const AddLecturerPopup = ({ onClose, onLecturerAdded }) => {
     try {
       setIsAdding(lecturerId);
       const token = localStorage.getItem("token");
-      await axios.post(
+      
+      // Add lecturer to tracked list
+      const response = await axios.post(
         `${process.env.REACT_APP_API_BASE_URL}/api/tracked-lecturers`,
         { lecturerId },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -88,9 +90,92 @@ const AddLecturerPopup = ({ onClose, onLecturerAdded }) => {
       setAllLecturers(prev => prev.filter(lecturer => lecturer._id !== lecturerId));
       setFilteredLecturers(prev => prev.filter(lecturer => lecturer._id !== lecturerId));
 
+      // Get the full tracked lecturer data returned from the API
+      const newTrackedLecturer = response.data;
+      
+      // Get latest lecturer data to ensure we have the most up-to-date information
+      // This is important for showing correct review stats
+      try {
+        const lecturerResponse = await axios.get(
+          `${process.env.REACT_APP_API_BASE_URL}/api/lecturers/${lecturerId}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        
+        if (lecturerResponse.status === 200) {
+          // Update lecturer data in our tracked lecturer object
+          newTrackedLecturer.lecturer = lecturerResponse.data;
+        }
+      } catch (error) {
+        console.error("Error fetching updated lecturer data:", error);
+      }
+      
+      // Update tracked lecturers cache
+      const updateTrackedLecturersCache = () => {
+        try {
+          // Get current cache
+          const cacheKey = 'tracked_lecturers_data';
+          const cachedData = localStorage.getItem(cacheKey);
+          
+          if (cachedData) {
+            // Parse and update cache
+            const { trackedLecturers, timestamp } = JSON.parse(cachedData);
+            
+            if (Array.isArray(trackedLecturers)) {
+              // Add new lecturer to cached array
+              const updatedLecturers = [...trackedLecturers, newTrackedLecturer];
+              
+              // Save updated cache
+              localStorage.setItem(cacheKey, JSON.stringify({
+                trackedLecturers: updatedLecturers,
+                timestamp: Date.now()
+              }));
+            }
+          }
+        } catch (error) {
+          console.error("Error updating lecturer cache:", error);
+          // On error, clear the cache to force refresh
+          localStorage.removeItem('tracked_lecturers_data');
+        }
+      };
+      
+      // Update dashboard cache if exists
+      const updateDashboardCache = () => {
+        try {
+          const cacheKey = 'dashboard_lecturers';
+          const cachedData = localStorage.getItem(cacheKey);
+          
+          if (cachedData) {
+            // Parse dashboard cache
+            const lecturers = JSON.parse(cachedData);
+            
+            if (Array.isArray(lecturers)) {
+              // Find if lecturer already exists
+              const lecturerIndex = lecturers.findIndex(l => l._id === lecturerId);
+              
+              if (lecturerIndex === -1) {
+                // Find the lecturer in our available list
+                const lecturer = allLecturers.find(l => l._id === lecturerId);
+                if (lecturer) {
+                  // Add lecturer to dashboard cache
+                  const updatedLecturers = [...lecturers, lecturer];
+                  localStorage.setItem(cacheKey, JSON.stringify(updatedLecturers));
+                  localStorage.setItem('dashboard_lecturers_timestamp', Date.now().toString());
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Error updating dashboard cache:", error);
+        }
+      };
+      
+      // Update all relevant caches
+      updateTrackedLecturersCache();
+      updateDashboardCache();
+
       // Notify other tabs/components about tracked lecturer addition
       const trackingEvent = new CustomEvent('trackedLecturerAdded', {
-        detail: { lecturerId, timestamp: Date.now() }
+        detail: { lecturerId, timestamp: Date.now(), data: newTrackedLecturer }
       });
       window.dispatchEvent(trackingEvent);
 
@@ -98,11 +183,9 @@ const AddLecturerPopup = ({ onClose, onLecturerAdded }) => {
       localStorage.setItem('trackedLecturerChanged', JSON.stringify({
         lecturerId,
         action: 'added',
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        data: newTrackedLecturer
       }));
-
-      // Clear cached data
-      localStorage.removeItem('tracked_lecturers_data');
       
       onLecturerAdded();
     } catch (err) {
