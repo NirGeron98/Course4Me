@@ -7,7 +7,9 @@ import CourseCarousel from "../components/dashboard/CourseCarousel";
 import LecturerCarousel from "../components/dashboard/LecturerCarousel";
 import ElegantLoadingSpinner, { ElegantSecondaryLoading } from "../components/common/ElegantLoadingSpinner";
 import StatsCards from "../components/dashboard/StatsCards";
+import ContactRequestModal from "../components/common/ContactRequestModal";
 import { dashboardCache, initializeCacheCleanup } from "../utils/cacheUtils";
+import { MessageCircle } from "lucide-react";
 
 const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -23,6 +25,7 @@ const Dashboard = () => {
   });
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [courseCarouselIndex, setCourseCarouselIndex] = useState(0);
   const [lecturerCarouselIndex, setLecturerCarouselIndex] = useState(0);
   const [trackedCarouselIndex, setTrackedCarouselIndex] = useState(0);
@@ -354,6 +357,52 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50" dir="rtl">
       <WelcomeHeader userName={userName} />
+      
+      {/* Contact Request Button - Positioned at left side of screen, below header */}
+      <div className="absolute left-4 top-72 z-30 hidden lg:block">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-5 hover:shadow-2xl transition-all duration-300 transform hover:scale-105 w-72 xl:w-80">
+          <div className="text-center">
+            <div className="bg-gradient-to-r from-orange-100 to-pink-100 p-3 rounded-full w-14 h-14 mx-auto mb-3 flex items-center justify-center">
+              <MessageCircle className="w-7 h-7 text-orange-600" />
+            </div>
+            <h3 className="text-base font-bold text-gray-800 mb-2">יש לך בקשה?</h3>
+            <p className="text-gray-600 text-sm mb-4 leading-relaxed">
+              קורס, מרצה, שאלה או הצעה?
+            </p>
+            <button
+              onClick={() => setIsContactModalOpen(true)}
+              className="w-full bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700 text-white font-semibold py-3 px-5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm hover:gap-3"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>פתח פניה</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Contact Request Button - Appears only on mobile, positioned below header */}
+      <div className="lg:hidden relative max-w-6xl mx-auto px-4 -mt-2 mb-4 z-30">
+        <div className="flex justify-center">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-4 hover:shadow-2xl transition-all duration-300 transform hover:scale-105 w-full max-w-xs sm:max-w-sm mt-3">
+            <div className="text-center">
+              <div className="bg-gradient-to-r from-orange-100 to-pink-100 p-3 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                <MessageCircle className="w-6 h-6 text-orange-600" />
+              </div>
+              <h3 className="text-sm font-bold text-gray-800 mb-2">יש לך בקשה?</h3>
+              <p className="text-gray-600 text-xs mb-3 leading-relaxed">
+                קורס, מרצה, שאלה או הצעה?
+              </p>
+              <button
+                onClick={() => setIsContactModalOpen(true)}
+                className="w-full bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700 text-white font-semibold py-2.5 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>פתח פניה</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
         
       <div className="max-w-6xl mx-auto p-6 space-y-8">
         <StatsCards
@@ -364,6 +413,7 @@ const Dashboard = () => {
           allCoursesCount={allCourses.length}
           lecturersCount={lecturers.length}
         />
+
         <TrackedCoursesList
           trackedCourses={trackedCourses}
           visibleCourses={visibleTrackedCourses}
@@ -403,6 +453,12 @@ const Dashboard = () => {
           }}
         />
       )}
+      
+      {/* Contact Request Modal */}
+      <ContactRequestModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+      />
     </div>
   );
 };

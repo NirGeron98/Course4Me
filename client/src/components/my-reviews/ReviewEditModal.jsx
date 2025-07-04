@@ -12,7 +12,9 @@ import {
   ThumbsUp,
   Save,
   Users,
-  Star
+  Star,
+  Plus,
+  User
 } from 'lucide-react';
 import Select from 'react-select';
 
@@ -26,6 +28,10 @@ const ReviewEditModal = ({ review, user, onClose, onReviewUpdated }) => {
   const [courses, setCourses] = useState([]);
   const [loadingLecturers, setLoadingLecturers] = useState(false);
   const [loadingCourses, setLoadingCourses] = useState(false);
+  const [showDepartmentLecturers, setShowDepartmentLecturers] = useState(false);
+  const [departmentLecturers, setDepartmentLecturers] = useState([]);
+  const [loadingDepartmentLecturers, setLoadingDepartmentLecturers] = useState(false);
+  const [courseData, setCourseData] = useState(null);
 
   useEffect(() => {
     if (review.reviewType === 'course') {
@@ -90,6 +96,7 @@ const ReviewEditModal = ({ review, user, onClose, onReviewUpdated }) => {
           if (courseResponse.ok) {
             const courseData = await courseResponse.json();
             setLecturers(courseData.lecturers || []);
+            setCourseData(courseData); // Save course data for later use
           } else {
             throw new Error('Failed to fetch course lecturers');
           }
@@ -139,6 +146,82 @@ const ReviewEditModal = ({ review, user, onClose, onReviewUpdated }) => {
       fetchCourses();
     }
   }, [review, user.token]);
+
+  const fetchDepartmentLecturers = async () => {
+    if (!courseData?.department) return;
+    
+    setLoadingDepartmentLecturers(true);
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_BASE_URL}/api/lecturers/by-department/${encodeURIComponent(courseData.department)}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${user.token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (response.ok) {
+        const departmentLecturers = await response.json();
+        // Filter out lecturers already in the course
+        const existingLecturerIds = lecturers.map(l => l._id);
+        const filteredLecturers = departmentLecturers.filter(
+          lecturer => !existingLecturerIds.includes(lecturer._id)
+        );
+        setDepartmentLecturers(filteredLecturers);
+      } else {
+        throw new Error('Failed to fetch department lecturers');
+      }
+    } catch (error) {
+      console.error('Error fetching department lecturers:', error);
+      setError('שגיאה בטעינת מרצי המחלקה');
+    } finally {
+      setLoadingDepartmentLecturers(false);
+    }
+  };
+
+  const handleShowDepartmentLecturers = () => {
+    setShowDepartmentLecturers(true);
+    fetchDepartmentLecturers();
+  };
+
+  const handleAddLecturerFromDepartment = async (lecturer) => {
+    try {
+      // Add lecturer to course
+      const addResponse = await fetch(
+        `${process.env.REACT_APP_API_BASE_URL}/api/courses/${review.course._id}/add-lecturer`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${user.token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ lecturerId: lecturer._id })
+        }
+      );
+
+      if (addResponse.ok) {
+        const result = await addResponse.json();
+        // Update lecturers list
+        setLecturers(prev => [...prev, lecturer]);
+        // Remove from department lecturers
+        setDepartmentLecturers(prev => prev.filter(l => l._id !== lecturer._id));
+        
+        // Auto-select the new lecturer
+        setFormData(prev => ({
+          ...prev,
+          lecturers: [...prev.lecturers, lecturer._id],
+          lecturer: prev.lecturers.length === 0 ? lecturer._id : prev.lecturer
+        }));
+      } else {
+        throw new Error('Failed to add lecturer to course');
+      }
+    } catch (error) {
+      console.error('Error adding lecturer:', error);
+      setError('שגיאה בהוספת המרצה לקורס');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -424,6 +507,20 @@ const ReviewEditModal = ({ review, user, onClose, onReviewUpdated }) => {
                 />
               )}
               
+              {/* Add lecturer from department button */}
+              {courseData?.department && (
+                <div className="mt-3">
+                  <button
+                    type="button"
+                    onClick={handleShowDepartmentLecturers}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>הוסף מרצה מהמחלקה ({courseData.department})</span>
+                  </button>
+                </div>
+              )}
+              
               <div className="mt-3 p-3 bg-emerald-100 rounded-lg">
                 <p className="text-emerald-700 text-sm">
                   <strong>קורס:</strong> {review.course?.title}
@@ -564,6 +661,96 @@ const ReviewEditModal = ({ review, user, onClose, onReviewUpdated }) => {
           </div>
         </form>
       </div>
+
+      {/* Department Lecturers Modal */}
+      {showDepartmentLecturers && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-60 p-4" dir="rtl">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold">
+                  מרצים במחלקה {courseData?.department}
+                </h3>
+                <button
+                  onClick={() => setShowDepartmentLecturers(false)}
+                  className="text-white hover:text-blue-200 transition-colors bg-white/20 rounded-full p-2 hover:bg-white/30"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <p className="text-blue-100 mt-2">
+                בחר מרצה להוספה לקורס ולביקורת
+              </p>
+            </div>
+            
+            <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(80vh - 120px)' }}>
+              {loadingDepartmentLecturers ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                  <span className="mr-2 text-gray-600">טוען מרצים...</span>
+                </div>
+              ) : departmentLecturers.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  לא נמצאו מרצים נוספים במחלקה זו
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {departmentLecturers.map((lecturer) => (
+                    <div
+                      key={lecturer._id}
+                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                          <User className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-900">
+                            {lecturer.name}
+                          </h4>
+                          {lecturer.email && (
+                            <p className="text-sm text-gray-500">
+                              {lecturer.email}
+                            </p>
+                          )}
+                          {lecturer.averageRating && (
+                            <div className="flex items-center gap-1 mt-1">
+                              <div className="flex">
+                                {[...Array(5)].map((_, i) => (
+                                  <span
+                                    key={i}
+                                    className={`text-xs ${
+                                      i < Math.floor(lecturer.averageRating)
+                                        ? 'text-yellow-400'
+                                        : 'text-gray-300'
+                                    }`}
+                                  >
+                                    ★
+                                  </span>
+                                ))}
+                              </div>
+                              <span className="text-xs text-gray-500">
+                                ({lecturer.ratingsCount} ביקורות)
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleAddLecturerFromDepartment(lecturer)}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>הוסף</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

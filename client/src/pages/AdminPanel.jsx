@@ -3,7 +3,8 @@ import axios from "axios";
 import CourseManagement from "../components/admin/CourseManagement";
 import LecturerManagement from "../components/admin/LecturerManagement";
 import DepartmentManagement from "../components/admin/DepartmentManagement";
-import { AlertCircle, BookOpen, Users, Building, CheckCircle, X } from "lucide-react";
+import ContactRequestManagement from "../components/admin/ContactRequestManagement";
+import { AlertCircle, BookOpen, Users, Building, CheckCircle, X, MessageCircle } from "lucide-react";
 
 const AdminPanel = ({ user }) => {
   const [activeTab, setActiveTab] = useState("courses");
@@ -107,6 +108,16 @@ const AdminPanel = ({ user }) => {
               <Building className="w-5 h-5 inline-block ml-2" />
               ניהול מחלקות
             </button>
+            <button
+              onClick={() => setActiveTab("contact-requests")}
+              className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${activeTab === "contact-requests"
+                ? "text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50"
+                : "text-gray-600 hover:text-emerald-600"
+              }`}
+            >
+              <MessageCircle className="w-5 h-5 inline-block ml-2" />
+              ניהול פניות
+            </button>
           </div>
 
           {message && (
@@ -153,6 +164,13 @@ const AdminPanel = ({ user }) => {
 
           {activeTab === "departments" && (
             <DepartmentManagement
+              onMessage={handleMessage}
+              onError={handleError}
+            />
+          )}
+
+          {activeTab === "contact-requests" && (
+            <ContactRequestManagement
               onMessage={handleMessage}
               onError={handleError}
             />

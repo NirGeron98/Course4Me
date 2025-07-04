@@ -408,10 +408,6 @@ const MyReviewsPage = ({ user }) => {
                     if (lecturerResponse.ok) {
                         const updatedLecturerData = await lecturerResponse.json();
                         
-                        console.log("Lecturer data after review deletion:", updatedLecturerData);
-                        console.log("Ratings count:", updatedLecturerData.ratingsCount);
-                        console.log("Average rating:", updatedLecturerData.averageRating);
-                        
                         // Dispatch a special event specifically for the lecturer card update
                         window.dispatchEvent(new CustomEvent('lecturerDataUpdated', {
                             detail: {

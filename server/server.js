@@ -54,6 +54,7 @@ app.use("/api/tracked-courses", require("./routes/trackedCourseRoutes"));
 app.use("/api/lecturers", require("./routes/lecturerRoutes"));
 app.use("/api/tracked-lecturers", require("./routes/trackedLecturerRoutes"));
 app.use("/api/departments", require("./routes/departmentRoutes"));
+app.use("/api/contact-requests", require("./routes/contactRequestRoutes"));
 
 // Health check
 app.get("/", (req, res) => {

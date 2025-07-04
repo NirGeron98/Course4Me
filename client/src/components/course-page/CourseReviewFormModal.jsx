@@ -299,7 +299,7 @@ const CourseReviewFormModal = ({
                     <span
                         aria-hidden="true"
                         className={`pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                            formData.isAnonymous ? '-translate-x-6' : 'translate-x-0'
+                            formData.isAnonymous ? '-translate-x-7' : 'translate-x-0'
                         }`}
                     />
                 </button>

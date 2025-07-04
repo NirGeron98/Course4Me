@@ -19,6 +19,7 @@ import AdminPanel from "./pages/AdminPanel";
 import ProfileManagement from "./pages/ProfileManagement";
 import AdvancedSearch from "./pages/AdvancedSearch";
 import MyReviewsPage from "./pages/MyReviewsPage";
+import MyContactRequests from "./pages/MyContactRequests";
 import { CourseDataProvider } from "./contexts/CourseDataContext";
 import { initializeCacheCleanup } from "./utils/cacheUtils";
 import preloadUserData from "./utils/preloadUserData";
@@ -175,6 +176,10 @@ function App() {
               element={<ProtectedRoute><MyReviewsPage user={user} /></ProtectedRoute>}
             />
             <Route
+              path="/my-contact-requests"
+              element={<ProtectedRoute><MyContactRequests /></ProtectedRoute>}
+            />
+            <Route
               path="/tracked-courses"
               element={<ProtectedRoute><TrackedCourses /></ProtectedRoute>}
             />
@@ -193,6 +198,10 @@ function App() {
             <Route
               path="/profile"
               element={<ProtectedRoute><ProfileManagement /></ProtectedRoute>}
+            />
+            <Route
+              path="/my-contact-requests"
+              element={<ProtectedRoute><MyContactRequests /></ProtectedRoute>}
             />
 
             {/* Admin Routes */}
