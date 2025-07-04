@@ -1,7 +1,7 @@
 // Navbar.jsx - Updated with neutral colors (gray/blue palette) and My Reviews
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { User, BookOpen, Settings, LogOut, Menu, X, Home, Shield, UserCheck, Heart, Search, MessageCircle, HelpCircle } from "lucide-react";
+import { User, BookOpen, Settings, LogOut, Menu, X, Home, Shield, UserCheck, Heart, Search, MessageCircle } from "lucide-react";
 
 const Navbar = ({ user, onLogout }) => {
   const navigate = useNavigate();
@@ -58,12 +58,6 @@ const Navbar = ({ user, onLogout }) => {
       label: "ביקורות",
       fullLabel: "הביקורות שלי",
       icon: MessageCircle
-    },
-    {
-      path: "/my-contact-requests",
-      label: "פניות",
-      fullLabel: "הפניות שלי",
-      icon: HelpCircle
     },
     {
       path: "/lecturers",
