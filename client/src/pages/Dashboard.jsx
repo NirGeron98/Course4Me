@@ -19,7 +19,8 @@ const Dashboard = () => {
   const [userName, setUserName] = useState("");
   const [stats, setStats] = useState({
     coursesCount: 0,
-    reviewsCount: 0
+    reviewsCount: 0,
+    contactRequestsCount: 0
   });
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -82,9 +83,21 @@ const Dashboard = () => {
         // No lecturer reviews endpoint or error
       }
 
+      // Fetch contact requests count
+      let contactRequestsCount = 0;
+      try {
+        const contactRequestsRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/contact-requests/my-requests`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        contactRequestsCount = contactRequestsRes.data.length;
+      } catch (error) {
+        // No contact requests or error
+      }
+
       const newStats = {
         coursesCount: trackedRes.data.length,
-        reviewsCount: totalReviews
+        reviewsCount: totalReviews,
+        contactRequestsCount: contactRequestsCount
       };
 
       // Update state
@@ -363,6 +376,7 @@ const Dashboard = () => {
           isLoadedFromCache={isLoadedFromCache}
           allCoursesCount={allCourses.length}
           lecturersCount={lecturers.length}
+          contactRequestsCount={stats.contactRequestsCount}
         />
         <TrackedCoursesList
           trackedCourses={trackedCourses}

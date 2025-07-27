@@ -54,6 +54,7 @@ app.use("/api/tracked-courses", require("./routes/trackedCourseRoutes"));
 app.use("/api/lecturers", require("./routes/lecturerRoutes"));
 app.use("/api/tracked-lecturers", require("./routes/trackedLecturerRoutes"));
 app.use("/api/departments", require("./routes/departmentRoutes"));
+app.use("/api/contact-requests", require("./routes/contactRequestRoutes"));
 
 // Health check
 app.get("/", (req, res) => {
@@ -91,13 +92,12 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(async () => {
-    
+  .then(async () => {    
     // Test email service
     try {
       await emailService.testConnection();
     } catch (error) {
-      // Email service not configured or not working
+      console.log("⚠️ Email service not configured or not working:", error.message);
     }
   })
   .catch((err) => {
@@ -113,5 +113,5 @@ process.on("SIGINT", async () => {
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  // Server is running on port
+  console.log(`🚀 Server is running on port ${PORT}`);
 });

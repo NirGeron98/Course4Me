@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, MessageSquare, TrendingUp, Users } from 'lucide-react';
+import { BookOpen, MessageSquare, TrendingUp, Users, HelpCircle } from 'lucide-react';
 
 const StatsCards = ({ 
   coursesCount, 
@@ -8,7 +8,8 @@ const StatsCards = ({
   refreshData,
   isLoadedFromCache = false,
   allCoursesCount, 
-  lecturersCount 
+  lecturersCount,
+  contactRequestsCount = 0
 }) => {
   const navigate = useNavigate();
   const [showCacheMessage, setShowCacheMessage] = useState(isLoadedFromCache);
@@ -114,15 +115,18 @@ const StatsCards = ({
         </div>
       </div>
 
-      {/* Total Lecturers */}
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-purple-100 hover:shadow-xl transition-shadow">
+      {/* My Contact Requests */}
+      <div
+        onClick={() => navigate('/my-contact-requests')}
+        className="bg-white rounded-2xl p-6 shadow-lg border border-orange-100 hover:shadow-xl transition-shadow cursor-pointer"
+      >
         <div className="flex items-center gap-4">
-          <div className="bg-purple-100 rounded-full p-3">
-            <Users className="w-6 h-6 text-purple-600" />
+          <div className="bg-orange-100 rounded-full p-3">
+            <HelpCircle className="w-6 h-6 text-orange-600" />
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-gray-800">{lecturersCount}</h3>
-            <p className="text-gray-600">מרצים במערכת</p>
+            <h3 className="text-2xl font-bold text-gray-800">{contactRequestsCount}</h3>
+            <p className="text-gray-600">הפניות שלי</p>
           </div>
         </div>
       </div>

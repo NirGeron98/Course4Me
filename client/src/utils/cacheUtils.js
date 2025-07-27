@@ -142,3 +142,26 @@ export const initializeCacheCleanup = () => {
     lecturerCache.clearOldCache();
   }, 30 * 60 * 1000);
 };
+
+// Clear all user-specific cache data
+export const clearAllUserCache = () => {
+  dashboardCache.clearAllCache();
+  courseCache.clearAllCache();
+  lecturerCache.clearAllCache();
+  
+  // Clear other user-specific cache
+  const keysToRemove = [
+    'my_reviews_data',
+    'tracked_courses_data', 
+    'tracked_lecturers_data',
+    'contact_requests_data'
+  ];
+  
+  keysToRemove.forEach(key => {
+    try {
+      localStorage.removeItem(key);
+    } catch (error) {
+      console.error(`שגיאה בניקוי מטמון ${key}:`, error);
+    }
+  });
+};

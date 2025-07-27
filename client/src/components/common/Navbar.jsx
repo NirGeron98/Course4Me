@@ -1,12 +1,14 @@
 // Navbar.jsx - Updated with neutral colors (gray/blue palette) and My Reviews
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { User, BookOpen, Settings, LogOut, Menu, X, Home, Shield, UserCheck, Heart, Search, MessageCircle } from "lucide-react";
+import { User, BookOpen, Settings, LogOut, Menu, X, Home, Shield, UserCheck, Heart, Search, MessageCircle, HelpCircle } from "lucide-react";
+import ContactModal from "./ContactModal";
 
 const Navbar = ({ user, onLogout }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   
   // Don't show navbar on auth pages or when password reset is required
   const authPages = ['/login', '/signup', '/forgot-password', '/reset-password'];
@@ -58,6 +60,12 @@ const Navbar = ({ user, onLogout }) => {
       label: "ביקורות",
       fullLabel: "הביקורות שלי",
       icon: MessageCircle
+    },
+    {
+      path: "/my-contact-requests",
+      label: "פניות",
+      fullLabel: "הפניות שלי",
+      icon: HelpCircle
     },
     {
       path: "/lecturers",
@@ -156,6 +164,16 @@ const Navbar = ({ user, onLogout }) => {
 
           {/* User Menu & Logout - Updated with neutral colors */}
           <div className="hidden md:flex items-center space-x-2 lg:space-x-3 space-x-reverse">
+            {/* Contact Request Button */}
+            <button
+              onClick={() => setIsContactModalOpen(true)}
+              className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-3 py-2 rounded-xl font-medium text-sm shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300"
+              title="פתח פנייה חדשה"
+            >
+              <HelpCircle className="w-3.5 h-3.5 ml-1" />
+              <span className="hidden lg:inline">פתח פנייה</span>
+            </button>
+
             {/* User Profile Button - More compact */}
             <button
               onClick={handleUserNameClick}
@@ -269,11 +287,18 @@ const Navbar = ({ user, onLogout }) => {
               {/* Logout Button Mobile */}
               <div className="w-full flex justify-center mt-4">
                 <button
+                  onClick={() => setIsContactModalOpen(true)}
+                  className="flex items-center space-x-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 rounded-xl font-medium shadow-lg mb-2 w-full justify-center"
+                >
+                  <HelpCircle className="w-5 h-5 ml-3" />
+                  <span>פתח פנייה</span>
+                </button>
+                <button
                   onClick={() => {
                     handleLogout();
                     setIsMobileMenuOpen(false);
                   }}
-                  className="flex items-center space-x-3 bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-3 rounded-xl font-medium shadow-lg"
+                  className="flex items-center space-x-3 bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-3 rounded-xl font-medium shadow-lg w-full justify-center"
                 >
                   <LogOut className="w-5 h-5 ml-3" />
                   <span>יציאה</span>
@@ -283,6 +308,13 @@ const Navbar = ({ user, onLogout }) => {
           </div>
         )}
       </div>
+      
+      {/* Contact Modal */}
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+        user={user}
+      />
     </nav>
   );
 };

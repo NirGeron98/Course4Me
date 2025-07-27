@@ -19,8 +19,9 @@ import AdminPanel from "./pages/AdminPanel";
 import ProfileManagement from "./pages/ProfileManagement";
 import AdvancedSearch from "./pages/AdvancedSearch";
 import MyReviewsPage from "./pages/MyReviewsPage";
+import MyContactRequests from "./pages/MyContactRequests";
 import { CourseDataProvider } from "./contexts/CourseDataContext";
-import { initializeCacheCleanup } from "./utils/cacheUtils";
+import { initializeCacheCleanup, clearAllUserCache } from "./utils/cacheUtils";
 import preloadUserData from "./utils/preloadUserData";
 
 function App() {
@@ -86,6 +87,16 @@ function App() {
   };
 
   const handleLogout = () => {
+    // Clear localStorage
+    localStorage.removeItem("token");
+    localStorage.removeItem("userFullName");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("requiresPasswordReset");
+    
+    // Clear all user cache data
+    clearAllUserCache();
+    
     setUser(null);
   };
 
@@ -173,6 +184,10 @@ function App() {
             <Route
               path="/my-reviews"
               element={<ProtectedRoute><MyReviewsPage user={user} /></ProtectedRoute>}
+            />
+            <Route
+              path="/my-contact-requests"
+              element={<ProtectedRoute><MyContactRequests user={user} /></ProtectedRoute>}
             />
             <Route
               path="/tracked-courses"

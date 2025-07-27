@@ -25,7 +25,8 @@ export const preloadUserData = async (token, userId) => {
       reviewsCount: 0
     },
     allCourses: [],
-    allLecturers: []
+    allLecturers: [],
+    contactRequests: []
   };
 
   try {
@@ -57,14 +58,18 @@ export const preloadUserData = async (token, userId) => {
     userData.allCourses = coursesRes.data || [];
     userData.allLecturers = lecturersRes.data || [];
     
-    updateLoadingProgress('טוען ביקורות', 60);
+    updateLoadingProgress('טוען ביקורות ופניות', 60);
     
-    const [courseReviewsRes, lecturerReviewsRes] = await Promise.all([
+    const [courseReviewsRes, lecturerReviewsRes, contactRequestsRes] = await Promise.all([
       axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/reviews`, {
         headers: { Authorization: `Bearer ${token}` }
       }).catch(err => ({ data: [] })),
       
       axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/lecturer-reviews`, {
+        headers: { Authorization: `Bearer ${token}` }
+      }).catch(err => ({ data: [] })),
+      
+      axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/contact-requests/my-requests`, {
         headers: { Authorization: `Bearer ${token}` }
       }).catch(err => ({ data: [] })),
     ]);
@@ -73,6 +78,7 @@ export const preloadUserData = async (token, userId) => {
     userData.trackedLecturers = trackedLecturersRes.data || [];
     userData.allCourses = coursesRes.data || [];
     userData.allLecturers = lecturersRes.data || [];
+    userData.contactRequests = contactRequestsRes.data || [];
     
     const userCourseReviews = filterReviewsByUser(courseReviewsRes.data || [], userId);
     const userLecturerReviews = filterReviewsByUser(lecturerReviewsRes.data || [], userId);
@@ -135,6 +141,12 @@ const saveToCache = (userData) => {
     };
     localStorage.setItem('tracked_lecturers_data', JSON.stringify(trackedLecturersCache));
     
+    const contactRequestsCache = {
+      contactRequests: userData.contactRequests,
+      timestamp: Date.now()
+    };
+    localStorage.setItem('contact_requests_data', JSON.stringify(contactRequestsCache));
+    
     sendDataLoadedEvents(userData);
   } catch (error) {
     console.error('שגיאה בשמירת הנתונים במטמון:', error);
@@ -160,6 +172,14 @@ const sendDataLoadedEvents = (userData) => {
       }
     });
     window.dispatchEvent(reviewsEvent);
+    
+    const contactRequestsEvent = new CustomEvent('contactRequestsPreloaded', {
+      detail: { 
+        count: userData.contactRequests.length, 
+        timestamp: Date.now() 
+      }
+    });
+    window.dispatchEvent(contactRequestsEvent);
   } catch (error) {
     console.error('שגיאה בשליחת אירועי טעינת נתונים:', error);
   }
