@@ -284,11 +284,11 @@ const Navbar = ({ user, onLogout }) => {
                 );
               })}
 
-              {/* Logout Button Mobile */}
-              <div className="w-full flex justify-center mt-4">
+              {/* Contact and Logout Buttons Mobile - Separate rows */}
+              <div className="w-full space-y-2 mt-4">
                 <button
                   onClick={() => setIsContactModalOpen(true)}
-                  className="flex items-center space-x-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 rounded-xl font-medium shadow-lg mb-2 w-full justify-center"
+                  className="flex items-center space-x-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 rounded-xl font-medium shadow-lg w-full justify-center"
                 >
                   <HelpCircle className="w-5 h-5 ml-3" />
                   <span>פתח פנייה</span>

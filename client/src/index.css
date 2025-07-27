@@ -46,3 +46,42 @@ code {
 .animate-slideInRight {
   animation: slideInRight 0.5s ease forwards;
 }
+
+/* Responsive utilities */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .line-clamp-2 {
+    -webkit-line-clamp: 3;
+  }
+}
+
+/* Mobile specific styles */
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+  }
+  
+  .modal-overlay {
+    padding: 16px;
+  }
+  
+  .modal-content {
+    margin: 16px;
+    max-height: calc(100vh - 32px);
+  }
+}
+
+/* Ensure proper text wrapping on mobile */
+@media (max-width: 640px) {
+  .break-words {
+    word-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+  }
+}
