@@ -16,10 +16,14 @@ import {
     Eye,
     Headphones
 } from 'lucide-react';
+import ElegantLoadingSpinner from '../components/common/ElegantLoadingSpinner';
 
 const MyContactRequests = ({ user }) => {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [editingRequest, setEditingRequest] = useState(null);
     const [editForm, setEditForm] = useState({ subject: '', description: '' });
@@ -56,6 +60,30 @@ const MyContactRequests = ({ user }) => {
             console.error('Error fetching requests:', err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const refreshRequests = async () => {
+        setRefreshing(true);
+
+        try {
+            const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/contact-requests/my-requests`, {
+                headers: {
+                    'Authorization': `Bearer ${user.token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('שגיאה בטעינת הפניות');
+            }
+
+            const data = await response.json();
+            setRequests(data);
+        } catch (err) {
+            console.error('Error fetching requests:', err);
+        } finally {
+            setRefreshing(false);
         }
     };
 
@@ -112,7 +140,7 @@ const MyContactRequests = ({ user }) => {
             alert('נושא ותיאור הם שדות חובה');
             return;
         }
-        setLoading(true);
+        setSaving(true);
         try {
             const requestData = {
                 subject: editForm.subject.trim(),
@@ -161,12 +189,12 @@ const MyContactRequests = ({ user }) => {
             console.error('Error during edit:', err);
             alert('שגיאה בעדכון הפנייה: ' + err.message);
         } finally {
-            setLoading(false);
+            setSaving(false);
         }
     };
 
     const handleDelete = async (requestId) => {
-        setLoading(true);
+        setDeleting(true);
         try {
             const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/contact-requests/my-requests/${requestId}`, {
                 method: 'DELETE',
@@ -188,7 +216,7 @@ const MyContactRequests = ({ user }) => {
         } catch (err) {
             alert('שגיאה במחיקת הפנייה: ' + err.message);
         } finally {
-            setLoading(false);
+            setDeleting(false);
         }
     };
 
@@ -231,8 +259,8 @@ const MyContactRequests = ({ user }) => {
                 </div>
 
                 {/* Stats Cards - Full Width Equal Sizes */}
-                <div className="grid grid-cols-5 gap-4 mb-8">
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-3 flex items-center justify-center">
+                <div className="grid grid-cols-5 gap-4 mb-8 animate-fadeIn">
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-3 flex items-center justify-center hover:shadow-md transition-shadow duration-200 animate-fadeIn" style={{ animationDelay: '0.1s' }}>
                         <span className="text-2xl font-bold text-indigo-600 ml-2">{requests.length}</span>
                         <div className="flex items-center">
                             <div className="bg-indigo-100 p-1.5 rounded-lg ml-2">
@@ -242,7 +270,7 @@ const MyContactRequests = ({ user }) => {
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-3 flex items-center justify-center">
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-3 flex items-center justify-center hover:shadow-md transition-shadow duration-200 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
                         <span className="text-2xl font-bold text-emerald-600 ml-2">{requests.filter(r => r.status === 'answered').length}</span>
                         <div className="flex items-center">
                             <div className="bg-emerald-100 p-1.5 rounded-lg ml-2">
@@ -252,7 +280,7 @@ const MyContactRequests = ({ user }) => {
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-3 flex items-center justify-center">
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-3 flex items-center justify-center hover:shadow-md transition-shadow duration-200 animate-fadeIn" style={{ animationDelay: '0.3s' }}>
                         <span className="text-2xl font-bold text-amber-500 ml-2">{requests.filter(r => r.status === 'pending').length}</span>
                         <div className="flex items-center">
                             <div className="bg-amber-100 p-1.5 rounded-lg ml-2">
@@ -262,7 +290,7 @@ const MyContactRequests = ({ user }) => {
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-3 flex items-center justify-center">
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-3 flex items-center justify-center hover:shadow-md transition-shadow duration-200 animate-fadeIn" style={{ animationDelay: '0.4s' }}>
                         <span className="text-2xl font-bold text-blue-500 ml-2">{requests.filter(r => r.status === 'in_progress').length}</span>
                         <div className="flex items-center">
                             <div className="bg-blue-100 p-1.5 rounded-lg ml-2">
@@ -273,12 +301,12 @@ const MyContactRequests = ({ user }) => {
                     </div>
 
                     <button
-                        onClick={fetchRequests}
-                        disabled={loading}
-                        className="bg-white rounded-xl shadow-sm border border-slate-200 flex items-center justify-center px-4 py-3 text-indigo-600 hover:bg-indigo-50 transition-colors disabled:opacity-50"
+                        onClick={refreshRequests}
+                        disabled={refreshing}
+                        className="bg-white rounded-xl shadow-sm border border-slate-200 flex items-center justify-center px-4 py-3 text-indigo-600 hover:bg-indigo-50 transition-colors disabled:opacity-50 animate-fadeIn" style={{ animationDelay: '0.5s' }}
                     >
-                        <RefreshCw className={`w-4 h-4 ml-1 ${loading ? 'animate-spin' : ''}`} />
-                        <span className="text-sm">רענן</span>
+                        <RefreshCw className={`w-4 h-4 ml-1 ${refreshing ? 'animate-spin' : ''}`} />
+                        <span className="text-sm">{refreshing ? 'מרענן...' : 'רענן'}</span>
                     </button>
                 </div>
 
@@ -292,28 +320,27 @@ const MyContactRequests = ({ user }) => {
                     </div>
 
                     {loading && requests.length === 0 ? (
-                        <div className="flex items-center justify-center py-16">
-                            <div className="flex items-center">
-                                <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin ml-3" />
-                                <span className="text-slate-600 text-lg">טוען פניות...</span>
-                            </div>
-                        </div>
+                        <ElegantLoadingSpinner message="טוען את הפניות שלך..." size="large" />
                     ) : requests.length === 0 ? (
-                        <div className="p-16 text-center">
-                            <div className="bg-slate-100 p-4 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+                        <div className="p-16 text-center animate-fadeIn">
+                            <div className="bg-slate-100 p-4 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center animate-fadeIn">
                                 <MessageSquare className="w-10 h-10 text-slate-400" />
                             </div>
                             <h3 className="text-xl font-bold text-slate-800 mb-2">אין פניות עדיין</h3>
                             <p className="text-slate-600 mb-4">לא יצרת עדיין פניות למערכת</p>
                         </div>
                     ) : (
-                        <div className="divide-y divide-slate-100">
-                            {requests.map((request) => {
+                        <div className="divide-y divide-slate-100 animate-fadeIn">
+                            {requests.map((request, index) => {
                                 const statusDisplay = getStatusDisplay(request.status);
                                 const StatusIcon = statusDisplay.icon;
 
                                 return (
-                                    <div key={request._id} className="p-6 hover:bg-slate-50 transition-all duration-200">
+                                    <div 
+                                        key={request._id} 
+                                        className="p-6 hover:bg-slate-50 transition-all duration-200 animate-fadeIn"
+                                        style={{ animationDelay: `${index * 0.1}s` }}
+                                    >
                                         <div className="flex items-start justify-between">
                                             <div className="flex-1">
                                                 <div className="flex items-center mb-3">
@@ -413,7 +440,7 @@ const MyContactRequests = ({ user }) => {
                                     </div>
                                     <div className="flex-1">
                                         <div className="flex items-center mb-2">
-                                            <span className="font-semibold text-slate-800">{user?.fullName || 'אתה'}</span>
+                                            <span className="font-semibold text-slate-800">{user?.fullName || 'את/ה'}</span>
                                             <span className="text-slate-500 text-sm mr-2">•</span>
                                             <span className="text-slate-500 text-sm">{formatDate(selectedRequest.createdAt)}</span>
                                         </div>
@@ -560,10 +587,10 @@ const MyContactRequests = ({ user }) => {
                                 </button>
                                 <button
                                     onClick={handleEditSubmit}
-                                    disabled={loading}
+                                    disabled={saving}
                                     className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center shadow-lg"
                                 >
-                                    {loading ? (
+                                    {saving ? (
                                         <>
                                             <Loader2 className="w-4 h-4 animate-spin ml-2" />
                                             שומר...
@@ -621,10 +648,10 @@ const MyContactRequests = ({ user }) => {
                                 </button>
                                 <button
                                     onClick={() => handleDelete(showDeleteConfirm)}
-                                    disabled={loading}
+                                    disabled={deleting}
                                     className="px-6 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center shadow-lg"
                                 >
-                                    {loading ? (
+                                    {deleting ? (
                                         <>
                                             <Loader2 className="w-4 h-4 animate-spin ml-2" />
                                             מוחק...

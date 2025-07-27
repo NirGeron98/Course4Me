@@ -121,7 +121,6 @@ const TrackedLecturers = () => {
         
         // If we have a lecturer ID, fetch the specific lecturer's updated data
         if (lecturerId) {
-          console.log(`Updating lecturer data for ID: ${lecturerId}`);
           
           const token = localStorage.getItem("token");
           
@@ -134,11 +133,7 @@ const TrackedLecturers = () => {
           // Now update the specific lecturer in our tracked list
           if (lecturerRes.status === 200) {
             const updatedLecturerData = lecturerRes.data;
-            
-            console.log("Got updated lecturer data:", updatedLecturerData.name, 
-                        "Avg Rating:", updatedLecturerData.averageRating, 
-                        "Ratings Count:", updatedLecturerData.ratingsCount);
-            
+
             // Update in the state
             setTrackedLecturers(prev => prev.map(item => {
               if (item.lecturer && item.lecturer._id === lecturerId) {
@@ -186,16 +181,12 @@ const TrackedLecturers = () => {
     // Handle specific lecturer data updates directly
     const handleLecturerDataUpdated = (event) => {
       if (event.detail && event.detail.lecturerId && event.detail.data) {
-        console.log("Direct lecturer data update received for:", event.detail.data.name);
-        console.log("Updated ratings count:", event.detail.data.ratingsCount);
-        console.log("Updated average rating:", event.detail.data.averageRating);
-        
+
         // For review deletions, we need to be extra careful to update completely
         const isReviewDeleted = event.detail.action === 'reviewDeleted';
         
         if (isReviewDeleted) {
           // Force a full refresh instead of just updating the cache
-          console.log("Review deletion detected - forcing full refresh");
           fetchTrackedLecturers(true);
           return;
         }
