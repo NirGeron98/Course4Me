@@ -63,6 +63,7 @@ const AdvancedSearch = ({ user }) => {
   const [lecturers, setLecturers] = useState([]);
   const [institutions, setInstitutions] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const [filtersLoading, setFiltersLoading] = useState(true);
 
   // Set page title
   useEffect(() => {
@@ -76,10 +77,52 @@ const AdvancedSearch = ({ user }) => {
   // Fetch filter options on component mount
   useEffect(() => {
     const fetchFilterOptions = async () => {
+      setFiltersLoading(true);
       try {
         const token = localStorage.getItem("token");
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
+        // Try to load from cache first
+        const cachedDepartments = localStorage.getItem('advanced_search_departments');
+        const cachedLecturers = localStorage.getItem('advanced_search_lecturers');
+        const cachedInstitutions = localStorage.getItem('advanced_search_institutions');
+
+        if (cachedDepartments && cachedLecturers && cachedInstitutions) {
+          try {
+            const departmentsData = JSON.parse(cachedDepartments);
+            const lecturersData = JSON.parse(cachedLecturers);
+            const institutionsData = JSON.parse(cachedInstitutions);
+
+            // Check if cache is still valid (less than 30 minutes old)
+            const now = Date.now();
+            const cacheAge = 30 * 60 * 1000; // 30 minutes
+
+            if (now - departmentsData.timestamp < cacheAge) {
+              setDepartments(departmentsData.data);
+              setLecturers(lecturersData.data);
+              setInstitutions(institutionsData.data);
+              setFiltersLoading(false);
+              
+              // Optionally fetch fresh data in background
+              setTimeout(() => fetchFreshFilterData(headers), 100);
+              return;
+            }
+          } catch (error) {
+            console.log('Cache corrupted, fetching fresh data');
+          }
+        }
+
+        // No valid cache, fetch fresh data
+        await fetchFreshFilterData(headers);
+
+      } catch (error) {
+        console.error('Error fetching filter options:', error);
+        setFiltersLoading(false);
+      }
+    };
+
+    const fetchFreshFilterData = async (headers) => {
+      try {
         // Fetch departments from the separate departments model instead of extracting from courses/lecturers
         const [departmentsRes, lecturersRes, coursesRes] = await Promise.all([
           axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/departments`, { headers }),
@@ -98,8 +141,17 @@ const AdvancedSearch = ({ user }) => {
         setDepartments(allDepts);
         setLecturers(lecturersRes.data);
         setInstitutions(allInsts);
+
+        // Save to cache
+        const timestamp = Date.now();
+        localStorage.setItem('advanced_search_departments', JSON.stringify({ data: allDepts, timestamp }));
+        localStorage.setItem('advanced_search_lecturers', JSON.stringify({ data: lecturersRes.data, timestamp }));
+        localStorage.setItem('advanced_search_institutions', JSON.stringify({ data: allInsts, timestamp }));
+
+        setFiltersLoading(false);
       } catch (error) {
-        console.error('Error fetching filter options:', error);
+        console.error('Error fetching fresh filter data:', error);
+        setFiltersLoading(false);
       }
     };
 
@@ -373,17 +425,28 @@ const AdvancedSearch = ({ user }) => {
 
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
         {/* Filters Section */}
-        <SearchFilters
-          searchType={searchType}
-          filters={filters}
-          onFilterChange={handleFilterChange}
-          onClearFilters={clearFilters}
-          onSearch={performSearch}
-          loading={loading}
-          departments={departments}
-          institutions={institutions}
-          lecturers={lecturers}
-        />
+        {filtersLoading ? (
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+            <div className="flex items-center justify-center py-8">
+              <div className="flex items-center gap-3">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                <span className="text-gray-600">טוען פילטרי חיפוש...</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <SearchFilters
+            searchType={searchType}
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            onClearFilters={clearFilters}
+            onSearch={performSearch}
+            loading={loading}
+            departments={departments}
+            institutions={institutions}
+            lecturers={lecturers}
+          />
+        )}
 
         {/* Results Section */}
         <SearchResults
