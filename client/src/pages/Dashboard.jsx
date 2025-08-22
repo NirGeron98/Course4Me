@@ -16,6 +16,7 @@ const Dashboard = () => {
   const [trackedCourses, setTrackedCourses] = useState([]);
   const [allCourses, setAllCourses] = useState([]);
   const [lecturers, setLecturers] = useState([]);
+  const [trackedLecturers, setTrackedLecturers] = useState([]);
   const [userName, setUserName] = useState("");
   const [stats, setStats] = useState({
     coursesCount: 0,
@@ -47,10 +48,16 @@ const Dashboard = () => {
         setIsSecondaryLoading(true);
       }
 
-      // Load critical data first (tracked courses and stats)
-      const trackedRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-courses`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+
+      // Load tracked courses and tracked lecturers in parallel
+      const [trackedRes, trackedLecturersRes] = await Promise.all([
+        axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-courses`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-lecturers`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+      ]);
 
       // Load other data in parallel
       const [coursesRes, lecturersRes] = await Promise.all([
@@ -100,11 +107,13 @@ const Dashboard = () => {
         contactRequestsCount: contactRequestsCount
       };
 
-      // Update state
-      setTrackedCourses(trackedRes.data);
-      setAllCourses(coursesRes.data);
-      setLecturers(lecturersRes.data);
-      setStats(newStats);
+
+  // Update state
+  setTrackedCourses(trackedRes.data);
+  setTrackedLecturers(trackedLecturersRes.data || []);
+  setAllCourses(coursesRes.data);
+  setLecturers(lecturersRes.data);
+  setStats(newStats);
 
       // Save to cache using cache manager
       dashboardCache.saveToCache(CACHE_KEYS.TRACKED_COURSES, trackedRes.data);
@@ -371,7 +380,7 @@ const Dashboard = () => {
       <div className="max-w-6xl mx-auto p-6 space-y-8">
         <StatsCards
           coursesCount={stats.coursesCount}
-          reviewsCount={stats.reviewsCount}
+          trackedLecturersCount={trackedLecturers.length}
           refreshData={refreshData}
           isLoadedFromCache={isLoadedFromCache}
           allCoursesCount={allCourses.length}

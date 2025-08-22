@@ -4,7 +4,7 @@ import { BookOpen, MessageSquare, TrendingUp, Users, HelpCircle } from 'lucide-r
 
 const StatsCards = ({ 
   coursesCount, 
-  reviewsCount,
+  trackedLecturersCount,
   refreshData,
   isLoadedFromCache = false,
   allCoursesCount, 
@@ -86,18 +86,19 @@ const StatsCards = ({
         </div>
       </div>
 
-      {/* My Reviews */}
+
+      {/* My Lecturers */}
       <div
-        onClick={() => navigate('/my-reviews')}
-        className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow cursor-pointer"
+        onClick={() => navigate('/tracked-lecturers')}
+        className="bg-white rounded-2xl p-4 shadow-lg border border-purple-100 hover:shadow-xl transition-shadow cursor-pointer"
       >
         <div className="flex flex-col items-center text-center gap-3">
-          <div className="bg-gray-100 rounded-full p-3">
-            <MessageSquare className="w-6 h-6 text-gray-600" />
+          <div className="bg-purple-100 rounded-full p-3">
+            <Users className="w-6 h-6 text-purple-600" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-800">{reviewsCount}</h3>
-            <p className="text-sm text-gray-600">הביקורות שלי</p>
+            <h3 className="text-xl font-bold text-gray-800">{trackedLecturersCount}</h3>
+            <p className="text-sm text-gray-600">המרצים שלי</p>
           </div>
         </div>
       </div>
