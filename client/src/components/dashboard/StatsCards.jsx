@@ -100,7 +100,7 @@ const StatsCards = ({
 
       {/* My Lecturers */}
       <div
-        onClick={() => navigate('/tracked-lecturers')}
+        onClick={() => navigate('/lecturers')}
         className="bg-white rounded-2xl p-4 shadow-lg border border-purple-100 hover:shadow-xl transition-shadow cursor-pointer"
       >
         <div className="flex flex-col items-center text-center gap-3">

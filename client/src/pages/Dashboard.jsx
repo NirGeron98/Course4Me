@@ -475,7 +475,7 @@ const Dashboard = () => {
       <div className="max-w-6xl mx-auto p-6 space-y-8">
         <StatsCards
           coursesCount={stats.coursesCount}
-          trackedLecturersCount={trackedLecturers.length}
+          trackedLecturersCount={trackedLecturers.filter(({ lecturer }) => lecturer).length}
           contactRequestsCount={stats.contactRequestsCount}
           refreshData={refreshData}
           isLoadedFromCache={isLoadedFromCache}
