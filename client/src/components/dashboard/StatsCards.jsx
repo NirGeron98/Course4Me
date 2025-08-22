@@ -5,11 +5,11 @@ import { BookOpen, MessageSquare, TrendingUp, Users, HelpCircle } from 'lucide-r
 const StatsCards = ({ 
   coursesCount, 
   trackedLecturersCount,
+  contactRequestsCount,
   refreshData,
   isLoadedFromCache = false,
   allCoursesCount, 
-  lecturersCount,
-  contactRequestsCount = 0
+  lecturersCount
 }) => {
   const navigate = useNavigate();
   const [showCacheMessage, setShowCacheMessage] = useState(isLoadedFromCache);
@@ -31,8 +31,15 @@ const StatsCards = ({
       }
     };
 
-    const handleReviewChanged = () => {
-      // When a review is added/updated/deleted, refresh stats data
+    const handleTrackedLecturerChanged = () => {
+      // When a lecturer is added/removed from tracking, refresh stats data
+      if (refreshData) {
+        refreshData();
+      }
+    };
+
+    const handleContactRequestChanged = () => {
+      // When a contact request is added/updated/deleted, refresh stats data
       if (refreshData) {
         refreshData();
       }
@@ -41,8 +48,8 @@ const StatsCards = ({
     // Listen for localStorage changes from other tabs
     const handleStorageChange = (event) => {
       if (event.key === 'trackedCourseChanged' || 
-          event.key === 'reviewAdded' || 
-          event.key === 'reviewUpdated') {
+          event.key === 'trackedLecturerChanged' ||
+          event.key === 'contactRequestChanged') {
         // Changes that should trigger stats update
         if (refreshData) {
           refreshData();
@@ -53,16 +60,20 @@ const StatsCards = ({
     // Add event listeners
     window.addEventListener('trackedCourseAdded', handleTrackedCourseChanged);
     window.addEventListener('trackedCourseRemoved', handleTrackedCourseChanged);
-    window.addEventListener('reviewAdded', handleReviewChanged);
-    window.addEventListener('reviewUpdated', handleReviewChanged);
+    window.addEventListener('trackedLecturerAdded', handleTrackedLecturerChanged);
+    window.addEventListener('trackedLecturerRemoved', handleTrackedLecturerChanged);
+    window.addEventListener('contactRequestAdded', handleContactRequestChanged);
+    window.addEventListener('contactRequestUpdated', handleContactRequestChanged);
     window.addEventListener('storage', handleStorageChange);
 
     // Clean up event listeners on unmount
     return () => {
       window.removeEventListener('trackedCourseAdded', handleTrackedCourseChanged);
       window.removeEventListener('trackedCourseRemoved', handleTrackedCourseChanged);
-      window.removeEventListener('reviewAdded', handleReviewChanged);
-      window.removeEventListener('reviewUpdated', handleReviewChanged);
+      window.removeEventListener('trackedLecturerAdded', handleTrackedLecturerChanged);
+      window.removeEventListener('trackedLecturerRemoved', handleTrackedLecturerChanged);
+      window.removeEventListener('contactRequestAdded', handleContactRequestChanged);
+      window.removeEventListener('contactRequestUpdated', handleContactRequestChanged);
       window.removeEventListener('storage', handleStorageChange);
     };
   }, [refreshData]);

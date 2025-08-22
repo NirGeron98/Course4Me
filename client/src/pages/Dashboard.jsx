@@ -117,6 +117,7 @@ const Dashboard = () => {
 
       // Save to cache using cache manager
       dashboardCache.saveToCache(CACHE_KEYS.TRACKED_COURSES, trackedRes.data);
+      dashboardCache.saveToCache('tracked_lecturers', trackedLecturersRes.data || []);
       dashboardCache.saveToCache(CACHE_KEYS.ALL_COURSES, coursesRes.data);
       dashboardCache.saveToCache(CACHE_KEYS.LECTURERS, lecturersRes.data);
       dashboardCache.saveToCache(CACHE_KEYS.STATS, newStats);
@@ -213,16 +214,60 @@ const Dashboard = () => {
         const userFullName = localStorage.getItem("userFullName") || "User";
         setUserName(userFullName);
 
+        // Try to load from preloaded cache first
+        const trackedCoursesCache = localStorage.getItem('tracked_courses_data');
+        const trackedLecturersCache = localStorage.getItem('tracked_lecturers_data');
+        const contactRequestsCache = localStorage.getItem('contact_requests_data');
+        
+        if (trackedCoursesCache && trackedLecturersCache) {
+          try {
+            const trackedCoursesData = JSON.parse(trackedCoursesCache);
+            const trackedLecturersData = JSON.parse(trackedLecturersCache);
+            const contactRequestsData = contactRequestsCache ? JSON.parse(contactRequestsCache) : { contactRequests: [] };
+            
+            // Check if cache is still valid (less than 10 minutes old)
+            const now = Date.now();
+            const cacheAge = 10 * 60 * 1000; // 10 minutes
+            
+            if (now - trackedCoursesData.timestamp < cacheAge && 
+                now - trackedLecturersData.timestamp < cacheAge) {
+              
+              setTrackedCourses(trackedCoursesData.trackedCourses || []);
+              setTrackedLecturers(trackedLecturersData.trackedLecturers || []);
+              
+              const stats = {
+                coursesCount: (trackedCoursesData.trackedCourses || []).length,
+                contactRequestsCount: (contactRequestsData.contactRequests || []).length
+              };
+              setStats(stats);
+              
+              setIsLoading(false);
+              setIsLoadedFromCache(true);
+              
+              // Hide cache message after 2 seconds
+              setTimeout(() => setIsLoadedFromCache(false), 2000);
+              
+              // Load other data in background if needed
+              setTimeout(() => loadAdditionalData(token, userId), 100);
+              return;
+            }
+          } catch (error) {
+            console.log('Error loading from preloaded cache, falling back to regular cache');
+          }
+        }
+
         // Check if we have valid cached data using cache manager
         if (dashboardCache.isCacheValid(CACHE_KEYS.TRACKED_COURSES)) {
           const cachedTrackedCourses = dashboardCache.getFromCache(CACHE_KEYS.TRACKED_COURSES);
+          const cachedTrackedLecturers = dashboardCache.getFromCache('tracked_lecturers');
           const cachedAllCourses = dashboardCache.getFromCache(CACHE_KEYS.ALL_COURSES);
           const cachedLecturers = dashboardCache.getFromCache(CACHE_KEYS.LECTURERS);
           const cachedStats = dashboardCache.getFromCache(CACHE_KEYS.STATS);
 
-          if (cachedTrackedCourses && cachedAllCourses && cachedLecturers && cachedStats) {
+          if (cachedTrackedCourses && cachedTrackedLecturers && cachedAllCourses && cachedLecturers && cachedStats) {
             // Load from cache immediately
             setTrackedCourses(cachedTrackedCourses);
+            setTrackedLecturers(cachedTrackedLecturers);
             setAllCourses(cachedAllCourses);
             setLecturers(cachedLecturers);
             setStats(cachedStats);
@@ -243,6 +288,34 @@ const Dashboard = () => {
         
       } catch (error) {
         setIsLoading(false);
+      }
+    };
+
+    const loadAdditionalData = async (token, userId) => {
+      try {
+        // Load additional data like all courses and lecturers if not cached
+        if (!dashboardCache.isCacheValid(CACHE_KEYS.ALL_COURSES)) {
+          const [coursesRes, lecturersRes] = await Promise.all([
+            axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/courses`),
+            axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/lecturers`)
+          ]);
+          
+          setAllCourses(coursesRes.data);
+          setLecturers(lecturersRes.data);
+          
+          // Save to cache
+          dashboardCache.saveToCache(CACHE_KEYS.ALL_COURSES, coursesRes.data);
+          dashboardCache.saveToCache(CACHE_KEYS.LECTURERS, lecturersRes.data);
+        } else {
+          // Load from cache
+          const cachedAllCourses = dashboardCache.getFromCache(CACHE_KEYS.ALL_COURSES);
+          const cachedLecturers = dashboardCache.getFromCache(CACHE_KEYS.LECTURERS);
+          
+          if (cachedAllCourses) setAllCourses(cachedAllCourses);
+          if (cachedLecturers) setLecturers(cachedLecturers);
+        }
+      } catch (error) {
+        console.log('Error loading additional data:', error);
       }
     };
 
@@ -269,6 +342,24 @@ const Dashboard = () => {
       }
     };
 
+    const handleTrackedLecturerAdded = () => {
+      // Refresh data if a lecturer was added
+      const token = localStorage.getItem("token");
+      const userId = localStorage.getItem("userId");
+      if (token && userId) {
+        fetchFreshData(token, userId, true);
+      }
+    };
+
+    const handleTrackedLecturerRemoved = () => {
+      // Refresh data if a lecturer was removed
+      const token = localStorage.getItem("token");
+      const userId = localStorage.getItem("userId");
+      if (token && userId) {
+        fetchFreshData(token, userId, true);
+      }
+    };
+
     // האזנה לאירוע טעינה מקדימה של קורסים במעקב
     const handleTrackedCoursesPreloaded = () => {
       // אם המטמון תקף, נטען מחדש את הנתונים
@@ -282,8 +373,8 @@ const Dashboard = () => {
 
     // Listen for localStorage changes from other tabs
     const handleStorageChange = (event) => {
-      if (event.key === 'trackedCourseChanged') {
-        // A tracked course was changed in another tab
+      if (event.key === 'trackedCourseChanged' || event.key === 'trackedLecturerChanged') {
+        // A tracked course or lecturer was changed in another tab
         const token = localStorage.getItem("token");
         const userId = localStorage.getItem("userId");
         if (token && userId) {
@@ -295,6 +386,8 @@ const Dashboard = () => {
     // Add event listeners
     window.addEventListener('trackedCourseAdded', handleTrackedCourseAdded);
     window.addEventListener('trackedCourseRemoved', handleTrackedCourseRemoved);
+    window.addEventListener('trackedLecturerAdded', handleTrackedLecturerAdded);
+    window.addEventListener('trackedLecturerRemoved', handleTrackedLecturerRemoved);
     window.addEventListener('trackedCoursesPreloaded', handleTrackedCoursesPreloaded);
     window.addEventListener('storage', handleStorageChange);
 
@@ -302,6 +395,8 @@ const Dashboard = () => {
     return () => {
       window.removeEventListener('trackedCourseAdded', handleTrackedCourseAdded);
       window.removeEventListener('trackedCourseRemoved', handleTrackedCourseRemoved);
+      window.removeEventListener('trackedLecturerAdded', handleTrackedLecturerAdded);
+      window.removeEventListener('trackedLecturerRemoved', handleTrackedLecturerRemoved);
       window.removeEventListener('trackedCoursesPreloaded', handleTrackedCoursesPreloaded);
       window.removeEventListener('storage', handleStorageChange);
     };
@@ -381,11 +476,11 @@ const Dashboard = () => {
         <StatsCards
           coursesCount={stats.coursesCount}
           trackedLecturersCount={trackedLecturers.length}
+          contactRequestsCount={stats.contactRequestsCount}
           refreshData={refreshData}
           isLoadedFromCache={isLoadedFromCache}
           allCoursesCount={allCourses.length}
           lecturersCount={lecturers.length}
-          contactRequestsCount={stats.contactRequestsCount}
         />
         <TrackedCoursesList
           trackedCourses={trackedCourses}

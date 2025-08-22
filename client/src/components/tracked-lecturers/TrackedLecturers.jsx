@@ -59,6 +59,23 @@ const TrackedLecturers = () => {
       setTrackedLecturers(prevLecturers =>
         prevLecturers.filter(({ lecturer }) => lecturer && lecturer._id !== lecturerId)
       );
+
+      // Clear cache to force refresh on next load
+      clearCache();
+
+      // Notify other tabs/components about tracked lecturer removal
+      const trackingEvent = new CustomEvent('trackedLecturerRemoved', {
+        detail: { lecturerId, timestamp: Date.now() }
+      });
+      window.dispatchEvent(trackingEvent);
+
+      // Update localStorage for cross-tab synchronization
+      localStorage.setItem('trackedLecturerChanged', JSON.stringify({
+        lecturerId,
+        action: 'removed',
+        timestamp: Date.now()
+      }));
+
     } catch (err) {
       console.error("Failed to remove lecturer from tracking:", err);
     }
