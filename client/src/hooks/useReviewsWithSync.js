@@ -71,7 +71,7 @@ export const useReviewsWithSync = (courseId, token) => {
     } finally {
       setReviewsLoading(false);
     }
-  }, [courseId, token, updateCourseData]);
+  }, [courseId, token, updateCourseData, triggerCourseRefresh]);
 
   useEffect(() => {
     if (courseId && token) {

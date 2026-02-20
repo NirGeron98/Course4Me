@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { MessageCircle, Star, Plus, Loader2, User, Filter, SortAsc, Shield } from 'lucide-react';
 import ReviewFormModal from './CourseReviewFormModal';
 import ExistingReviewModal from '../common/ExistingReviewModal';
@@ -30,7 +30,7 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm, o
         return review.user?.fullName || 'משתמש אנונימי';
     };
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
             const courseResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/courses/${courseId}`, {
                 headers: {
@@ -76,11 +76,11 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm, o
         } finally {
             setLoading(false);
         }
-    };
+    }, [courseId, user.token]);
 
     useEffect(() => {
         fetchData();
-    }, [courseId, user.token]);
+    }, [fetchData]);
 
     const checkForExistingReview = () => {
         if (!user?.user) return null;

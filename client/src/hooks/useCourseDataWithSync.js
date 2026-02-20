@@ -71,7 +71,7 @@ export const useCourseDataWithSync = (
     if (!hasLoadedFromCache) {
       fetchCourse();
     }
-  }, [identifier, identifierType, fetchCourse]);
+  }, [identifier, identifierType, fetchCourse, getCourseData]);
 
   // Re-fetch on refresh trigger
   const refreshTrigger = getRefreshTrigger(courseId);

@@ -39,6 +39,26 @@ code {
   }
 }
 
+@keyframes modalEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes backdropEnter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .animate-fadeIn {
   animation: fadeIn 0.5s ease forwards;
 }
@@ -46,6 +66,16 @@ code {
 .animate-slideInRight {
   animation: slideInRight 0.5s ease forwards;
 }
+
+.animate-modalEnter {
+  animation: modalEnter 0.2s ease-out forwards;
+}
+
+.animate-backdropEnter {
+  animation: backdropEnter 0.2s ease-out forwards;
+}
+
+/* Accessibility: consistent focus ring (use .focus-ring in JSX with Tailwind) */
 
 /* Responsive utilities */
 .line-clamp-2 {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart3, Heart, Brain, Clock, Zap, Award, ThumbsUp } from 'lucide-react';
+import { BarChart3, Heart, Brain, Clock, Award, ThumbsUp } from 'lucide-react';
 
 const CourseStatisticsCard = ({ stats }) => {
     const colors = {

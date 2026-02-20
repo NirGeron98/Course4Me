@@ -5,7 +5,41 @@ import AddCoursePopup from "../components/tracked-courses/AddCoursePopup";
 import TrackedCourseCard from "../components/tracked-courses/TrackedCourseCard";
 import CourseDetailsModal from "../components/tracked-courses/CourseDetailsModal";
 import { useCourseDataContext } from "../contexts/CourseDataContext";
-import ElegantLoadingSpinner from '../components/common/ElegantLoadingSpinner';
+import { SkeletonCardGrid } from '../components/common/Skeleton';
+
+const CACHE_KEY = 'tracked_courses_data';
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+function isTrackedCoursesCacheValid() {
+  const cacheData = localStorage.getItem(CACHE_KEY);
+  if (!cacheData) return false;
+  try {
+    const { timestamp } = JSON.parse(cacheData);
+    return Date.now() - timestamp < CACHE_DURATION;
+  } catch {
+    return false;
+  }
+}
+
+function getTrackedCoursesFromCache() {
+  try {
+    const cacheData = localStorage.getItem(CACHE_KEY);
+    if (!cacheData) return null;
+    const { trackedCourses } = JSON.parse(cacheData);
+    return trackedCourses;
+  } catch {
+    localStorage.removeItem(CACHE_KEY);
+    return null;
+  }
+}
+
+function saveTrackedCoursesToCache(data) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ trackedCourses: data, timestamp: Date.now() }));
+  } catch (error) {
+    console.error('שגיאה בשמירת נתונים במטמון:', error);
+  }
+}
 
 const TrackedCourses = () => {
   const [trackedCourses, setTrackedCourses] = useState([]);
@@ -14,49 +48,6 @@ const TrackedCourses = () => {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { fetchCourseStats } = useCourseDataContext();
-
-  // Cache configuration
-  const CACHE_KEY = 'tracked_courses_data';
-  const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
-  // Cache helper functions
-  const isCacheValid = () => {
-    const cacheData = localStorage.getItem(CACHE_KEY);
-    if (!cacheData) return false;
-    
-    const { timestamp } = JSON.parse(cacheData);
-    return Date.now() - timestamp < CACHE_DURATION;
-  };
-
-  const saveToCache = (data) => {
-    try {
-      const cacheData = {
-        trackedCourses: data,
-        timestamp: Date.now()
-      };
-      localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
-    } catch (error) {
-      // Storage full or disabled, ignore
-      console.error('שגיאה בשמירת נתונים במטמון:', error);
-    }
-  };
-
-  const getFromCache = () => {
-    try {
-      const cacheData = localStorage.getItem(CACHE_KEY);
-      if (!cacheData) return null;
-      
-      const { trackedCourses } = JSON.parse(cacheData);
-      return trackedCourses;
-    } catch (error) {
-      localStorage.removeItem(CACHE_KEY);
-      return null;
-    }
-  };
-
-  const clearCache = () => {
-    localStorage.removeItem(CACHE_KEY);
-  };
 
   // Set page title
   useEffect(() => {
@@ -79,12 +70,10 @@ const TrackedCourses = () => {
   }, [trackedCourses, fetchCourseStats]);
 
 
-  // Fetch tracked courses from API with cache support
   const fetchTrackedCourses = useCallback(async (forceRefresh = false) => {
     try {
-      // Check cache first unless force refresh is requested
-      if (!forceRefresh && isCacheValid()) {
-        const cachedData = getFromCache();
+      if (!forceRefresh && isTrackedCoursesCacheValid()) {
+        const cachedData = getTrackedCoursesFromCache();
         if (cachedData && Array.isArray(cachedData)) {
           setTrackedCourses(cachedData);
           setIsLoading(false);
@@ -97,13 +86,9 @@ const TrackedCourses = () => {
       const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-courses`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
-      // Filter out any tracked courses with null/undefined course objects
       const validTrackedCourses = res.data.filter(({ course }) => course && course._id);
       setTrackedCourses(validTrackedCourses);
-      
-      // Save to cache
-      saveToCache(validTrackedCourses);
+      saveTrackedCoursesToCache(validTrackedCourses);
     } catch (err) {
       console.error("Failed to fetch tracked courses:", err);
     } finally {
@@ -128,10 +113,8 @@ const TrackedCourses = () => {
       fetchTrackedCourses(true);
     };
 
-    // האזנה לאירוע טעינה מקדימה של קורסים במעקב
     const handleTrackedCoursesPreloaded = () => {
-      // בדיקה אם המטמון תקף לפני רענון הנתונים
-      if (isCacheValid()) {
+      if (isTrackedCoursesCacheValid()) {
         fetchTrackedCourses();
       }
     };
@@ -160,7 +143,7 @@ const TrackedCourses = () => {
       window.removeEventListener('trackedCoursesPreloaded', handleTrackedCoursesPreloaded);
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, []);
+  }, [fetchTrackedCourses]);
 
   // Popup handlers
   const openPopup = () => setIsPopupOpen(true);
@@ -185,8 +168,7 @@ const TrackedCourses = () => {
       const updatedCourses = trackedCourses.filter(({ course }) => course._id !== courseId);
       setTrackedCourses(updatedCourses);
       
-      // Update cache with the new list
-      saveToCache(updatedCourses);
+      saveTrackedCoursesToCache(updatedCourses);
 
       // Notify other tabs/components about tracked course removal
       const trackingEvent = new CustomEvent('trackedCourseRemoved', {
@@ -241,8 +223,10 @@ const TrackedCourses = () => {
 
         {/* Add Course Button - positioned at top left */}
         <button
+          type="button"
           onClick={openPopup}
-          className="absolute top-4 left-4 bg-white text-emerald-600 hover:text-emerald-700 py-2.5 px-5 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 group text-sm border-2 border-white hover:bg-gray-50"
+          className="absolute top-4 left-4 bg-white text-emerald-600 hover:text-emerald-700 py-2.5 px-5 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2 group text-sm border-2 border-white hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white focus-visible:ring-offset-emerald-600"
+          aria-label="הוספת קורס"
         >
           <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
           <span className="hidden sm:inline">הוספת קורס</span>
@@ -272,9 +256,12 @@ const TrackedCourses = () => {
 
       {/* Main content area */}
       <div className="max-w-7xl mx-auto p-6 pb-12">
-        {/* Loading spinner and message */}
+        {/* Loading: skeleton grid to avoid layout shift */}
         {isLoading ? (
-          <ElegantLoadingSpinner message="טוען קורסים..." />
+          <div className="mt-8">
+            <div className="h-7 w-48 rounded bg-gray-200 animate-pulse mb-6" aria-hidden="true" />
+            <SkeletonCardGrid count={6} />
+          </div>
         ) : (
           <>
             {/* Empty state - shown when no courses or all courses are null */}

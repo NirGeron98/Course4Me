@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { Building, Trash2, Edit, Save, Plus, X } from "lucide-react";
 
@@ -13,18 +13,18 @@ const DepartmentManagement = ({ onMessage, onError }) => {
   const [editId, setEditId] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetchDepartments();
-  }, []);
-
-  const fetchDepartments = async () => {
+  const fetchDepartments = useCallback(async () => {
     try {
       const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/departments`);
       setDepartments(res.data);
     } catch (err) {
       onError("שגיאה בטעינת המחלקות");
     }
-  };
+  }, [onError]);
+
+  useEffect(() => {
+    fetchDepartments();
+  }, [fetchDepartments]);
 
   const resetForm = () => {
     setFormData({ name: "", code: "", description: "" });

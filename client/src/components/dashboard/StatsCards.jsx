@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, MessageSquare, TrendingUp, Users, HelpCircle } from 'lucide-react';
+import { BookOpen, TrendingUp, Users, HelpCircle } from 'lucide-react';
 
 const StatsCards = ({ 
   coursesCount, 
@@ -12,15 +12,6 @@ const StatsCards = ({
   lecturersCount
 }) => {
   const navigate = useNavigate();
-  const [showCacheMessage, setShowCacheMessage] = useState(isLoadedFromCache);
-
-  useEffect(() => {
-    setShowCacheMessage(isLoadedFromCache);
-    if (isLoadedFromCache) {
-      const timer = setTimeout(() => setShowCacheMessage(false), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [isLoadedFromCache]);
 
   // Listen for changes to tracked courses or reviews that should update stats
   useEffect(() => {
@@ -83,8 +74,11 @@ const StatsCards = ({
       
       {/* Tracked Courses */}
       <div
+        role="button"
+        tabIndex={0}
         onClick={() => navigate('/tracked-courses')}
-        className="bg-white rounded-2xl p-4 shadow-lg border border-emerald-100 hover:shadow-xl transition-shadow cursor-pointer"
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/tracked-courses'); } }}
+        className="bg-white rounded-2xl p-4 shadow-card border border-emerald-100 hover:shadow-card-hover transition-shadow duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
       >
         <div className="flex flex-col items-center text-center gap-3">
           <div className="bg-emerald-100 rounded-full p-3">
@@ -100,8 +94,11 @@ const StatsCards = ({
 
       {/* My Lecturers */}
       <div
+        role="button"
+        tabIndex={0}
         onClick={() => navigate('/lecturers')}
-        className="bg-white rounded-2xl p-4 shadow-lg border border-purple-100 hover:shadow-xl transition-shadow cursor-pointer"
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/lecturers'); } }}
+        className="bg-white rounded-2xl p-4 shadow-card border border-purple-100 hover:shadow-card-hover transition-shadow duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
       >
         <div className="flex flex-col items-center text-center gap-3">
           <div className="bg-purple-100 rounded-full p-3">
@@ -116,8 +113,11 @@ const StatsCards = ({
 
       {/* My Contact Requests */}
       <div
+        role="button"
+        tabIndex={0}
         onClick={() => navigate('/my-contact-requests')}
-        className="bg-white rounded-2xl p-4 shadow-lg border border-orange-100 hover:shadow-xl transition-shadow cursor-pointer"
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/my-contact-requests'); } }}
+        className="bg-white rounded-2xl p-4 shadow-card border border-orange-100 hover:shadow-card-hover transition-shadow duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
       >
         <div className="flex flex-col items-center text-center gap-3">
           <div className="bg-orange-100 rounded-full p-3">
@@ -131,7 +131,7 @@ const StatsCards = ({
       </div>
 
       {/* Total Courses */}
-      <div className="bg-white rounded-2xl p-4 shadow-lg border border-blue-100 hover:shadow-xl transition-shadow">
+      <div className="bg-white rounded-2xl p-4 shadow-card border border-blue-100 transition-shadow duration-200">
         <div className="flex flex-col items-center text-center gap-3">
           <div className="bg-blue-100 rounded-full p-3">
             <TrendingUp className="w-6 h-6 text-blue-600" />
@@ -144,7 +144,7 @@ const StatsCards = ({
       </div>
 
       {/* Total Lecturers */}
-      <div className="bg-white rounded-2xl p-4 shadow-lg border border-purple-100 hover:shadow-xl transition-shadow">
+      <div className="bg-white rounded-2xl p-4 shadow-card border border-purple-100 transition-shadow duration-200">
         <div className="flex flex-col items-center text-center gap-3">
           <div className="bg-purple-100 rounded-full p-3">
             <Users className="w-6 h-6 text-purple-600" />

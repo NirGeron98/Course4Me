@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Hourglass, Star, BookOpen, BookMarked, Loader2, UserCheck } from "lucide-react";
+import { Star, BookMarked, Loader2 } from "lucide-react";
 
 // Elegant loading spinner component
 const ElegantLoadingSpinner = ({ message = "טוען...", size = "large" }) => {

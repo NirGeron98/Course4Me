@@ -119,7 +119,7 @@ const CourseReviewFormModal = ({
         };
 
         fetchData();
-    }, [courseId, user.token]);
+    }, [courseId, user.token, existingReview]);
 
     const handleLecturersChange = (selectedOptions) => {
         const selectedLecturerIds = selectedOptions ? selectedOptions.map(option => option.value) : [];

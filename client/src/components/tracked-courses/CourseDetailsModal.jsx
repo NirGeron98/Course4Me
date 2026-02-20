@@ -53,17 +53,21 @@ const CourseDetailsModal = ({ course, onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-backdropEnter"
       onClick={handleBackdropClick}
       dir="rtl"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="course-modal-title"
     >
-      <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden relative transform transition-all duration-300 scale-100 flex flex-col">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden relative flex flex-col animate-modalEnter">
 
         {/* Elegant Header with integrated info */}
         <div className="bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 p-6 relative flex-shrink-0">
           <button
+            type="button"
             onClick={onClose}
-            className="absolute top-4 left-4 text-white hover:text-emerald-200 transition-all duration-200 bg-white/20 rounded-full p-2 hover:bg-white/30 hover:scale-110"
+            className="absolute top-4 left-4 text-white hover:text-emerald-200 transition-all duration-200 bg-white/20 rounded-full p-2 hover:bg-white/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-600"
             aria-label="סגור"
           >
             <X className="w-5 h-5" />
@@ -75,7 +79,7 @@ const CourseDetailsModal = ({ course, onClose }) => {
               <div className="bg-white/25 rounded-2xl p-2 flex-shrink-0">
                 <BookOpen className="w-6 h-6 text-white" />
               </div>
-              <h2 className="text-2xl lg:text-3xl font-bold text-white leading-tight">
+              <h2 id="course-modal-title" className="text-2xl lg:text-3xl font-bold text-white leading-tight">
                 {course.title || course.name || "שם הקורס"}
               </h2>
             </div>
@@ -226,17 +230,19 @@ const CourseDetailsModal = ({ course, onClose }) => {
 
         {/* Elegant Footer - Fixed at bottom */}
         <div className="border-t border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 p-5 flex-shrink-0">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center gap-3">
             <button
+              type="button"
               onClick={onClose}
-              className="px-6 py-2.5 bg-white hover:bg-gray-50 text-gray-700 rounded-xl font-medium transition-all duration-200 text-sm border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow"
+              className="px-6 py-2.5 bg-white hover:bg-gray-50 text-gray-700 rounded-xl font-medium transition-all duration-200 text-sm border border-gray-200 hover:border-gray-300 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
             >
               סגור
             </button>
 
             <button
+              type="button"
               onClick={handleGoToCourse}
-              className="px-8 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl font-medium transition-all duration-200 text-sm shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center gap-2"
+              className="px-8 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl font-medium transition-all duration-200 text-sm shadow-md hover:shadow-lg flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
             >
               <span>מעבר לדף הקורס</span>
               <ArrowLeft className="w-4 h-4" />

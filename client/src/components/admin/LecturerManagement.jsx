@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { User, Mail, Trash2, ChevronLeft, ChevronRight, X, ChevronDown } from "lucide-react";
 import Popup from "../common/Popup";
@@ -26,20 +26,7 @@ const LecturerManagement = ({ onMessage, onError, onLecturersUpdate }) => {
     departments: [], // Changed to array for multi-select
   });
 
-  useEffect(() => {
-    fetchLecturers();
-    fetchDepartments();
-  }, []);
-
-  useEffect(() => {
-    const filtered = lecturers.filter((lecturer) =>
-      lecturer.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredLecturers(filtered);
-    setCurrentPage(1);
-  }, [searchTerm, lecturers]);
-
-  const fetchDepartments = async () => {
+  const fetchDepartments = useCallback(async () => {
     try {
       const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/departments`);
       setDepartments(response.data);
@@ -54,12 +41,11 @@ const LecturerManagement = ({ onMessage, onError, onLecturersUpdate }) => {
         onError("שגיאה בטעינת המחלקות");
       }
       
-      // Set empty array so the component doesn't crash
       setDepartments([]);
     }
-  };
+  }, [onError]);
 
-  const fetchLecturers = async () => {
+  const fetchLecturers = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/lecturers`, {
@@ -74,7 +60,20 @@ const LecturerManagement = ({ onMessage, onError, onLecturersUpdate }) => {
       setFilteredLecturers([]);
       if (onLecturersUpdate) onLecturersUpdate([]);
     }
-  };
+  }, [onLecturersUpdate]);
+
+  useEffect(() => {
+    fetchLecturers();
+    fetchDepartments();
+  }, [fetchLecturers, fetchDepartments]);
+
+  useEffect(() => {
+    const filtered = lecturers.filter((lecturer) =>
+      lecturer.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredLecturers(filtered);
+    setCurrentPage(1);
+  }, [searchTerm, lecturers]);
 
   const resetForm = () => {
     setLecturerForm({ name: "", email: "", departments: [] });

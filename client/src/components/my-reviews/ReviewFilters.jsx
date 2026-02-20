@@ -11,7 +11,6 @@ import {
   SortDesc,
   X,
   Eye,
-  EyeOff,
   Star
 } from 'lucide-react';
 

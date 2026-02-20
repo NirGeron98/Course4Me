@@ -118,7 +118,7 @@ const AddLecturerPopup = ({ onClose, onLecturerAdded }) => {
           
           if (cachedData) {
             // Parse and update cache
-            const { trackedLecturers, timestamp } = JSON.parse(cachedData);
+            const { trackedLecturers } = JSON.parse(cachedData);
             
             if (Array.isArray(trackedLecturers)) {
               // Add new lecturer to cached array

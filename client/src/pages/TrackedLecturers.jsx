@@ -7,53 +7,45 @@ import TrackedLecturerCard from "../components/tracked-lecturers/TrackedLecturer
 import { getLecturerSlug } from '../utils/slugUtils';
 import ElegantLoadingSpinner from '../components/common/ElegantLoadingSpinner';
 
+const TRACKED_LECTURERS_CACHE_KEY = 'tracked_lecturers_data';
+const TRACKED_LECTURERS_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+function isTrackedLecturersCacheValid() {
+  const cacheData = localStorage.getItem(TRACKED_LECTURERS_CACHE_KEY);
+  if (!cacheData) return false;
+  try {
+    const { timestamp } = JSON.parse(cacheData);
+    return Date.now() - timestamp < TRACKED_LECTURERS_CACHE_DURATION;
+  } catch {
+    return false;
+  }
+}
+
+function getTrackedLecturersFromCache() {
+  try {
+    const cacheData = localStorage.getItem(TRACKED_LECTURERS_CACHE_KEY);
+    if (!cacheData) return null;
+    const { trackedLecturers } = JSON.parse(cacheData);
+    return trackedLecturers;
+  } catch {
+    localStorage.removeItem(TRACKED_LECTURERS_CACHE_KEY);
+    return null;
+  }
+}
+
+function saveTrackedLecturersToCache(data) {
+  try {
+    localStorage.setItem(TRACKED_LECTURERS_CACHE_KEY, JSON.stringify({ trackedLecturers: data, timestamp: Date.now() }));
+  } catch (error) {
+    // ignore
+  }
+}
+
 const TrackedLecturers = () => {
   const [trackedLecturers, setTrackedLecturers] = useState([]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-
-  // Cache configuration
-  const CACHE_KEY = 'tracked_lecturers_data';
-  const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
-  // Cache helper functions
-  const isCacheValid = () => {
-    const cacheData = localStorage.getItem(CACHE_KEY);
-    if (!cacheData) return false;
-    
-    const { timestamp } = JSON.parse(cacheData);
-    return Date.now() - timestamp < CACHE_DURATION;
-  };
-
-  const saveToCache = (data) => {
-    try {
-      const cacheData = {
-        trackedLecturers: data,
-        timestamp: Date.now()
-      };
-      localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
-    } catch (error) {
-      // Storage full or disabled, ignore
-    }
-  };
-
-  const getFromCache = () => {
-    try {
-      const cacheData = localStorage.getItem(CACHE_KEY);
-      if (!cacheData) return null;
-      
-      const { trackedLecturers } = JSON.parse(cacheData);
-      return trackedLecturers;
-    } catch (error) {
-      localStorage.removeItem(CACHE_KEY);
-      return null;
-    }
-  };
-
-  const clearCache = () => {
-    localStorage.removeItem(CACHE_KEY);
-  };
 
   // Set page title
   useEffect(() => {
@@ -68,9 +60,8 @@ const TrackedLecturers = () => {
   // Fetch tracked lecturers from API
   const fetchTrackedLecturers = useCallback(async (forceRefresh = false) => {
     try {
-      // Check cache first unless force refresh
-      if (!forceRefresh && isCacheValid()) {
-        const cachedData = getFromCache();
+      if (!forceRefresh && isTrackedLecturersCacheValid()) {
+        const cachedData = getTrackedLecturersFromCache();
         if (cachedData && Array.isArray(cachedData)) {
           setTrackedLecturers(cachedData);
           setIsLoading(false);
@@ -83,13 +74,9 @@ const TrackedLecturers = () => {
       const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-lecturers`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
-      // Filter out any tracked lecturers with null/undefined lecturer objects
       const validTrackedLecturers = res.data.filter(({ lecturer }) => lecturer && lecturer._id);
       setTrackedLecturers(validTrackedLecturers);
-      
-      // Save to cache
-      saveToCache(validTrackedLecturers);
+      saveTrackedLecturersToCache(validTrackedLecturers);
     } catch (err) {
       console.error("Failed to fetch tracked lecturers:", err);
     } finally {
@@ -142,8 +129,7 @@ const TrackedLecturers = () => {
               return item;
             }));
             
-            // Update in cache - this is critical to fix the display issue
-            const cachedData = getFromCache();
+            const cachedData = getTrackedLecturersFromCache();
             if (cachedData && Array.isArray(cachedData)) {
               const updatedCache = cachedData.map(item => {
                 if (item.lecturer && item.lecturer._id === lecturerId) {
@@ -151,10 +137,8 @@ const TrackedLecturers = () => {
                 }
                 return item;
               });
-              
-              // Clear the old cache and save new data
-              localStorage.removeItem(CACHE_KEY);
-              saveToCache(updatedCache);
+              localStorage.removeItem(TRACKED_LECTURERS_CACHE_KEY);
+              saveTrackedLecturersToCache(updatedCache);
               
               // Also force a cross-tab sync
               localStorage.setItem('trackedLecturerChanged', JSON.stringify({
@@ -208,8 +192,7 @@ const TrackedLecturers = () => {
           return item;
         }));
         
-        // Also update the cache - completely replacing it to ensure freshness
-        clearCache();
+        localStorage.removeItem(TRACKED_LECTURERS_CACHE_KEY);
         
         // Get fresh data from the API
         const token = localStorage.getItem("token");
@@ -222,7 +205,7 @@ const TrackedLecturers = () => {
           const validTrackedLecturers = data.filter(({ lecturer }) => lecturer && lecturer._id);
           
           // Save to cache
-          saveToCache(validTrackedLecturers);
+          saveTrackedLecturersToCache(validTrackedLecturers);
           
           // Update the state
           setTrackedLecturers(validTrackedLecturers);
@@ -285,7 +268,7 @@ const TrackedLecturers = () => {
 
       // Update cache
       const updatedLecturers = trackedLecturers.filter(({ lecturer }) => lecturer._id !== lecturerId);
-      saveToCache(updatedLecturers);
+      saveTrackedLecturersToCache(updatedLecturers);
 
       // Notify other tabs/components about tracked lecturer removal
       const trackingEvent = new CustomEvent('trackedLecturerRemoved', {

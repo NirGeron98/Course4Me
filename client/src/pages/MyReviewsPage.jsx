@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { MessageCircle, Loader2 } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import ReviewFilters from '../components/my-reviews/ReviewFilters';
 import ReviewsList from '../components/my-reviews/ReviewsList';
 import ReviewEditModal from '../components/my-reviews/ReviewEditModal';
@@ -35,47 +35,39 @@ const MyReviewsPage = ({ user }) => {
     const [uniqueCourses, setUniqueCourses] = useState([]);
     const [uniqueDepartments, setUniqueDepartments] = useState([]);
 
-    // Cache configuration
     const CACHE_KEY = `my_reviews_${user?.user?._id}`;
     const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 
-    // Cache helper functions
-    const isCacheValid = () => {
+    const isCacheValid = useCallback(() => {
         const cacheData = localStorage.getItem(CACHE_KEY);
         if (!cacheData) return false;
-        
-        const { timestamp } = JSON.parse(cacheData);
-        return Date.now() - timestamp < CACHE_DURATION;
-    };
-
-    const saveToCache = (data) => {
         try {
-            const cacheData = {
-                reviews: data,
-                timestamp: Date.now()
-            };
-            localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
-        } catch (error) {
-            // Storage full or disabled, ignore
+            const { timestamp } = JSON.parse(cacheData);
+            return Date.now() - timestamp < CACHE_DURATION;
+        } catch {
+            return false;
         }
-    };
+    }, [CACHE_KEY, CACHE_DURATION]);
 
-    const getFromCache = () => {
+    const saveToCache = useCallback((data) => {
+        try {
+            localStorage.setItem(CACHE_KEY, JSON.stringify({ reviews: data, timestamp: Date.now() }));
+        } catch (error) {
+            // ignore
+        }
+    }, [CACHE_KEY]);
+
+    const getFromCache = useCallback(() => {
         try {
             const cacheData = localStorage.getItem(CACHE_KEY);
             if (!cacheData) return null;
-            
             const { reviews } = JSON.parse(cacheData);
             return reviews;
-        } catch (error) {
+        } catch {
             localStorage.removeItem(CACHE_KEY);
             return null;
         }
-    };
-
-    const clearCache = () => {
-        localStorage.removeItem(CACHE_KEY);
-    };
+    }, [CACHE_KEY]);
 
       // Set page title
   useEffect(() => {
@@ -163,7 +155,7 @@ const MyReviewsPage = ({ user }) => {
         } finally {
             setLoading(false);
         }
-    }, [user, CACHE_KEY]);
+    }, [user, isCacheValid, getFromCache, saveToCache]);
 
     const applyFilters = useCallback(() => {
         let filtegray = [...reviews];

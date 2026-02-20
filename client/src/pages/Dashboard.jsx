@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import CourseDetailsModal from "../components/tracked-courses/CourseDetailsModal";
 import WelcomeHeader from "../components/dashboard/WelcomeHeader";
@@ -9,7 +10,25 @@ import ElegantLoadingSpinner, { ElegantSecondaryLoading } from "../components/co
 import StatsCards from "../components/dashboard/StatsCards";
 import { dashboardCache } from "../utils/cacheUtils";
 
+// Stable cache keys (not recreated per render)
+const CACHE_KEYS = {
+  TRACKED_COURSES: 'tracked_courses',
+  ALL_COURSES: 'all_courses',
+  LECTURERS: 'lecturers',
+  STATS: 'stats'
+};
+
+// Pure helper; stable reference so safe to use inside useCallback without deps
+const filterReviewsByUser = (reviews, userId) => {
+  if (!Array.isArray(reviews)) return [];
+  return reviews.filter(review =>
+    (typeof review.user === "string" && review.user === userId) ||
+    (typeof review.user === "object" && review.user._id === userId)
+  );
+};
+
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [isSecondaryLoading, setIsSecondaryLoading] = useState(false);
   const [isLoadedFromCache, setIsLoadedFromCache] = useState(false);
@@ -29,17 +48,7 @@ const Dashboard = () => {
   const [lecturerCarouselIndex, setLecturerCarouselIndex] = useState(0);
   const [trackedCarouselIndex, setTrackedCarouselIndex] = useState(0);
 
-  // Cache configuration
-  const CACHE_KEYS = {
-    TRACKED_COURSES: 'tracked_courses',
-    ALL_COURSES: 'all_courses',
-    LECTURERS: 'lecturers',
-    STATS: 'stats'
-  };
-
-  // Cache cleanup is initialized once in App.js
-
-  const fetchFreshData = async (token, userId, isBackground = false) => {
+  const fetchFreshData = useCallback(async (token, userId, isBackground = false) => {
     try {
       if (isBackground) {
         setIsSecondaryLoading(true);
@@ -125,10 +134,9 @@ const Dashboard = () => {
       setIsLoading(false);
       setIsSecondaryLoading(false);
     }
-  };
+  }, []);
 
-  // Function to refresh data manually (for example, after tracking/untracking courses)
-  const refreshData = async () => {
+  const refreshData = useCallback(async () => {
     dashboardCache.clearAllCache();
     setIsLoading(true);
     const token = localStorage.getItem("token");
@@ -136,15 +144,14 @@ const Dashboard = () => {
     if (token && userId) {
       await fetchFreshData(token, userId, false);
     }
-  };
+  }, [fetchFreshData]);
 
-  // Expose refresh function globally for other components
   useEffect(() => {
     window.refreshDashboardData = refreshData;
     return () => {
       delete window.refreshDashboardData;
     };
-  }, []);
+  }, [refreshData]);
 
   // Set page title
   useEffect(() => {
@@ -189,17 +196,6 @@ const Dashboard = () => {
       handleCourseClick(course);
     }
   };
-
-  const filterReviewsByUser = (reviews, userId) => {
-
-    const filtered = reviews.filter(review => {
-      return (typeof review.user === "string" && review.user === userId) ||
-        (typeof review.user === "object" && review.user._id === userId);
-    });
-
-    return filtered;
-  };
-
 
   useEffect(() => {
     const loadDataWithCache = async () => {
@@ -288,26 +284,20 @@ const Dashboard = () => {
       }
     };
 
-    const loadAdditionalData = async (token, userId) => {
+    const loadAdditionalData = async (tok, uid) => {
       try {
-        // Load additional data like all courses and lecturers if not cached
         if (!dashboardCache.isCacheValid(CACHE_KEYS.ALL_COURSES)) {
           const [coursesRes, lecturersRes] = await Promise.all([
             axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/courses`),
             axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/lecturers`)
           ]);
-          
           setAllCourses(coursesRes.data);
           setLecturers(lecturersRes.data);
-          
-          // Save to cache
           dashboardCache.saveToCache(CACHE_KEYS.ALL_COURSES, coursesRes.data);
           dashboardCache.saveToCache(CACHE_KEYS.LECTURERS, lecturersRes.data);
         } else {
-          // Load from cache
           const cachedAllCourses = dashboardCache.getFromCache(CACHE_KEYS.ALL_COURSES);
           const cachedLecturers = dashboardCache.getFromCache(CACHE_KEYS.LECTURERS);
-          
           if (cachedAllCourses) setAllCourses(cachedAllCourses);
           if (cachedLecturers) setLecturers(cachedLecturers);
         }
@@ -317,49 +307,30 @@ const Dashboard = () => {
     };
 
     loadDataWithCache();
-  }, []);
+  }, [fetchFreshData]);
 
-  // Listen for changes to tracked courses from other tabs/components
   useEffect(() => {
     const handleTrackedCourseAdded = () => {
-      // Refresh data if a course was added
       const token = localStorage.getItem("token");
       const userId = localStorage.getItem("userId");
-      if (token && userId) {
-        fetchFreshData(token, userId, true);
-      }
+      if (token && userId) fetchFreshData(token, userId, true);
     };
-
     const handleTrackedCourseRemoved = () => {
-      // Refresh data if a course was removed
       const token = localStorage.getItem("token");
       const userId = localStorage.getItem("userId");
-      if (token && userId) {
-        fetchFreshData(token, userId, true);
-      }
+      if (token && userId) fetchFreshData(token, userId, true);
     };
-
     const handleTrackedLecturerAdded = () => {
-      // Refresh data if a lecturer was added
       const token = localStorage.getItem("token");
       const userId = localStorage.getItem("userId");
-      if (token && userId) {
-        fetchFreshData(token, userId, true);
-      }
+      if (token && userId) fetchFreshData(token, userId, true);
     };
-
     const handleTrackedLecturerRemoved = () => {
-      // Refresh data if a lecturer was removed
       const token = localStorage.getItem("token");
       const userId = localStorage.getItem("userId");
-      if (token && userId) {
-        fetchFreshData(token, userId, true);
-      }
+      if (token && userId) fetchFreshData(token, userId, true);
     };
-
-    // האזנה לאירוע טעינה מקדימה של קורסים במעקב
     const handleTrackedCoursesPreloaded = () => {
-      // אם המטמון תקף, נטען מחדש את הנתונים
       if (dashboardCache.isCacheValid(CACHE_KEYS.TRACKED_COURSES)) {
         const cachedTrackedCourses = dashboardCache.getFromCache(CACHE_KEYS.TRACKED_COURSES);
         if (cachedTrackedCourses && Array.isArray(cachedTrackedCourses)) {
@@ -367,20 +338,14 @@ const Dashboard = () => {
         }
       }
     };
-
-    // Listen for localStorage changes from other tabs
     const handleStorageChange = (event) => {
       if (event.key === 'trackedCourseChanged' || event.key === 'trackedLecturerChanged') {
-        // A tracked course or lecturer was changed in another tab
         const token = localStorage.getItem("token");
         const userId = localStorage.getItem("userId");
-        if (token && userId) {
-          fetchFreshData(token, userId, true);
-        }
+        if (token && userId) fetchFreshData(token, userId, true);
       }
     };
 
-    // Add event listeners
     window.addEventListener('trackedCourseAdded', handleTrackedCourseAdded);
     window.addEventListener('trackedCourseRemoved', handleTrackedCourseRemoved);
     window.addEventListener('trackedLecturerAdded', handleTrackedLecturerAdded);
@@ -388,7 +353,6 @@ const Dashboard = () => {
     window.addEventListener('trackedCoursesPreloaded', handleTrackedCoursesPreloaded);
     window.addEventListener('storage', handleStorageChange);
 
-    // Clean up event listeners on unmount
     return () => {
       window.removeEventListener('trackedCourseAdded', handleTrackedCourseAdded);
       window.removeEventListener('trackedCourseRemoved', handleTrackedCourseRemoved);
@@ -397,7 +361,7 @@ const Dashboard = () => {
       window.removeEventListener('trackedCoursesPreloaded', handleTrackedCoursesPreloaded);
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, []);
+  }, [fetchFreshData]);
 
   useEffect(() => {
     if (allCourses.length > 3) {
@@ -467,6 +431,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50" dir="rtl">
+      {isSecondaryLoading && <ElegantSecondaryLoading message="מרענן נתונים..." />}
       <WelcomeHeader userName={userName} />
         
       <div className="max-w-6xl mx-auto p-6 space-y-8">
@@ -488,6 +453,8 @@ const Dashboard = () => {
           onNext={handleTrackedNext}
           onCourseClick={handleTrackedCourseClick}
           formatLecturersDisplay={formatLecturersDisplay}
+          emptyActionLabel="עבור לקורסים שלי"
+          onEmptyAction={() => navigate("/tracked-courses")}
         />
 
         <CourseCarousel

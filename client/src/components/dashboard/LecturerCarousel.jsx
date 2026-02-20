@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Users, ChevronLeft, ChevronRight, User, Building, X, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getLecturerSlug } from '../../utils/slugUtils';
+import EmptyState from '../common/EmptyState';
 
 const LecturerCarousel = ({
   lecturers,
@@ -14,8 +15,7 @@ const LecturerCarousel = ({
   const navigate = useNavigate();
   const [selectedLecturer, setSelectedLecturer] = useState(null);
   const [showModal, setShowModal] = useState(false);
-
-  if (lecturers.length === 0) return null;
+  const isEmpty = lecturers.length === 0;
 
   const handleLecturerClick = (lecturer) => {
     setSelectedLecturer(lecturer);
@@ -110,36 +110,53 @@ const LecturerCarousel = ({
 
   return (
     <>
-      <section className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+      <section className="bg-white rounded-2xl p-6 shadow-card border border-gray-100 transition-shadow duration-ui hover:shadow-card-hover" aria-labelledby="lecturers-system-heading">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-            <Users className="w-6 h-6 text-purple-600" />
+          <h2 id="lecturers-system-heading" className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+            <Users className="w-6 h-6 text-purple-600" aria-hidden="true" />
             מרצים במערכת
           </h2>
-          <div className="flex gap-2">
-            <button
-              onClick={onPrev}
-              className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-              disabled={lecturers.length <= 3}
-            >
-              <ChevronRight className="w-5 h-5 text-gray-600" />
-            </button>
-            <button
-              onClick={onNext}
-              className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-              disabled={lecturers.length <= 3}
-            >
-              <ChevronLeft className="w-5 h-5 text-gray-600" />
-            </button>
-          </div>
+          {!isEmpty && (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={onPrev}
+                className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 disabled:opacity-50"
+                disabled={lecturers.length <= 3}
+                aria-label="הקודם"
+              >
+                <ChevronRight className="w-5 h-5 text-gray-600" />
+              </button>
+              <button
+                type="button"
+                onClick={onNext}
+                className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 disabled:opacity-50"
+                disabled={lecturers.length <= 3}
+                aria-label="הבא"
+              >
+                <ChevronLeft className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+          )}
         </div>
 
+        {isEmpty ? (
+          <EmptyState
+            icon={Users}
+            title="אין מרצים להצגה"
+            description="מרצים יופיעו כאן כאשר ייטענו ממערכת."
+          />
+        ) : (
+        <>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {visibleLecturers.map((lecturer) => (
             <div
               key={lecturer._id}
               onClick={() => handleLecturerClick(lecturer)}
-              className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-5 border border-purple-200 hover:shadow-lg transition-all cursor-pointer group hover:scale-105 transform duration-200"
+              className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-card-lg p-5 border border-purple-200 hover:shadow-card-hover transition-all duration-200 cursor-pointer group"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleLecturerClick(lecturer); } }}
             >
               <div className="flex items-center gap-3 mb-3">
                 <div className="bg-purple-200 rounded-full p-2 group-hover:bg-purple-300 transition-colors">
@@ -175,6 +192,8 @@ const LecturerCarousel = ({
               {renderPaginationDots()}
             </div>
           </div>
+        )}
+        </>
         )}
       </section>
 

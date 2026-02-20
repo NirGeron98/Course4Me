@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { BookOpen, Hash, Save, Trash2, X, ChevronLeft, ChevronRight } from "lucide-react";
 import Select from "react-select";
@@ -26,10 +26,21 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
         prerequisites: []
     });
 
-    // Fetch courses on component mount
+    // Fetch all courses from API
+    const fetchCourses = useCallback(async () => {
+        try {
+            const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/courses`);
+            setCourses(response.data);
+            setFilteredCourses(response.data);
+        } catch (err) {
+            console.error("Error fetching courses:", err);
+            onError("שגיאה בטעינת הקורסים");
+        }
+    }, [onError]);
+
     useEffect(() => {
         fetchCourses();
-    }, []);
+    }, [fetchCourses]);
 
     // Filter courses based on search term and update filtered courses
     useEffect(() => {
@@ -39,22 +50,9 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
         setFilteredCourses(filtered);
     }, [searchTerm, courses]);
 
-    // Reset current page only when search term changes
     useEffect(() => {
         setCurrentPage(1);
     }, [searchTerm]);
-
-    // Fetch all courses from API
-    const fetchCourses = async () => {
-        try {
-            const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/courses`);
-            setCourses(response.data);
-            setFilteredCourses(response.data);
-        } catch (err) {
-            console.error("Error fetching courses:", err);
-            onError("שגיאה בטעינת הקורסים");
-        }
-    };
 
     // Reset form to initial state
     const resetForm = () => {

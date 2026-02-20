@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, CheckCircle, AlertCircle, LogIn } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, LogIn } from "lucide-react";
+import Alert from "../components/common/Alert";
 
 const Login = ({ onLogin, user }) => {
 
@@ -206,7 +207,7 @@ const Login = ({ onLogin, user }) => {
             <button
               type="submit"
               disabled={isLoading || isDataLoading}
-              className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold py-4 rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
             >
               {isLoading || isDataLoading ? (
                 <div className="flex items-center justify-center space-x-2">
@@ -221,38 +222,26 @@ const Login = ({ onLogin, user }) => {
             </button>
           </form>
 
-          {message && (
-            <div className={`mt-6 p-4 rounded-2xl flex flex-col space-y-3 ${
-              message.includes('טוען') || message.includes('נתונים')
-                ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                : message.includes('בהצלחה')
-                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                  : 'bg-red-50 text-red-700 border border-red-200'
-              }`}>
+          {message && (message.includes('טוען') || message.includes('נתונים')) && (
+            <div className="mt-6 p-4 rounded-2xl bg-blue-50 text-blue-700 border border-blue-200 flex flex-col space-y-3" role="status">
               <div className="flex items-center">
-                {message.includes('טוען') || message.includes('נתונים') ? (
-                  <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin ml-3"></div>
-                ) : message.includes('בהצלחה') ? (
-                  <CheckCircle className="w-5 h-5 text-emerald-500 ml-3" />
-                ) : (
-                  <AlertCircle className="w-5 h-5 text-red-500 ml-3" />
-                )}
+                <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin ml-3" aria-hidden="true" />
                 <p className="text-right font-medium flex-grow">{message}</p>
               </div>
-
-              {/* הוספת מד התקדמות כאשר מתבצעת טעינה */}
               {isDataLoading && (
                 <div className="w-full">
                   <div className="text-xs text-blue-700 mb-1">{loadingDetails || "טוען נתונים..."}</div>
                   <div className="w-full bg-blue-100 rounded-full h-2.5 mb-1">
-                    <div 
-                      className="bg-gradient-to-r from-blue-400 to-indigo-500 h-2.5 rounded-full transition-all duration-300" 
-                      style={{ width: `${loadingProgress}%` }}>
-                    </div>
+                    <div className="bg-gradient-to-r from-blue-400 to-indigo-500 h-2.5 rounded-full transition-all duration-300" style={{ width: `${loadingProgress}%` }} />
                   </div>
                   <div className="text-xs text-right text-blue-600">{loadingProgress}%</div>
                 </div>
               )}
+            </div>
+          )}
+          {message && !message.includes('טוען') && !message.includes('נתונים') && (
+            <div className="mt-6">
+              <Alert type={message.includes('בהצלחה') ? 'success' : 'error'} message={message} onDismiss={() => setMessage('')} />
             </div>
           )}
 
