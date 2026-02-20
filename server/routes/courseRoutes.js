@@ -3,9 +3,10 @@ const router = express.Router();
 const courseController = require("../controllers/courseController");
 const { protect } = require("../middleware/authMiddleware");
 const { admin } = require("../middleware/adminMiddleware");
+const { addCacheHeaders } = require("../middleware/cacheMiddleware");
 
-// Public routes
-router.get("/", courseController.getAllCourses);
+// Public routes (short HTTP cache for list to reduce repeat requests)
+router.get("/", addCacheHeaders(60), courseController.getAllCourses);
 router.get("/search/:query", courseController.searchCourses);
 router.get("/by-number/:courseNumber", courseController.getCourseByNumber);
 router.get("/:id/full", courseController.getCourseWithLecturers);

@@ -7,7 +7,7 @@ import CourseCarousel from "../components/dashboard/CourseCarousel";
 import LecturerCarousel from "../components/dashboard/LecturerCarousel";
 import ElegantLoadingSpinner, { ElegantSecondaryLoading } from "../components/common/ElegantLoadingSpinner";
 import StatsCards from "../components/dashboard/StatsCards";
-import { dashboardCache, initializeCacheCleanup } from "../utils/cacheUtils";
+import { dashboardCache } from "../utils/cacheUtils";
 
 const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -37,10 +37,7 @@ const Dashboard = () => {
     STATS: 'stats'
   };
 
-  // Initialize cache cleanup on component mount
-  useEffect(() => {
-    initializeCacheCleanup();
-  }, []);
+  // Cache cleanup is initialized once in App.js
 
   const fetchFreshData = async (token, userId, isBackground = false) => {
     try {

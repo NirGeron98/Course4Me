@@ -159,31 +159,44 @@ exports.getReviewsByCourse = async (req, res) => {
   }
 };
 
-// Get all reviews (for admin panel or general use)
+// Get all reviews (for admin panel or general use). Pagination optional for scalability.
 exports.getAllReviews = async (req, res) => {
   try {
-    const reviews = await CourseReview.find()
+    const usePagination = req.query.page != null || req.query.limit != null;
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = usePagination ? Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 50)) : 0;
+    const skip = usePagination ? (page - 1) * limit : 0;
+
+    const query = CourseReview.find()
       .populate("user", "fullName _id")
       .populate("course", "title courseNumber")
       .populate("lecturer", "name")
       .populate("lecturers", "name")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .lean();
+    if (limit > 0) query.limit(limit);
 
-    // Process reviews to handle anonymous ones and map workload to workload
+    const [reviews, total] = await Promise.all([
+      query,
+      usePagination ? CourseReview.countDocuments() : Promise.resolve(0),
+    ]);
+
     const processedReviews = reviews.map((review) => {
-      const reviewObj = review.toObject();
-
-      if (reviewObj.isAnonymous === true) {
-        reviewObj.user = {
-          _id: reviewObj.user._id,
-          fullName: "משתמש אנונימי",
-        };
+      if (review.isAnonymous === true && review.user) {
+        return { ...review, user: { _id: review.user._id, fullName: "משתמש אנונימי" } };
       }
-
-      return reviewObj;
+      return review;
     });
 
-    res.status(200).json(processedReviews);
+    if (usePagination) {
+      res.status(200).json({
+        data: processedReviews,
+        pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+      });
+    } else {
+      res.status(200).json(processedReviews);
+    }
   } catch (err) {
     console.error("Error fetching all reviews:", err);
     res.status(500).json({

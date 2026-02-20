@@ -1,5 +1,7 @@
 const Lecturer = require("../models/Lecturer");
 const Department = require("../models/Department");
+const { get: cacheGet, set: cacheSet, clearByPrefix: cacheClearLecturers } = require("../utils/listCache");
+const LECTURER_CACHE_PREFIX = "lecturers:";
 
 // Utility function to generate slug from Hebrew/English text
 const generateSlug = (text) => {
@@ -12,40 +14,48 @@ const generateSlug = (text) => {
         .replace(/^-|-$/g, '');
 };
 
-// Function to find lecturer by slug (with fallback logic)
+// Performance: find by slug without loading all lecturers. Try slug field first, then
+// match name with regex (slug = name with spaces as hyphens) so one DB query.
 const findLecturerBySlug = async (slug) => {
-    // First try to find by exact slug match (if lecturer has slug field)
+    // 1) If schema had slug field (e.g. after migration), one indexed lookup
     let lecturer = await Lecturer.findOne({ slug })
         .populate("createdBy", "fullName email")
-        .populate("departments", "name code description");
-    
+        .populate("departments", "name code description")
+        .lean();
     if (lecturer) return lecturer;
-    
-    // If no exact match, try to find by generating slug from name
-    const lecturers = await Lecturer.find()
+
+    // 2) Single query: match name where slug would equal generateSlug(name).
+    // Regex: slug has hyphens; name has spaces. So match name that normalizes to this slug.
+    const namePattern = slug.replace(/-/g, '[\\s-]+').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`^${namePattern}$`, 'i');
+    lecturer = await Lecturer.findOne({ name: { $regex: regex } })
         .populate("createdBy", "fullName email")
-        .populate("departments", "name code description");
-    
-    for (let lec of lecturers) {
-        const generatedSlug = generateSlug(lec.name);
-        if (generatedSlug === slug || 
-            slug.startsWith(`${generatedSlug}-`) ||
-            `${generatedSlug}-1` === slug) {
-            return lec;
-        }
-    }
-    
-    return null;
+        .populate("departments", "name code description")
+        .lean();
+    if (lecturer) return lecturer;
+
+    // 3) Fallback: slug might be prefix (e.g. "john-1"). One more query by name prefix.
+    const prefixPattern = slug.replace(/-/g, '[\\s-]+').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    lecturer = await Lecturer.findOne({ name: { $regex: new RegExp(`^${prefixPattern}`, 'i') } })
+        .populate("createdBy", "fullName email")
+        .populate("departments", "name code description")
+        .lean();
+    return lecturer || null;
 };
 
-// GET /api/lecturers
+// GET /api/lecturers (optional ?limit=; in-memory cache 2min, invalidated on write)
 exports.getAllLecturers = async (req, res) => {
   try {
-    const lecturers = await Lecturer.find()
+    const limit = req.query.limit ? Math.min(parseInt(req.query.limit, 10) || 0, 2000) : 0;
+    const cacheKey = `${LECTURER_CACHE_PREFIX}list:${limit}`;
+    const cached = cacheGet(cacheKey);
+    if (cached) return res.status(200).json(cached);
+    const query = Lecturer.find()
       .populate("createdBy", "fullName email")
       .populate("departments", "name code description")
       .sort({ createdAt: -1 });
-
+    const lecturers = limit > 0 ? await query.limit(limit).lean() : await query.lean();
+    cacheSet(cacheKey, lecturers);
     res.status(200).json(lecturers);
   } catch (err) {
     res.status(500).json({
@@ -140,6 +150,7 @@ exports.createLecturer = async (req, res) => {
     await newLecturer.populate("createdBy", "fullName email");
     await newLecturer.populate("departments", "name code description");
 
+    cacheClearLecturers(LECTURER_CACHE_PREFIX);
     res.status(201).json({
       message: "מרצה נוצר בהצלחה",
       lecturer: newLecturer,
@@ -217,6 +228,7 @@ exports.updateLecturer = async (req, res) => {
       .populate("createdBy", "fullName email")
       .populate("departments", "name code description");
 
+    cacheClearLecturers(LECTURER_CACHE_PREFIX);
     res.status(200).json({
       message: "מרצה עודכן בהצלחה",
       lecturer: updatedLecturer,
@@ -253,7 +265,7 @@ exports.deleteLecturer = async (req, res) => {
     }
 
     await Lecturer.findByIdAndDelete(req.params.id);
-
+    cacheClearLecturers(LECTURER_CACHE_PREFIX);
     res.status(200).json({ message: "מרצה נמחק בהצלחה" });
   } catch (err) {
     res.status(500).json({

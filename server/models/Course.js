@@ -99,6 +99,11 @@ courseSchema.virtual("lecturerName").get(function () {
   return null;
 });
 
+// Performance: indexes for list/sort and by-lecturer queries
+courseSchema.index({ createdAt: -1 });
+courseSchema.index({ lecturers: 1 });
+courseSchema.index({ department: 1 });
+
 // Ensure virtual fields are included when converting to JSON
 courseSchema.set("toJSON", { virtuals: true });
 courseSchema.set("toObject", { virtuals: true });

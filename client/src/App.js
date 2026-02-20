@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -15,14 +15,22 @@ import TrackedCourses from "./pages/TrackedCourses";
 import TrackedLecturers from "./pages/TrackedLecturers";
 import CoursePage from "./pages/CoursePage";
 import LecturerPage from "./pages/LecturerPage";
-import AdminPanel from "./pages/AdminPanel";
 import ProfileManagement from "./pages/ProfileManagement";
-import AdvancedSearch from "./pages/AdvancedSearch";
 import MyReviewsPage from "./pages/MyReviewsPage";
 import MyContactRequests from "./pages/MyContactRequests";
 import { CourseDataProvider } from "./contexts/CourseDataContext";
 import { initializeCacheCleanup, clearAllUserCache } from "./utils/cacheUtils";
 import preloadUserData from "./utils/preloadUserData";
+
+// Lazy-load heavier routes to reduce initial bundle and improve TTI
+const AdminPanel = lazy(() => import("./pages/AdminPanel"));
+const AdvancedSearch = lazy(() => import("./pages/AdvancedSearch"));
+
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-emerald-100">
+    <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+  </div>
+);
 
 function App() {
   const [user, setUser] = useState(null);
@@ -179,7 +187,13 @@ function App() {
             />
             <Route
               path="/search"
-              element={<ProtectedRoute><AdvancedSearch user={user} /></ProtectedRoute>}
+              element={
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoader />}>
+                    <AdvancedSearch user={user} />
+                  </Suspense>
+                </ProtectedRoute>
+              }
             />
             <Route
               path="/my-reviews"
@@ -216,7 +230,9 @@ function App() {
               element={
                 <ProtectedRoute>
                   {user?.user?.role === "admin" ? (
-                    <AdminPanel user={user} />
+                    <Suspense fallback={<PageLoader />}>
+                      <AdminPanel user={user} />
+                    </Suspense>
                   ) : (
                     <Navigate to="/dashboard" />
                   )}

@@ -65,10 +65,10 @@ const lecturerReviewSchema = new mongoose.Schema(
 );
 
 // Compound indexes for both old and new formats
-// Old format: one review per user per lecturer per course
 lecturerReviewSchema.index({ lecturer: 1, course: 1, user: 1 }, { unique: true, sparse: true });
-// New format: one review per user per lecturer (with multiple courses)
 lecturerReviewSchema.index({ lecturer: 1, user: 1, courses: 1 }, { unique: false });
+// Performance: list reviews by lecturer sorted by date
+lecturerReviewSchema.index({ lecturer: 1, createdAt: -1 });
 
 // Pre-save middleware to ensure backward compatibility
 lecturerReviewSchema.pre('save', function(next) {

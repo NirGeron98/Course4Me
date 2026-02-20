@@ -91,7 +91,9 @@ lecturerSchema.pre('save', function(next) {
 // Index for better performance
 lecturerSchema.index({ departments: 1 });
 lecturerSchema.index({ email: 1 });
-lecturerSchema.index({ department: 1 }); // Keep for backward compatibility
+lecturerSchema.index({ department: 1 });
+lecturerSchema.index({ name: 1 }); // Slug-by-name fallback and search
+lecturerSchema.index({ createdAt: -1 }); // List sort
 
 // Ensure virtual fields are included when converting to JSON
 lecturerSchema.set("toJSON", { virtuals: true });

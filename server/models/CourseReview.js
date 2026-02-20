@@ -64,8 +64,9 @@ const courseReviewSchema = new mongoose.Schema(
 );
 
 // Compound index to ensure one review per user per course per lecturer combination
-// Note: For multiple lecturers, uniqueness is enforced at application level
 courseReviewSchema.index({ course: 1, user: 1 });
+// Performance: aggregation and "reviews by course" queries
+courseReviewSchema.index({ course: 1 });
 
 // Pre-save middleware to handle backward compatibility
 courseReviewSchema.pre('save', function(next) {

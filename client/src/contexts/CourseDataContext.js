@@ -1,9 +1,8 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useMemo } from "react";
 
 const CourseDataContext = createContext();
 
 export const CourseDataProvider = ({ children }) => {
-  // Initialize cache from localStorage
   const [courseCache, setCourseCache] = useState(() => {
     try {
       const saved = localStorage.getItem('courseCache');
@@ -91,16 +90,20 @@ export const CourseDataProvider = ({ children }) => {
     [updateCourseData, triggerCourseRefresh]
   );
 
+  // Memoize context value to avoid unnecessary re-renders of all consumers
+  const value = useMemo(
+    () => ({
+      updateCourseData,
+      triggerCourseRefresh,
+      getCourseData,
+      getRefreshTrigger,
+      fetchCourseStats,
+    }),
+    [updateCourseData, triggerCourseRefresh, getCourseData, getRefreshTrigger, fetchCourseStats]
+  );
+
   return (
-    <CourseDataContext.Provider
-      value={{
-        updateCourseData,
-        triggerCourseRefresh,
-        getCourseData,
-        getRefreshTrigger,
-        fetchCourseStats,
-      }}
-    >
+    <CourseDataContext.Provider value={value}>
       {children}
     </CourseDataContext.Provider>
   );

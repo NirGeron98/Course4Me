@@ -1,43 +1,49 @@
 const Course = require("../models/Course");
 const Lecturer = require("../models/Lecturer");
 const CourseReview = require("../models/CourseReview");
+const { get: cacheGet, set: cacheSet, clearByPrefix: cacheClearCourses } = require("../utils/listCache");
+const CACHE_KEY_PREFIX = "courses:";
 
-// Get all courses
+// Performance: single aggregation instead of N+1 queries for course ratings.
+// Returns Map<courseIdStr, { averageRating, ratingsCount }>
+const getCourseRatingsMap = async (courseIds) => {
+  if (!courseIds || courseIds.length === 0) return new Map();
+  const stats = await CourseReview.aggregate([
+    { $match: { course: { $in: courseIds } } },
+    { $group: {
+      _id: "$course",
+      avgRec: { $avg: "$recommendation" },
+      count: { $sum: 1 },
+    } },
+  ]);
+  const map = new Map();
+  for (const s of stats) {
+    map.set(String(s._id), {
+      averageRating: s.avgRec != null ? parseFloat(s.avgRec.toFixed(2)) : null,
+      ratingsCount: s.count || 0,
+    });
+  }
+  return map;
+};
+
+// Get all courses (with optional limit; in-memory cache 2min, invalidated on write)
 exports.getAllCourses = async (req, res) => {
   try {
-    const courses = await Course.find().populate(
-      "lecturers",
-      "name email department"
-    );
-
-    // Recalculate ratings for all courses in real-time
-    const coursesWithUpdatedRatings = await Promise.all(
-      courses.map(async (course) => {
-        const reviews = await CourseReview.find({ course: course._id });
-        
-        let averageRating = null;
-        let ratingsCount = 0;
-        
-        if (reviews.length > 0) {
-          const validRatings = reviews
-            .map(r => Number(r.recommendation))
-            .filter(rating => !isNaN(rating));
-          
-          if (validRatings.length > 0) {
-            averageRating = (validRatings.reduce((sum, rating) => sum + rating, 0) / validRatings.length).toFixed(2);
-            ratingsCount = validRatings.length;
-          }
-        }
-        
-        // Update the course object with fresh ratings
-        const courseObj = course.toObject();
-        courseObj.averageRating = averageRating ? parseFloat(averageRating) : null;
-        courseObj.ratingsCount = ratingsCount;
-        
-        return courseObj;
-      })
-    );
-
+    const limit = req.query.limit ? Math.min(parseInt(req.query.limit, 10) || 0, 2000) : 0;
+    const cacheKey = `${CACHE_KEY_PREFIX}list:${limit}`;
+    const cached = cacheGet(cacheKey);
+    if (cached) {
+      return res.status(200).json(cached);
+    }
+    const query = Course.find().populate("lecturers", "name email department").sort({ createdAt: -1 });
+    const courses = limit > 0 ? await query.limit(limit).lean() : await query.lean();
+    const courseIds = courses.map((c) => c._id);
+    const ratingsMap = await getCourseRatingsMap(courseIds);
+    const coursesWithUpdatedRatings = courses.map((course) => {
+      const stats = ratingsMap.get(String(course._id)) || { averageRating: null, ratingsCount: 0 };
+      return { ...course, averageRating: stats.averageRating, ratingsCount: stats.ratingsCount };
+    });
+    cacheSet(cacheKey, coursesWithUpdatedRatings);
     res.status(200).json(coursesWithUpdatedRatings);
   } catch (err) {
     console.error("Error fetching courses:", err);
@@ -137,6 +143,7 @@ exports.createCourse = async (req, res) => {
       createdBy: req.user._id,
     });
 
+    cacheClearCourses(CACHE_KEY_PREFIX);
     res.status(201).json(newCourse);
   } catch (err) {
     console.error("Error creating course:", err);
@@ -210,7 +217,7 @@ exports.updateCourse = async (req, res) => {
     if (!updatedCourse) {
       return res.status(404).json({ message: "קורס לא נמצא" });
     }
-
+    cacheClearCourses(CACHE_KEY_PREFIX);
     res.status(200).json(updatedCourse);
   } catch (err) {
     console.error("Error updating course:", err);
@@ -230,7 +237,7 @@ exports.deleteCourse = async (req, res) => {
     if (!deletedCourse) {
       return res.status(404).json({ message: "קורס לא נמצא" });
     }
-
+    cacheClearCourses(CACHE_KEY_PREFIX);
     res.status(200).json({ message: "קורס נמחק בהצלחה" });
   } catch (err) {
     console.error("Error deleting course:", err);
@@ -238,7 +245,7 @@ exports.deleteCourse = async (req, res) => {
   }
 };
 
-// Search courses
+// Search courses (uses single aggregation for ratings instead of N+1)
 exports.searchCourses = async (req, res) => {
   try {
     const { query, department, lecturer, credits } = req.query;
@@ -263,45 +270,24 @@ exports.searchCourses = async (req, res) => {
     let courses = await Course.find(searchCriteria)
       .populate("lecturers", "name email department")
       .populate("createdBy", "fullName email")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
-    // Filter by lecturer name if provided (since it's now populated)
     if (lecturer) {
+      const lecturerLower = lecturer.toLowerCase();
       courses = courses.filter(
         (course) =>
-          course.lecturer &&
-          course.lecturer.name.toLowerCase().includes(lecturer.toLowerCase())
+          course.lecturers &&
+          course.lecturers.some((l) => l && l.name && l.name.toLowerCase().includes(lecturerLower))
       );
     }
 
-    // Recalculate ratings for all courses in real-time
-    const coursesWithUpdatedRatings = await Promise.all(
-      courses.map(async (course) => {
-        const reviews = await CourseReview.find({ course: course._id });
-        
-        let averageRating = null;
-        let ratingsCount = 0;
-        
-        if (reviews.length > 0) {
-          const validRatings = reviews
-            .map(r => Number(r.recommendation))
-            .filter(rating => !isNaN(rating));
-          
-          if (validRatings.length > 0) {
-            averageRating = (validRatings.reduce((sum, rating) => sum + rating, 0) / validRatings.length).toFixed(2);
-            ratingsCount = validRatings.length;
-          }
-        }
-        
-        // Update the course object with fresh ratings
-        const courseObj = course.toObject();
-        courseObj.averageRating = averageRating ? parseFloat(averageRating) : null;
-        courseObj.ratingsCount = ratingsCount;
-        
-        return courseObj;
-      })
-    );
-
+    const courseIds = courses.map((c) => c._id);
+    const ratingsMap = await getCourseRatingsMap(courseIds);
+    const coursesWithUpdatedRatings = courses.map((course) => {
+      const stats = ratingsMap.get(String(course._id)) || { averageRating: null, ratingsCount: 0 };
+      return { ...course, averageRating: stats.averageRating, ratingsCount: stats.ratingsCount };
+    });
     res.status(200).json(coursesWithUpdatedRatings);
   } catch (err) {
     console.error("Error searching courses:", err);
@@ -330,42 +316,20 @@ exports.getCourseWithLecturers = async (req, res) => {
   }
 };
 
-// GET /api/courses/by-lecturer/:lecturerId
+// GET /api/courses/by-lecturer/:lecturerId (single aggregation for ratings)
 exports.getCoursesByLecturer = async (req, res) => {
   try {
     const courses = await Course.find({ lecturers: req.params.lecturerId })
       .populate("lecturers", "name email department")
       .populate("createdBy", "fullName email")
-      .sort({ createdAt: -1 });
-
-    // Recalculate ratings for all courses in real-time
-    const coursesWithUpdatedRatings = await Promise.all(
-      courses.map(async (course) => {
-        const reviews = await CourseReview.find({ course: course._id });
-        
-        let averageRating = null;
-        let ratingsCount = 0;
-        
-        if (reviews.length > 0) {
-          const validRatings = reviews
-            .map(r => Number(r.recommendation))
-            .filter(rating => !isNaN(rating));
-          
-          if (validRatings.length > 0) {
-            averageRating = (validRatings.reduce((sum, rating) => sum + rating, 0) / validRatings.length).toFixed(2);
-            ratingsCount = validRatings.length;
-          }
-        }
-        
-        // Update the course object with fresh ratings
-        const courseObj = course.toObject();
-        courseObj.averageRating = averageRating ? parseFloat(averageRating) : null;
-        courseObj.ratingsCount = ratingsCount;
-        
-        return courseObj;
-      })
-    );
-
+      .sort({ createdAt: -1 })
+      .lean();
+    const courseIds = courses.map((c) => c._id);
+    const ratingsMap = await getCourseRatingsMap(courseIds);
+    const coursesWithUpdatedRatings = courses.map((course) => {
+      const stats = ratingsMap.get(String(course._id)) || { averageRating: null, ratingsCount: 0 };
+      return { ...course, averageRating: stats.averageRating, ratingsCount: stats.ratingsCount };
+    });
     res.status(200).json(coursesWithUpdatedRatings);
   } catch (err) {
     console.error("Error fetching courses by lecturer:", err);
