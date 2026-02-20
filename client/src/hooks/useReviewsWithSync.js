@@ -76,6 +76,8 @@ export const useReviewsWithSync = (courseId, token) => {
   useEffect(() => {
     if (courseId && token) {
       fetchReviews();
+    } else if (courseId) {
+      setReviewsLoading(false);
     }
   }, [courseId, token, fetchReviews]);
 

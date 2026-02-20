@@ -16,7 +16,7 @@ export const useCourseDataWithSync = (
     useCourseDataContext();
 
   const fetchCourse = useCallback(async () => {
-    if (!identifier || !token) return;
+    if (!identifier) return;
 
     setLoading(true);
     try {
@@ -29,8 +29,8 @@ export const useCourseDataWithSync = (
 
       const courseRes = await fetch(courseEndpoint, {
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
       });
 
@@ -51,7 +51,7 @@ export const useCourseDataWithSync = (
     } finally {
       setLoading(false);
     }
-  }, [identifier, token, identifierType, updateCourseData]);
+  }, [identifier, identifierType, updateCourseData, token]);
 
   // Load from cache first if available (only if identifierType is "id")
   useEffect(() => {

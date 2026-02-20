@@ -88,7 +88,16 @@ exports.getLecturerById = async (req, res) => {
 // GET /api/lecturers/by-slug/:slug
 exports.getLecturerBySlug = async (req, res) => {
   try {
-    const lecturer = await findLecturerBySlug(req.params.slug);
+    const rawSlug = req.params.slug;
+    let slug = rawSlug;
+    if (typeof rawSlug === "string") {
+      try {
+        slug = decodeURIComponent(rawSlug);
+      } catch {
+        slug = rawSlug;
+      }
+    }
+    const lecturer = await findLecturerBySlug(slug);
 
     if (!lecturer) {
       return res.status(404).json({ message: "מרצה לא נמצא" });
