@@ -1,5 +1,8 @@
 export const generateSlug = (text) => {
+    if (typeof text !== 'string') return '';
     return text
+        .replace(/\u00a0/g, ' ')
+        .replace(/\s+/g, ' ')
         .trim()
         .toLowerCase()
         .replace(/\s+/g, '-')

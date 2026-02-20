@@ -3,30 +3,33 @@ const Department = require("../models/Department");
 const { get: cacheGet, set: cacheSet, clearByPrefix: cacheClearLecturers } = require("../utils/listCache");
 const LECTURER_CACHE_PREFIX = "lecturers:";
 
-// Utility function to generate slug from Hebrew/English text
+// Utility function to generate slug from Hebrew/English text (must match client slugUtils).
 const generateSlug = (text) => {
+    if (typeof text !== "string") return "";
     return text
+        .replace(/\u00a0/g, " ")
+        .replace(/\s+/g, " ")
         .trim()
         .toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^\u0590-\u05FF\w-]/g, '')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '');
+        .replace(/\s+/g, "-")
+        .replace(/[^\u0590-\u05FF\w-]/g, "")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
 };
 
-// Performance: find by slug without loading all lecturers. Try slug field first, then
-// match name with regex (slug = name with spaces as hyphens) so one DB query.
+// Performance: find by slug. Try slug field first, then regex on name, then exact slug match.
 const findLecturerBySlug = async (slug) => {
+    const normalizedSlug = (slug || "").trim().toLowerCase();
+
     // 1) If schema had slug field (e.g. after migration), one indexed lookup
-    let lecturer = await Lecturer.findOne({ slug })
+    let lecturer = await Lecturer.findOne({ slug: normalizedSlug })
         .populate("createdBy", "fullName email")
         .populate("departments", "name code description")
         .lean();
     if (lecturer) return lecturer;
 
     // 2) Single query: match name where slug would equal generateSlug(name).
-    // Regex: slug has hyphens; name has spaces. So match name that normalizes to this slug.
-    const namePattern = slug.replace(/-/g, '[\\s-]+').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const namePattern = normalizedSlug.replace(/-/g, '[\\s-]+').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`^${namePattern}$`, 'i');
     lecturer = await Lecturer.findOne({ name: { $regex: regex } })
         .populate("createdBy", "fullName email")
@@ -34,13 +37,22 @@ const findLecturerBySlug = async (slug) => {
         .lean();
     if (lecturer) return lecturer;
 
-    // 3) Fallback: slug might be prefix (e.g. "john-1"). One more query by name prefix.
-    const prefixPattern = slug.replace(/-/g, '[\\s-]+').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    lecturer = await Lecturer.findOne({ name: { $regex: new RegExp(`^${prefixPattern}`, 'i') } })
+    // 3) Prefix match (e.g. "john-1").
+    lecturer = await Lecturer.findOne({ name: { $regex: new RegExp(`^${namePattern}`, 'i') } })
         .populate("createdBy", "fullName email")
         .populate("departments", "name code description")
         .lean();
-    return lecturer || null;
+    if (lecturer) return lecturer;
+
+    // 4) Fallback: match by generateSlug(name) === slug (same logic as client). Handles different
+    // word order, Unicode normalization, or extra characters in DB name.
+    const list = await Lecturer.find()
+        .populate("createdBy", "fullName email")
+        .populate("departments", "name code description")
+        .limit(5000)
+        .lean();
+    const found = list.find((l) => l.name && generateSlug(l.name) === normalizedSlug);
+    return found || null;
 };
 
 // GET /api/lecturers (optional ?limit=; in-memory cache 2min, invalidated on write)

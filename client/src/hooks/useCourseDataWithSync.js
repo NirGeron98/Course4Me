@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useCourseDataContext } from "../contexts/CourseDataContext";
 
 export const useCourseDataWithSync = (
@@ -14,6 +14,7 @@ export const useCourseDataWithSync = (
 
   const { updateCourseData, getCourseData, getRefreshTrigger } =
     useCourseDataContext();
+  const lastFetchedIdentifierRef = useRef(null);
 
   const fetchCourse = useCallback(async () => {
     if (!identifier) return;
@@ -68,7 +69,12 @@ export const useCourseDataWithSync = (
       }
     }
 
-    if (!hasLoadedFromCache) {
+    // Only fetch when identifier/type changed; avoid re-fetch when getCourseData
+    // changes (e.g. after we wrote to cache), which would cause infinite loop.
+    const identifierKey = `${identifierType}:${identifier ?? ""}`;
+    const sameTarget = lastFetchedIdentifierRef.current === identifierKey;
+    if (!hasLoadedFromCache && !sameTarget) {
+      lastFetchedIdentifierRef.current = identifierKey;
       fetchCourse();
     }
   }, [identifier, identifierType, fetchCourse, getCourseData]);
