@@ -15,8 +15,9 @@ const protect = async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Find user by ID from token payload, exclude password
-    const user = await User.findById(decoded.id).select("-password");
+    // Find user by ID from token payload, exclude password.
+    // .lean() — req.user is only read (id, role, _id), no Mongoose methods needed.
+    const user = await User.findById(decoded.id).select("-password").lean();
 
     if (!user) {
       return res.status(401).json({ message: "Unauthorized: User not found" });

@@ -3,20 +3,20 @@ import { Shield, AlertCircle } from 'lucide-react';
 
 const SecurityInfo = () => {
   return (
-    <div className="mt-8 bg-white rounded-2xl shadow-lg p-8 border border-emerald-100">
+    <div className="mt-8 bg-white rounded-card-lg shadow-card p-8 border border-emerald-100">
       <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
         <Shield className="w-6 h-6 text-emerald-600" />
         מידע אבטחה
       </h2>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div className="bg-blue-50 border border-blue-200 rounded-card p-4">
         <h4 className="font-medium text-blue-800 mb-2">הגנת פרטיות</h4>
         <p className="text-sm text-blue-700">
           המידע שלך נשמר בצורה מוצפנת ואינו נחשף לגורמים חיצוניים.
         </p>
       </div>
 
-      <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+      <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-card">
         <div className="flex items-center gap-2 mb-2">
           <AlertCircle className="w-5 h-5 text-yellow-600" />
           <h4 className="font-medium text-yellow-800">טיפים לאבטחה</h4>

@@ -1,5 +1,10 @@
 const LecturerReview = require("../models/LecturerReview");
 const Lecturer = require("../models/Lecturer");
+const { clearByPrefix: cacheClearLecturers } = require("../utils/listCache");
+
+// Prefix used by lecturerController for lecturer list cache keys.
+// Keep in sync with LECTURER_CACHE_PREFIX in lecturerController.js.
+const LECTURER_CACHE_PREFIX = "lecturers:";
 
 // Get all reviews for a specific lecturer
 exports.getReviewsByLecturer = async (req, res) => {
@@ -27,7 +32,7 @@ exports.getReviewsByLecturer = async (req, res) => {
     // Check if lecturer exists first
     let lecturerExists;
     try {
-      lecturerExists = await Lecturer.findById(lecturerId);
+      lecturerExists = await Lecturer.findById(lecturerId).select("_id").lean();
     } catch (lecturerError) {
       console.error("Error finding lecturer:", lecturerError);
       return res.status(500).json({
@@ -53,14 +58,15 @@ exports.getReviewsByLecturer = async (req, res) => {
         .populate("course", "title courseNumber")
         .populate("courses", "title courseNumber")
         .populate("lecturer", "name")
-        .sort({ createdAt: -1 });
+        .sort({ createdAt: -1 })
+        .lean();
     } catch (reviewsError) {
       console.error("Error finding reviews:", reviewsError);
       console.error("Review error details:", reviewsError.stack);
 
       // If populate fails, try without populate
       try {
-        reviews = await LecturerReview.find(query).sort({ createdAt: -1 });
+        reviews = await LecturerReview.find(query).sort({ createdAt: -1 }).lean();
       } catch (basicError) {
         console.error("Basic review query also failed:", basicError);
         return res.status(500).json({
@@ -81,7 +87,8 @@ exports.getReviewsByLecturer = async (req, res) => {
           .populate("course", "title courseNumber")
           .populate("courses", "title courseNumber")
           .populate("lecturer", "name")
-          .sort({ createdAt: -1 });
+          .sort({ createdAt: -1 })
+          .lean();
       } catch (populateError) {
         console.warn(
           "Manual populate failed, returning reviews without population:",
@@ -100,20 +107,20 @@ exports.getReviewsByLecturer = async (req, res) => {
           review.knowledge) /
         5
       ).toFixed(1);
-      
+
       const reviewObj = {
-        ...review.toObject(),
+        ...review,
         overallRating: parseFloat(overall),
       };
-      
+
       // If the review is anonymous, hide user details
-      if (reviewObj.isAnonymous) {
+      if (reviewObj.isAnonymous && reviewObj.user) {
         reviewObj.user = {
-          _id: reviewObj.user._id, // Keep ID for edit/delete permissions
+          _id: reviewObj.user._id,
           fullName: 'משתמש אנונימי'
         };
       }
-      
+
       return reviewObj;
     });
 
@@ -223,22 +230,22 @@ exports.createLecturerReview = async (req, res) => {
     // Check if review already exists
     // For backward compatibility, check both old format (lecturer+course+user) and new format (lecturer+user)
     let existing;
-    
+
     if (coursesToUse.length === 1) {
       // Single course - check old format first
       existing = await LecturerReview.findOne({
         lecturer,
         course: coursesToUse[0],
         user: req.user._id,
-      });
+      }).select("_id").lean();
     }
-    
+
     if (!existing) {
       // Check if user already has any review for this lecturer (new format)
       existing = await LecturerReview.findOne({
         lecturer,
         user: req.user._id,
-      });
+      }).select("_id").lean();
     }
 
     if (existing) {
@@ -248,7 +255,7 @@ exports.createLecturerReview = async (req, res) => {
     }
 
     // Verify lecturer exists
-    const lecturerExists = await Lecturer.findById(lecturer);
+    const lecturerExists = await Lecturer.findById(lecturer).select("_id").lean();
     if (!lecturerExists) {
       return res.status(404).json({
         message: "מרצה לא נמצא",
@@ -272,8 +279,11 @@ exports.createLecturerReview = async (req, res) => {
 
     await review.save();
 
-    // Update the lecturer's average rating
-    const allReviews = await LecturerReview.find({ lecturer });
+    // Update the lecturer's average rating.
+    // .lean() — only the five rating fields are needed for the aggregate.
+    const allReviews = await LecturerReview.find({ lecturer })
+      .select("clarity responsiveness availability organization knowledge")
+      .lean();
 
     if (allReviews.length > 0) {
       const avg =
@@ -295,20 +305,23 @@ exports.createLecturerReview = async (req, res) => {
     }
 
     // Return the review with populated fields
-    const populatedReview = await LecturerReview.findById(review._id)
+    const reviewObj = await LecturerReview.findById(review._id)
       .populate("user", "fullName")
       .populate("course", "title courseNumber")
       .populate("courses", "title courseNumber")
-      .populate("lecturer", "name");
+      .populate("lecturer", "name")
+      .lean();
 
     // Process the returned review to handle anonymity
-    const reviewObj = populatedReview.toObject();
-    if (reviewObj.isAnonymous) {
+    if (reviewObj.isAnonymous && reviewObj.user) {
       reviewObj.user = {
         _id: reviewObj.user._id, // Keep ID for edit/delete permissions
         fullName: 'משתמש אנונימי'
       };
     }
+
+    // Invalidate lecturer list cache so fresh ratings are served.
+    cacheClearLecturers(LECTURER_CACHE_PREFIX);
 
     res.status(201).json(reviewObj);
   } catch (err) {
@@ -412,7 +425,7 @@ exports.updateLecturerReview = async (req, res) => {
     } = req.body;
 
     // Find the existing review
-    const existingReview = await LecturerReview.findById(reviewId);
+    const existingReview = await LecturerReview.findById(reviewId).select("user lecturer").lean();
 
     if (!existingReview) {
       return res.status(404).json({ message: "ביקורת לא נמצאה" });
@@ -449,12 +462,13 @@ exports.updateLecturerReview = async (req, res) => {
       .populate("user", "fullName")
       .populate("course", "title courseNumber")
       .populate("courses", "title courseNumber")
-      .populate("lecturer", "name");
+      .populate("lecturer", "name")
+      .lean();
 
     // Recalculate lecturer's average rating
     const allReviews = await LecturerReview.find({
       lecturer: existingReview.lecturer,
-    });
+    }).select("clarity responsiveness availability organization knowledge").lean();
     const avg =
       allReviews.reduce((sum, r) => {
         const averageScore =
@@ -471,6 +485,9 @@ exports.updateLecturerReview = async (req, res) => {
       averageRating: avg.toFixed(2),
       ratingsCount: allReviews.length,
     });
+
+    // Invalidate lecturer list cache after rating recalculation.
+    cacheClearLecturers(LECTURER_CACHE_PREFIX);
 
     res.status(200).json(updatedReview);
   } catch (err) {
@@ -491,7 +508,7 @@ exports.deleteLecturerReview = async (req, res) => {
     const { reviewId } = req.params;
 
     // Find the existing review
-    const existingReview = await LecturerReview.findById(reviewId);
+    const existingReview = await LecturerReview.findById(reviewId).select("user lecturer").lean();
 
     if (!existingReview) {
       return res.status(404).json({ message: "ביקורת לא נמצאה" });
@@ -510,7 +527,7 @@ exports.deleteLecturerReview = async (req, res) => {
     // Recalculate lecturer's average rating
     const allReviews = await LecturerReview.find({
       lecturer: existingReview.lecturer,
-    });
+    }).select("clarity responsiveness availability organization knowledge").lean();
 
     if (allReviews.length > 0) {
       const avg =
@@ -536,6 +553,9 @@ exports.deleteLecturerReview = async (req, res) => {
         ratingsCount: 0,
       });
     }
+
+    // Invalidate lecturer list cache after the rating was recomputed or reset.
+    cacheClearLecturers(LECTURER_CACHE_PREFIX);
 
     res.status(200).json({ message: "ביקורת נמחקה בהצלחה" });
   } catch (err) {

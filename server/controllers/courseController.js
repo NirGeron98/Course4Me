@@ -59,7 +59,8 @@ exports.getCourseById = async (req, res) => {
         path: "lecturers",
         select: "-__v -createdAt -updatedAt -ratingsCount",
       })
-      .populate("createdBy", "fullName email");
+      .populate("createdBy", "fullName email")
+      .lean();
 
     if (!course) {
       return res.status(404).json({ message: "קורס לא נמצא" });
@@ -80,7 +81,8 @@ exports.getCourseByNumber = async (req, res) => {
         path: "lecturers",
         select: "-__v -createdAt -updatedAt -ratingsCount",
       })
-      .populate("createdBy", "fullName email");
+      .populate("createdBy", "fullName email")
+      .lean();
 
     if (!course) {
       return res.status(404).json({ message: "קורס לא נמצא" });
@@ -107,7 +109,7 @@ exports.createCourse = async (req, res) => {
       prerequisites,
     } = req.body;
 
-    const existingCourse = await Course.findOne({ courseNumber });
+    const existingCourse = await Course.findOne({ courseNumber }).select("_id").lean();
     if (existingCourse) {
       return res.status(400).json({ message: "מספר קורס כבר קיים במערכת" });
     }
@@ -118,9 +120,9 @@ exports.createCourse = async (req, res) => {
         let lecDoc = null;
 
         if (typeof lec === "string" && lec.trim().length === 24) {
-          lecDoc = await Lecturer.findById(lec.trim());
+          lecDoc = await Lecturer.findById(lec.trim()).select("_id").lean();
         } else {
-          lecDoc = await Lecturer.findOne({ name: lec.trim() });
+          lecDoc = await Lecturer.findOne({ name: lec.trim() }).select("_id").lean();
         }
 
         if (lecDoc) {
@@ -170,7 +172,7 @@ exports.updateCourse = async (req, res) => {
       const existingCourse = await Course.findOne({
         courseNumber,
         _id: { $ne: req.params.id },
-      });
+      }).select("_id").lean();
       if (existingCourse) {
         return res.status(400).json({ message: "מספר קורס כבר קיים במערכת" });
       }
@@ -191,9 +193,9 @@ exports.updateCourse = async (req, res) => {
         let lecDoc = null;
 
         if (typeof lec === "string" && lec.trim().length === 24) {
-          lecDoc = await Lecturer.findById(lec.trim());
+          lecDoc = await Lecturer.findById(lec.trim()).select("_id").lean();
         } else {
-          lecDoc = await Lecturer.findOne({ name: lec.trim() });
+          lecDoc = await Lecturer.findOne({ name: lec.trim() }).select("_id").lean();
         }
 
         if (!lecDoc) {
@@ -212,7 +214,8 @@ exports.updateCourse = async (req, res) => {
       { new: true, runValidators: true }
     )
       .populate("lecturers", "name email department")
-      .populate("createdBy", "fullName email");
+      .populate("createdBy", "fullName email")
+      .lean();
 
     if (!updatedCourse) {
       return res.status(404).json({ message: "קורס לא נמצא" });
@@ -303,7 +306,8 @@ exports.getCourseWithLecturers = async (req, res) => {
         path: "lecturers",
         select: "-__v -createdAt -updatedAt",
       })
-      .populate("createdBy", "fullName email");
+      .populate("createdBy", "fullName email")
+      .lean();
 
     if (!course) {
       return res.status(404).json({ message: "קורס לא נמצא" });

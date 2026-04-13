@@ -12,7 +12,7 @@ const DeleteConfirmationModal = ({ isOpen, onConfirm, onCancel, title, message }
       aria-labelledby="delete-modal-title"
       aria-describedby="delete-modal-desc"
     >
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden animate-modalEnter" dir="rtl">
+      <div className="bg-white rounded-card-lg shadow-elevated max-w-md w-full mx-4 overflow-hidden animate-modalEnter" dir="rtl">
         {/* Header */}
         <div className="bg-red-50 border-b border-red-100 p-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -26,7 +26,7 @@ const DeleteConfirmationModal = ({ isOpen, onConfirm, onCancel, title, message }
           <button
             type="button"
             onClick={onCancel}
-            className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+            className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-card focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
             aria-label="סגור"
           >
             <X className="w-5 h-5" />
@@ -44,14 +44,14 @@ const DeleteConfirmationModal = ({ isOpen, onConfirm, onCancel, title, message }
             <button
               type="button"
               onClick={onCancel}
-              className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+              className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-card transition-all duration-ui focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
             >
               ביטול
             </button>
             <button
               type="button"
               onClick={onConfirm}
-              className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+              className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-card transition-all duration-ui focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
             >
               מחק ביקורת
             </button>

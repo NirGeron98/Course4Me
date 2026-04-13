@@ -27,7 +27,7 @@ const LecturerItem = ({ lecturer, onViewDetails, onAdd, isAdding }) => {
   };
 
   return (
-    <div className="group bg-white hover:bg-purple-50 border-2 border-gray-100 hover:border-purple-200 rounded-2xl p-5 transition-all duration-300 hover:shadow-lg" dir="rtl">
+    <div className="group bg-white hover:bg-purple-50 border-2 border-gray-100 hover:border-purple-200 rounded-card-lg p-5 transition-all duration-ui hover:shadow-card" dir="rtl">
       <div className="flex items-center justify-between">
         
         {/* Lecturer Info */}
@@ -101,7 +101,7 @@ const LecturerItem = ({ lecturer, onViewDetails, onAdd, isAdding }) => {
                 onViewDetails(lecturer);
               }}
               disabled={isAdding}
-              className="group/btn flex items-center justify-center w-10 h-10 bg-blue-100 hover:bg-blue-200 text-blue-600 hover:text-blue-700 rounded-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="group/btn flex items-center justify-center w-10 h-10 bg-blue-100 hover:bg-blue-200 text-blue-600 hover:text-blue-700 rounded-card transition-all duration-ui hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               title="הצג פרטים"
               aria-label="הצג פרטים"
             >
@@ -116,7 +116,7 @@ const LecturerItem = ({ lecturer, onViewDetails, onAdd, isAdding }) => {
               onAdd(lecturer._id || lecturer.id);
             }}
             disabled={isAdding}
-            className="group/btn flex items-center justify-center w-10 h-10 bg-purple-100 hover:bg-purple-200 text-purple-600 hover:text-purple-700 rounded-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            className="group/btn flex items-center justify-center w-10 h-10 bg-purple-100 hover:bg-purple-200 text-purple-600 hover:text-purple-700 rounded-card transition-all duration-ui hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             title="הוסף למעקב"
             aria-label="הוסף למעקב"
           >

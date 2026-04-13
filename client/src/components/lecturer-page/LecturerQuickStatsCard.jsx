@@ -3,7 +3,7 @@ import { Users, BookOpen, Star } from 'lucide-react';
 
 const LecturerQuickStatsCard = ({ stats, reviewsCount, coursesCount }) => {
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6">
+    <div className="bg-white rounded-card-lg shadow-card p-6">
       {/* Card Title */}
       <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
         <Users className="w-5 h-5 text-purple-500" />

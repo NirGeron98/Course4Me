@@ -2,11 +2,9 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
     BookOpen, Hash, Award, Building,
-    BookMarked, Users, Star, X
+    BookMarked, Users, Star, X, ThumbsUp
 } from 'lucide-react';
 import { getLecturerSlug } from '../../utils/slugUtils';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faThumbsUp } from '@fortawesome/free-solid-svg-icons';
 
 const CourseHeader = ({ course, stats }) => {
     const [showAllLecturers, setShowAllLecturers] = useState(false);
@@ -75,7 +73,7 @@ const CourseHeader = ({ course, stats }) => {
             <div className="relative max-w-7xl mx-auto px-6 py-12">
                 {/* Course Name and Icon - Centered at top */}
                 <div className="flex items-center justify-center gap-4 mb-8">
-                    <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl p-4 shadow-lg">
+                    <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-card-lg p-4 shadow-card">
                         <BookOpen className="w-10 h-10 text-white" />
                     </div>
                     <h1 className="text-3xl lg:text-4xl font-bold text-white leading-tight text-center">
@@ -89,20 +87,20 @@ const CourseHeader = ({ course, stats }) => {
                     <div className="flex flex-col items-center text-center max-w-4xl w-full">
                         {/* Course Meta - Compact Pills */}
                         <div className="flex flex-wrap gap-2 mb-6 justify-center items-center w-full">
-                            <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
+                            <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-card flex items-center gap-2 text-sm font-medium text-white">
                                 <Hash className="w-3.5 h-3.5" />
                                 {course.courseNumber}
                             </div>
-                            <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
+                            <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-card flex items-center gap-2 text-sm font-medium text-white">
                                 <Award className="w-3.5 h-3.5" />
                                 {course.credits} נק"ז
                             </div>
-                            <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
+                            <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-card flex items-center gap-2 text-sm font-medium text-white">
                                 <Building className="w-3.5 h-3.5" />
                                 {course.academicInstitution}
                             </div>
                             {course.department && (
-                                <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
+                                <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-card flex items-center gap-2 text-sm font-medium text-white">
                                     <BookMarked className="w-3.5 h-3.5" />
                                     {course.department}
                                 </div>
@@ -112,7 +110,7 @@ const CourseHeader = ({ course, stats }) => {
                         {/* Lecturers Section */}
                         {lecturersToShow.length > 0 && (
                             <div className="mb-6 w-full flex justify-center">
-                                <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-xl p-4 shadow-lg">
+                                <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-card p-4 shadow-card">
                                     <div className="flex flex-col lg:flex-row items-center gap-4">
                                         <div className="flex items-center gap-2 text-white font-semibold whitespace-nowrap">
                                             <Users className="w-4 h-4" />
@@ -123,7 +121,7 @@ const CourseHeader = ({ course, stats }) => {
                                             {lecturersToShow.map((lecturer, index) => (
                                                 <Link
                                                     key={index}
-                                                    to={`/lecturer/${getLecturerSlug(lecturer)}`} className="bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-2 hover:bg-white/30 hover:scale-105 transition-all duration-200 group cursor-pointer"
+                                                    to={`/lecturer/${getLecturerSlug(lecturer)}`} className="bg-white/20 backdrop-blur-sm border border-white/20 rounded-card px-4 py-2 hover:bg-white/30 hover:scale-105 transition-all duration-ui group cursor-pointer"
                                                 >
                                                     <span className="text-white font-medium group-hover:text-white/90">
                                                         {lecturer.name}
@@ -134,7 +132,7 @@ const CourseHeader = ({ course, stats }) => {
                                             {remainingLecturers > 0 && (
                                                 <button
                                                     onClick={() => setShowAllLecturers(true)}
-                                                    className="bg-emerald-500/80 backdrop-blur-md border border-emerald-400/50 rounded-lg px-4 py-2 shadow-lg hover:bg-emerald-400/80 hover:scale-105 transition-all cursor-pointer"
+                                                    className="bg-emerald-500/80 backdrop-blur-md border border-emerald-400/50 rounded-card px-4 py-2 shadow-card hover:bg-emerald-400/80 hover:scale-105 transition-all cursor-pointer"
                                                 >
                                                     <span className="text-white font-semibold text-sm">
                                                         +{remainingLecturers} מרצים נוספים
@@ -150,7 +148,7 @@ const CourseHeader = ({ course, stats }) => {
                         {/* All lecturers popup */}
                         {showAllLecturers && (
                             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                                <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
+                                <div className="bg-white rounded-card-lg shadow-elevated max-w-4xl w-full max-h-[80vh] overflow-hidden">
                                     {/* Popup header */}
                                     <div className="bg-gradient-to-r from-emerald-600 to-teal-700 px-6 py-4 flex items-center justify-between">
                                         <h3 className="text-xl font-bold text-white flex items-center gap-2">
@@ -159,7 +157,7 @@ const CourseHeader = ({ course, stats }) => {
                                         </h3>
                                         <button
                                             onClick={() => setShowAllLecturers(false)}
-                                            className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
+                                            className="text-white hover:bg-white/20 rounded-card p-2 transition-colors"
                                         >
                                             <X className="w-5 h-5" />
                                         </button>
@@ -172,7 +170,7 @@ const CourseHeader = ({ course, stats }) => {
                                                 <Link
                                                     key={index}
                                                     to={`/lecturer/${getLecturerSlug(lecturer)}`} onClick={() => setShowAllLecturers(false)}
-                                                    className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-4 hover:shadow-lg hover:scale-105 transition-all duration-200 group"
+                                                    className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-card p-4 hover:shadow-card hover:scale-105 transition-all duration-ui group"
                                                 >
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
@@ -201,7 +199,7 @@ const CourseHeader = ({ course, stats }) => {
                 {/* Rating Box - Positioned dynamically on the left side based on lecturers count */}
                 {displayRating !== null && (
                     <div className={`absolute ${getRatingPosition()} ${getRatingTopPosition()} hidden lg:block`}>
-                        <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl p-6 shadow-lg">
+                        <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-card p-6 shadow-card">
                             <div className="text-center">
                                 <div className="text-3xl font-bold text-white mb-3">
                                     {displayRating.toFixed(1)}
@@ -213,7 +211,7 @@ const CourseHeader = ({ course, stats }) => {
                                     ציון ההמלצה מתוך {reviewsCount} ביקורות
                                 </div>
                                 <div className="text-white/70 text-xs mt-2 flex items-center justify-center gap-1">
-                                    <FontAwesomeIcon icon={faThumbsUp} className="w-3 h-3" />
+                                    <ThumbsUp className="w-3 h-3" />
                                     <span>מבוסס על קריטריון ההמלצה בלבד</span>
                                 </div>
                             </div>
@@ -224,7 +222,7 @@ const CourseHeader = ({ course, stats }) => {
                 {/* Rating Box for mobile - centered below */}
                 {displayRating !== null && (
                     <div className="lg:hidden mt-8 flex justify-center w-full">
-                        <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl p-6 shadow-lg">
+                        <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-card p-6 shadow-card">
                             <div className="text-center">
                                 <div className="text-3xl font-bold text-white mb-3">
                                     {displayRating.toFixed(1)}

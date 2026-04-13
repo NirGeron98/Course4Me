@@ -78,7 +78,7 @@ const StatsCards = ({
         tabIndex={0}
         onClick={() => navigate('/tracked-courses')}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/tracked-courses'); } }}
-        className="bg-white rounded-2xl p-4 shadow-card border border-emerald-100 hover:shadow-card-hover transition-shadow duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+        className="bg-white rounded-card-lg p-4 shadow-card border border-emerald-100 hover:shadow-card-hover transition-shadow duration-ui cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
       >
         <div className="flex flex-col items-center text-center gap-3">
           <div className="bg-emerald-100 rounded-full p-3">
@@ -98,7 +98,7 @@ const StatsCards = ({
         tabIndex={0}
         onClick={() => navigate('/lecturers')}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/lecturers'); } }}
-        className="bg-white rounded-2xl p-4 shadow-card border border-purple-100 hover:shadow-card-hover transition-shadow duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
+        className="bg-white rounded-card-lg p-4 shadow-card border border-purple-100 hover:shadow-card-hover transition-shadow duration-ui cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
       >
         <div className="flex flex-col items-center text-center gap-3">
           <div className="bg-purple-100 rounded-full p-3">
@@ -117,7 +117,7 @@ const StatsCards = ({
         tabIndex={0}
         onClick={() => navigate('/my-contact-requests')}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/my-contact-requests'); } }}
-        className="bg-white rounded-2xl p-4 shadow-card border border-orange-100 hover:shadow-card-hover transition-shadow duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
+        className="bg-white rounded-card-lg p-4 shadow-card border border-orange-100 hover:shadow-card-hover transition-shadow duration-ui cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
       >
         <div className="flex flex-col items-center text-center gap-3">
           <div className="bg-orange-100 rounded-full p-3">
@@ -131,7 +131,7 @@ const StatsCards = ({
       </div>
 
       {/* Total Courses */}
-      <div className="bg-white rounded-2xl p-4 shadow-card border border-blue-100 transition-shadow duration-200">
+      <div className="bg-white rounded-card-lg p-4 shadow-card border border-blue-100 transition-shadow duration-ui">
         <div className="flex flex-col items-center text-center gap-3">
           <div className="bg-blue-100 rounded-full p-3">
             <TrendingUp className="w-6 h-6 text-blue-600" />
@@ -144,7 +144,7 @@ const StatsCards = ({
       </div>
 
       {/* Total Lecturers */}
-      <div className="bg-white rounded-2xl p-4 shadow-card border border-purple-100 transition-shadow duration-200">
+      <div className="bg-white rounded-card-lg p-4 shadow-card border border-purple-100 transition-shadow duration-ui">
         <div className="flex flex-col items-center text-center gap-3">
           <div className="bg-purple-100 rounded-full p-3">
             <Users className="w-6 h-6 text-purple-600" />

@@ -28,7 +28,7 @@ const SearchFilters = ({
     };
 
     return (
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+        <div className="bg-white rounded-card-lg shadow-card border border-gray-100 p-6">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
@@ -39,7 +39,7 @@ const SearchFilters = ({
                 </div>
                 <button
                     onClick={onClearFilters}
-                    className="text-sm text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded-lg transition-all duration-200 font-semibold border border-red-200 hover:border-red-300"
+                    className="text-sm text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded-card transition-all duration-ui font-semibold border border-red-200 hover:border-red-300"
                 >
                     נקה הכל
                 </button>
@@ -60,7 +60,7 @@ const SearchFilters = ({
                             onChange={(e) => onFilterChange('searchTerm', e.target.value)}
                             onKeyPress={handleKeyPress}
                             placeholder={searchType === 'courses' ? 'שם קורס, תיאור...' : 'שם מרצה, ביוגרפיה...'}
-                            className="w-full pr-12 pl-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                            className="w-full pr-12 pl-4 py-3 border border-gray-300 rounded-card focus:ring-2 focus-visible:ring-2 focus-visible:ring-brand focus:border-transparent text-base"
                         />
                     </div>
                 </div>
@@ -86,7 +86,7 @@ const SearchFilters = ({
                     <select
                         value={filters.academicInstitution}
                         onChange={(e) => onFilterChange('academicInstitution', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-card focus:ring-2 focus-visible:ring-2 focus-visible:ring-brand focus:border-transparent text-base"
                     >
                         <option value="">כל המוסדות</option>
                         {institutions.map(inst => (
@@ -112,12 +112,12 @@ const SearchFilters = ({
 
                 {/* Advanced Filters */}
                 {showAdvanced && (
-                    <div className="mt-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+                    <div className="mt-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-card-lg p-6 border border-blue-100">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {searchType === 'courses' ? (
                                 <>
                                     {/* Course Number */}
-                                    <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                                    <div className="bg-white rounded-card p-4 shadow-sm border border-gray-100">
                                         <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                                             <Hash className="w-4 h-4 text-blue-500" />
                                             מספר קורס
@@ -127,12 +127,12 @@ const SearchFilters = ({
                                             value={filters.courseNumber}
                                             onChange={(e) => onFilterChange('courseNumber', e.target.value)}
                                             placeholder="לדוגמה: 12345"
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-card focus:ring-2 focus-visible:ring-2 focus-visible:ring-brand focus:border-transparent transition-all"
                                         />
                                     </div>
 
                                     {/* Credits */}
-                                    <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                                    <div className="bg-white rounded-card p-4 shadow-sm border border-gray-100">
                                         <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                                             <Award className="w-4 h-4 text-green-500" />
                                             נקודות זכות
@@ -140,7 +140,7 @@ const SearchFilters = ({
                                         <select
                                             value={filters.credits}
                                             onChange={(e) => onFilterChange('credits', e.target.value)}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-card focus:ring-2 focus-visible:ring-2 focus-visible:ring-brand focus:border-transparent transition-all"
                                         >
                                             <option value="">כל הנקודות</option>
                                             <option value="0.5">0.5 נק"ז</option>
@@ -159,7 +159,7 @@ const SearchFilters = ({
                                     </div>
 
                                     {/* Lecturer Autocomplete */}
-                                    <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                                    <div className="bg-white rounded-card p-4 shadow-sm border border-gray-100">
                                         <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                                             <Users className="w-4 h-4 text-purple-500" />
                                             מרצה
@@ -175,7 +175,7 @@ const SearchFilters = ({
                                     </div>
 
                                     {/* Rating Range */}
-                                    <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                                    <div className="bg-white rounded-card p-4 shadow-sm border border-gray-100">
                                         <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                                             <Star className="w-4 h-4 text-yellow-500" />
                                             דירוג
@@ -186,7 +186,7 @@ const SearchFilters = ({
                                                 <select
                                                     value={filters.minRating}
                                                     onChange={(e) => onFilterChange('minRating', e.target.value)}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all"
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-card focus:ring-2 focus-visible:ring-2 focus-visible:ring-brand focus:border-transparent text-sm transition-all"
                                                 >
                                                     <option value="">הכל</option>
                                                     <option value="1">1⭐</option>
@@ -201,7 +201,7 @@ const SearchFilters = ({
                                                 <select
                                                     value={filters.maxRating}
                                                     onChange={(e) => onFilterChange('maxRating', e.target.value)}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all"
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-card focus:ring-2 focus-visible:ring-2 focus-visible:ring-brand focus:border-transparent text-sm transition-all"
                                                 >
                                                     <option value="">הכל</option>
                                                     <option value="1">1⭐</option>
@@ -215,17 +215,17 @@ const SearchFilters = ({
                                     </div>
 
                                     {/* Has Reviews Checkbox */}
-                                    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex items-center justify-center">
-                                        <label className="flex items-center gap-4 cursor-pointer bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 transition-all duration-300 rounded-xl p-4 w-full border border-blue-200 hover:border-blue-300 hover:shadow-md">
+                                    <div className="bg-white rounded-card p-6 shadow-sm border border-gray-100 flex items-center justify-center">
+                                        <label className="flex items-center gap-4 cursor-pointer bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 transition-all duration-ui rounded-card p-4 w-full border border-blue-200 hover:border-blue-300 hover:shadow-card">
                                             <div className="relative">
                                                 <input
                                                     type="checkbox"
                                                     checked={filters.hasReviews}
                                                     onChange={(e) => onFilterChange('hasReviews', e.target.checked)}
-                                                    className="w-6 h-6 text-blue-600 bg-white border-2 border-gray-300 rounded-lg focus:ring-blue-500 focus:ring-2 transition-all"
+                                                    className="w-6 h-6 text-blue-600 bg-white border-2 border-gray-300 rounded-card focus-visible:ring-2 focus-visible:ring-brand focus:ring-2 transition-all"
                                                 />
                                                 {filters.hasReviews && (
-                                                    <div className="absolute inset-0 w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center">
+                                                    <div className="absolute inset-0 w-6 h-6 bg-blue-600 rounded-card flex items-center justify-center">
                                                         <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                                                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                                         </svg>
@@ -242,7 +242,7 @@ const SearchFilters = ({
                             ) : (
                                 <>
                                     {/* Lecturer Email */}
-                                    <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                                    <div className="bg-white rounded-card p-4 shadow-sm border border-gray-100">
                                         <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                                             <Mail className="w-4 h-4 text-blue-500" />
                                             אימייל מרצה
@@ -252,12 +252,12 @@ const SearchFilters = ({
                                             value={filters.lecturerEmail}
                                             onChange={(e) => onFilterChange('lecturerEmail', e.target.value)}
                                             placeholder="כתובת אימייל"
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-card focus:ring-2 focus-visible:ring-2 focus-visible:ring-brand focus:border-transparent transition-all"
                                         />
                                     </div>
 
                                     {/* Lecturer Rating Range */}
-                                    <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                                    <div className="bg-white rounded-card p-4 shadow-sm border border-gray-100">
                                         <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                                             <Star className="w-4 h-4 text-yellow-500" />
                                             דירוג מרצה
@@ -268,7 +268,7 @@ const SearchFilters = ({
                                                 <select
                                                     value={filters.minLecturerRating}
                                                     onChange={(e) => onFilterChange('minLecturerRating', e.target.value)}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all"
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-card focus:ring-2 focus-visible:ring-2 focus-visible:ring-brand focus:border-transparent text-sm transition-all"
                                                 >
                                                     <option value="">הכל</option>
                                                     <option value="1">1⭐</option>
@@ -283,7 +283,7 @@ const SearchFilters = ({
                                                 <select
                                                     value={filters.maxLecturerRating}
                                                     onChange={(e) => onFilterChange('maxLecturerRating', e.target.value)}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all"
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-card focus:ring-2 focus-visible:ring-2 focus-visible:ring-brand focus:border-transparent text-sm transition-all"
                                                 >
                                                     <option value="">הכל</option>
                                                     <option value="1">1⭐</option>
@@ -297,17 +297,17 @@ const SearchFilters = ({
                                     </div>
 
                                     {/* Has Reviews Checkbox */}
-                                    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex items-center justify-center">
-                                        <label className="flex items-center gap-4 cursor-pointer bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 transition-all duration-300 rounded-xl p-4 w-full border border-purple-200 hover:border-purple-300 hover:shadow-md">
+                                    <div className="bg-white rounded-card p-6 shadow-sm border border-gray-100 flex items-center justify-center">
+                                        <label className="flex items-center gap-4 cursor-pointer bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 transition-all duration-ui rounded-card p-4 w-full border border-purple-200 hover:border-purple-300 hover:shadow-card">
                                             <div className="relative">
                                                 <input
                                                     type="checkbox"
                                                     checked={filters.hasLecturerReviews}
                                                     onChange={(e) => onFilterChange('hasLecturerReviews', e.target.checked)}
-                                                    className="w-6 h-6 text-purple-600 bg-white border-2 border-gray-300 rounded-lg focus:ring-purple-500 focus:ring-2 transition-all"
+                                                    className="w-6 h-6 text-purple-600 bg-white border-2 border-gray-300 rounded-card focus:ring-purple-500 focus:ring-2 transition-all"
                                                 />
                                                 {filters.hasLecturerReviews && (
-                                                    <div className="absolute inset-0 w-6 h-6 bg-purple-600 rounded-lg flex items-center justify-center">
+                                                    <div className="absolute inset-0 w-6 h-6 bg-purple-600 rounded-card flex items-center justify-center">
                                                         <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                                                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                                         </svg>
@@ -332,7 +332,7 @@ const SearchFilters = ({
                 <button
                     onClick={onSearch}
                     disabled={loading}
-                    className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white py-3 px-8 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none flex items-center justify-center gap-3 min-w-[150px]"
+                    className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white py-3 px-8 rounded-card font-medium transition-all duration-ui shadow-card hover:shadow-card-hover transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none flex items-center justify-center gap-3 min-w-[150px]"
                 >
                     {loading ? (
                         <>

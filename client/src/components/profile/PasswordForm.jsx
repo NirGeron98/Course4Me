@@ -12,7 +12,7 @@ const PasswordForm = ({
   messages
 }) => {
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-8 border border-emerald-100">
+    <div className="bg-white rounded-card-lg shadow-card p-8 border border-emerald-100">
       <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
         <Lock className="w-6 h-6 text-emerald-600" />
         שינוי סיסמה
@@ -31,7 +31,7 @@ const PasswordForm = ({
               type={showPasswords.current ? "text" : "password"}
               value={passwords.currentPassword}
               onChange={(e) => setPasswords(prev => ({ ...prev, currentPassword: e.target.value }))}
-              className="w-full pr-11 pl-11 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full pr-11 pl-11 py-3 border border-gray-300 rounded-card focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               placeholder="הכנס סיסמה נוכחית"
             />
             <button
@@ -54,7 +54,7 @@ const PasswordForm = ({
               type={showPasswords.new ? "text" : "password"}
               value={passwords.newPassword}
               onChange={(e) => setPasswords(prev => ({ ...prev, newPassword: e.target.value }))}
-              className="w-full pr-11 pl-11 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full pr-11 pl-11 py-3 border border-gray-300 rounded-card focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               placeholder="הכנס סיסמה חדשה (לפחות 6 תווים)"
             />
             <button
@@ -77,7 +77,7 @@ const PasswordForm = ({
               type={showPasswords.confirm ? "text" : "password"}
               value={passwords.confirmPassword}
               onChange={(e) => setPasswords(prev => ({ ...prev, confirmPassword: e.target.value }))}
-              className="w-full pr-11 pl-11 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full pr-11 pl-11 py-3 border border-gray-300 rounded-card focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               placeholder="הכנס שוב את הסיסמה החדשה"
             />
             <button
@@ -90,7 +90,7 @@ const PasswordForm = ({
           </div>
         </div>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-card p-4">
           <h4 className="text-sm font-medium text-blue-800 mb-2">דרישות סיסמה:</h4>
           <ul className="text-sm text-blue-700 space-y-1">
             <li className="flex items-center gap-2">
@@ -114,7 +114,7 @@ const PasswordForm = ({
             passwords.newPassword !== passwords.confirmPassword ||
             passwords.newPassword.length < 6
           }
-          className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 px-6 rounded-lg font-medium flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 px-6 rounded-card font-medium flex items-center justify-center gap-2 transition-all duration-ui shadow-card hover:shadow-card-hover disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading.updatePassword ? (
             <Loader2 className="w-5 h-5 animate-spin" />

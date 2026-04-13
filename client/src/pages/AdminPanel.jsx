@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { apiFetch } from "../hooks/useApi";
 import CourseManagement from "../components/admin/CourseManagement";
 import LecturerManagement from "../components/admin/LecturerManagement";
 import DepartmentManagement from "../components/admin/DepartmentManagement";
@@ -27,11 +27,8 @@ const AdminPanel = ({ user }) => {
   useEffect(() => {
     const fetchLecturers = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/lecturers`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setLecturers(response.data);
+        const data = await apiFetch(`/api/lecturers`);
+        setLecturers(data);
       } catch (err) {
         console.error("Error fetching lecturers:", err);
         setLecturers([]);
@@ -68,19 +65,19 @@ const AdminPanel = ({ user }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-100" dir="rtl">
-      <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white py-8 px-6">
+      <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white py-6 sm:py-8 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold mb-2">פאנל ניהול מערכת</h1>
-          <p className="text-emerald-100">ניהול קורסים ומרצים במערכת</p>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">פאנל ניהול מערכת</h1>
+          <p className="text-emerald-100 text-sm sm:text-base">ניהול קורסים ומרצים במערכת</p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-6">
-        <div className="bg-white rounded-2xl shadow-lg border border-emerald-100">
-          <div className="flex border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
+        <div className="bg-white rounded-card-lg shadow-card border border-emerald-100">
+          <div className="flex border-b border-gray-200 overflow-x-auto">
             <button
               onClick={() => setActiveTab("courses")}
-              className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${activeTab === "courses"
+              className={`flex-1 min-w-max whitespace-nowrap py-3 sm:py-4 px-3 sm:px-6 text-sm sm:text-base text-center font-medium transition-colors ${activeTab === "courses"
                 ? "text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50"
                 : "text-gray-600 hover:text-emerald-600"
               }`}
@@ -90,7 +87,7 @@ const AdminPanel = ({ user }) => {
             </button>
             <button
               onClick={() => setActiveTab("lecturers")}
-              className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${activeTab === "lecturers"
+              className={`flex-1 min-w-max whitespace-nowrap py-3 sm:py-4 px-3 sm:px-6 text-sm sm:text-base text-center font-medium transition-colors ${activeTab === "lecturers"
                 ? "text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50"
                 : "text-gray-600 hover:text-emerald-600"
               }`}
@@ -100,7 +97,7 @@ const AdminPanel = ({ user }) => {
             </button>
             <button
               onClick={() => setActiveTab("departments")}
-              className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${activeTab === "departments"
+              className={`flex-1 min-w-max whitespace-nowrap py-3 sm:py-4 px-3 sm:px-6 text-sm sm:text-base text-center font-medium transition-colors ${activeTab === "departments"
                 ? "text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50"
                 : "text-gray-600 hover:text-emerald-600"
               }`}
@@ -110,7 +107,7 @@ const AdminPanel = ({ user }) => {
             </button>
             <button
               onClick={() => setActiveTab("contact-requests")}
-              className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${activeTab === "contact-requests"
+              className={`flex-1 min-w-max whitespace-nowrap py-3 sm:py-4 px-3 sm:px-6 text-sm sm:text-base text-center font-medium transition-colors ${activeTab === "contact-requests"
                 ? "text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50"
                 : "text-gray-600 hover:text-emerald-600"
               }`}
@@ -121,7 +118,7 @@ const AdminPanel = ({ user }) => {
           </div>
 
           {message && (
-            <div className="m-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center animate-fade-in">
+            <div className="m-3 sm:m-6 p-3 sm:p-4 bg-emerald-50 border border-emerald-200 rounded-card flex items-center animate-fade-in">
               <CheckCircle className="w-5 h-5 text-emerald-500 ml-3" />
               <span className="text-emerald-700 font-medium">{message}</span>
               <button
@@ -134,7 +131,7 @@ const AdminPanel = ({ user }) => {
           )}
 
           {error && (
-            <div className="m-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center animate-fade-in">
+            <div className="m-3 sm:m-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-card flex items-center animate-fade-in">
               <AlertCircle className="w-5 h-5 text-red-500 ml-3" />
               <span className="text-red-700 font-medium">{error}</span>
               <button

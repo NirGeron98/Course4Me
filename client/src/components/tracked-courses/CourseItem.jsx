@@ -17,7 +17,7 @@ const CourseItem = ({ course, onViewDetails, onAdd, isAdding }) => {
   };
 
   return (
-    <div className="group bg-white hover:bg-emerald-50 border-2 border-gray-100 hover:border-emerald-200 rounded-2xl p-5 transition-all duration-300 hover:shadow-lg" dir="rtl">
+    <div className="group bg-white hover:bg-emerald-50 border-2 border-gray-100 hover:border-emerald-200 rounded-card-lg p-5 transition-all duration-ui hover:shadow-card" dir="rtl">
       <div className="flex items-center justify-between">
         
         {/* Course Info */}
@@ -79,7 +79,7 @@ const CourseItem = ({ course, onViewDetails, onAdd, isAdding }) => {
               handleViewDetails();
             }}
             disabled={isAdding}
-            className="group/btn flex items-center justify-center w-10 h-10 bg-blue-100 hover:bg-blue-200 text-blue-600 hover:text-blue-700 rounded-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            className="group/btn flex items-center justify-center w-10 h-10 bg-blue-100 hover:bg-blue-200 text-blue-600 hover:text-blue-700 rounded-card transition-all duration-ui hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             title="הצג פרטים"
             aria-label="הצג פרטים"
           >
@@ -93,7 +93,7 @@ const CourseItem = ({ course, onViewDetails, onAdd, isAdding }) => {
               onAdd(course);
             }}
             disabled={isAdding}
-            className="group/btn flex items-center justify-center w-10 h-10 bg-emerald-100 hover:bg-emerald-200 text-emerald-600 hover:text-emerald-700 rounded-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            className="group/btn flex items-center justify-center w-10 h-10 bg-emerald-100 hover:bg-emerald-200 text-emerald-600 hover:text-emerald-700 rounded-card transition-all duration-ui hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             title="הוסף למעקב"
             aria-label="הוסף למעקב"
           >

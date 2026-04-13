@@ -14,7 +14,7 @@ exports.signup = async (req, res) => {
   try {
     const { fullName, email, password } = req.body;
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email }).select("_id").lean();
     if (existingUser) {
       return res.status(400).json({ message: "משתמש עם אימייל זה כבר קיים במערכת" });
     }
@@ -111,11 +111,13 @@ exports.forgotPassword = async (req, res) => {
       return res.status(400).json({ message: "נדרשת כתובת אימייל" });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email })
+      .select("_id email fullName")
+      .lean();
     if (!user) {
       // Don't reveal if user exists or not for security
-      return res.status(200).json({ 
-        message: "אם כתובת האימייל קיימת במערכת, תישלח אליה סיסמה זמנית" 
+      return res.status(200).json({
+        message: "אם כתובת האימייל קיימת במערכת, תישלח אליה סיסמה זמנית"
       });
     }
 
@@ -233,7 +235,7 @@ exports.promoteToAdmin = async (req, res) => {
       userId,
       { role: "admin" },
       { new: true }
-    ).select("-password");
+    ).select("-password").lean();
 
     if (!user) {
       return res.status(404).json({ message: "משתמש לא נמצא" });
@@ -262,7 +264,8 @@ exports.getAllUsers = async (req, res) => {
 
     const users = await User.find()
       .select("-password")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     res.status(200).json(users);
   } catch (err) {

@@ -1,183 +1,220 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import CourseDetailsModal from "../components/tracked-courses/CourseDetailsModal";
 import WelcomeHeader from "../components/dashboard/WelcomeHeader";
 import TrackedCoursesList from "../components/dashboard/TrackedCoursesList";
 import CourseCarousel from "../components/dashboard/CourseCarousel";
 import LecturerCarousel from "../components/dashboard/LecturerCarousel";
-import ElegantLoadingSpinner, { ElegantSecondaryLoading } from "../components/common/ElegantLoadingSpinner";
+import ElegantLoadingSpinner, {
+  ElegantSecondaryLoading,
+} from "../components/common/ElegantLoadingSpinner";
 import StatsCards from "../components/dashboard/StatsCards";
-import { dashboardCache } from "../utils/cacheUtils";
+import { apiFetch, useApi } from "../hooks/useApi";
+import { useCourses } from "../hooks/useCourses";
+import { useTrackedCourses } from "../hooks/useTrackedCourses";
+import { useContactRequests } from "../hooks/useContactRequests";
+import { useMyReviews } from "../hooks/useMyReviews";
+import { COURSE_MUTATED_EVENT } from "../contexts/CourseDataContext";
 
-// Stable cache keys (not recreated per render)
-const CACHE_KEYS = {
-  TRACKED_COURSES: 'tracked_courses',
-  ALL_COURSES: 'all_courses',
-  LECTURERS: 'lecturers',
-  STATS: 'stats'
-};
-
-// Pure helper; stable reference so safe to use inside useCallback without deps
-const filterReviewsByUser = (reviews, userId) => {
-  if (!Array.isArray(reviews)) return [];
-  return reviews.filter(review =>
-    (typeof review.user === "string" && review.user === userId) ||
-    (typeof review.user === "object" && review.user._id === userId)
-  );
-};
-
+// Dashboard page. All data fetching is delegated to hooks under /hooks, so this
+// file only orchestrates UI state (carousels, modal, title) and composition.
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
+
+  const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
+  const userFullName =
+    typeof window !== "undefined"
+      ? localStorage.getItem("userFullName") || "User"
+      : "User";
+
+  // Feature hooks — one call per logical resource.
+  const {
+    courses: allCourses,
+    loading: coursesLoading,
+    refetch: refetchCourses,
+  } = useCourses();
+
+  const {
+    trackedCourses,
+    loading: trackedCoursesLoading,
+    refetch: refetchTrackedCourses,
+  } = useTrackedCourses();
+
+  const {
+    requests: contactRequests,
+    loading: contactRequestsLoading,
+    refetch: refetchContactRequests,
+  } = useContactRequests();
+
+  const {
+    reviews: myReviews,
+    loading: reviewsLoading,
+    refetch: refetchReviews,
+  } = useMyReviews(userId);
+
+  // Inline one-off resources (lecturers + tracked lecturers) via the base useApi hook.
+  // Kept inline instead of a dedicated feature hook because they're only read here.
+  const {
+    data: lecturersData,
+    loading: lecturersLoading,
+    refetch: refetchLecturers,
+  } = useApi(
+    ({ signal }) => apiFetch("/api/lecturers", { signal }),
+    []
+  );
+  const lecturers = useMemo(
+    () => (Array.isArray(lecturersData) ? lecturersData : []),
+    [lecturersData]
+  );
+
+  const {
+    data: trackedLecturersData,
+    loading: trackedLecturersLoading,
+    refetch: refetchTrackedLecturers,
+  } = useApi(
+    ({ signal }) => apiFetch("/api/tracked-lecturers", { signal }),
+    []
+  );
+  const trackedLecturers = useMemo(
+    () => (Array.isArray(trackedLecturersData) ? trackedLecturersData : []),
+    [trackedLecturersData]
+  );
+
+  // Aggregated dashboard stats derived from hook state. No fetching here.
+  const stats = useMemo(
+    () => ({
+      coursesCount: trackedCourses.length,
+      reviewsCount: myReviews.length,
+      contactRequestsCount: contactRequests.length,
+    }),
+    [trackedCourses.length, myReviews.length, contactRequests.length]
+  );
+
+  const isLoading =
+    coursesLoading ||
+    trackedCoursesLoading ||
+    lecturersLoading ||
+    trackedLecturersLoading ||
+    contactRequestsLoading ||
+    reviewsLoading;
+
+  // UI-only state.
   const [isSecondaryLoading, setIsSecondaryLoading] = useState(false);
-  const [isLoadedFromCache, setIsLoadedFromCache] = useState(false);
-  const [trackedCourses, setTrackedCourses] = useState([]);
-  const [allCourses, setAllCourses] = useState([]);
-  const [lecturers, setLecturers] = useState([]);
-  const [trackedLecturers, setTrackedLecturers] = useState([]);
-  const [userName, setUserName] = useState("");
-  const [stats, setStats] = useState({
-    coursesCount: 0,
-    reviewsCount: 0,
-    contactRequestsCount: 0
-  });
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [courseCarouselIndex, setCourseCarouselIndex] = useState(0);
   const [lecturerCarouselIndex, setLecturerCarouselIndex] = useState(0);
   const [trackedCarouselIndex, setTrackedCarouselIndex] = useState(0);
 
-  const fetchFreshData = useCallback(async (token, userId, isBackground = false) => {
+  // Expose a global refresh hook so legacy code (review modals, etc.) can force a
+  // reload of every dashboard resource. Kept for backward compatibility.
+  const refreshAll = useCallback(async () => {
+    setIsSecondaryLoading(true);
     try {
-      if (isBackground) {
-        setIsSecondaryLoading(true);
-      }
-
-
-      // Load tracked courses and tracked lecturers in parallel
-      const [trackedRes, trackedLecturersRes] = await Promise.all([
-        axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-courses`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-lecturers`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+      await Promise.all([
+        refetchCourses(),
+        refetchTrackedCourses(),
+        refetchLecturers(),
+        refetchTrackedLecturers(),
+        refetchContactRequests(),
+        refetchReviews(),
       ]);
-
-      // Load other data in parallel
-      const [coursesRes, lecturersRes] = await Promise.all([
-        axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/courses`),
-        axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/lecturers`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-      ]);
-
-      // Fetch review data
-      let totalReviews = 0;
-      
-      try {
-        const courseReviewsRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/reviews`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const userCourseReviews = filterReviewsByUser(courseReviewsRes.data, userId);
-        totalReviews += userCourseReviews.length;
-      } catch (error) {
-        // No course reviews endpoint or error
-      }
-
-      try {
-        const lecturerReviewsRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/lecturer-reviews`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const userLecturerReviews = filterReviewsByUser(lecturerReviewsRes.data, userId);
-        totalReviews += userLecturerReviews.length;
-      } catch (error) {
-        // No lecturer reviews endpoint or error
-      }
-
-      // Fetch contact requests count
-      let contactRequestsCount = 0;
-      try {
-        const contactRequestsRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/contact-requests/my-requests`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        contactRequestsCount = contactRequestsRes.data.length;
-      } catch (error) {
-        // No contact requests or error
-      }
-
-      const newStats = {
-        coursesCount: trackedRes.data.length,
-        reviewsCount: totalReviews,
-        contactRequestsCount: contactRequestsCount
-      };
-
-
-  // Update state
-  setTrackedCourses(trackedRes.data);
-  setTrackedLecturers(trackedLecturersRes.data || []);
-  setAllCourses(coursesRes.data);
-  setLecturers(lecturersRes.data);
-  setStats(newStats);
-
-      // Save to cache using cache manager
-      dashboardCache.saveToCache(CACHE_KEYS.TRACKED_COURSES, trackedRes.data);
-      dashboardCache.saveToCache('tracked_lecturers', trackedLecturersRes.data || []);
-      dashboardCache.saveToCache(CACHE_KEYS.ALL_COURSES, coursesRes.data);
-      dashboardCache.saveToCache(CACHE_KEYS.LECTURERS, lecturersRes.data);
-      dashboardCache.saveToCache(CACHE_KEYS.STATS, newStats);
-
-    } catch (error) {
-      // Error fetching fresh data, keep cached data if available
     } finally {
-      setIsLoading(false);
       setIsSecondaryLoading(false);
     }
-  }, []);
-
-  const refreshData = useCallback(async () => {
-    dashboardCache.clearAllCache();
-    setIsLoading(true);
-    const token = localStorage.getItem("token");
-    const userId = localStorage.getItem("userId");
-    if (token && userId) {
-      await fetchFreshData(token, userId, false);
-    }
-  }, [fetchFreshData]);
+  }, [
+    refetchCourses,
+    refetchTrackedCourses,
+    refetchLecturers,
+    refetchTrackedLecturers,
+    refetchContactRequests,
+    refetchReviews,
+  ]);
 
   useEffect(() => {
-    window.refreshDashboardData = refreshData;
+    window.refreshDashboardData = refreshAll;
     return () => {
       delete window.refreshDashboardData;
     };
-  }, [refreshData]);
+  }, [refreshAll]);
 
-  // Set page title
+  // Legacy cross-tab events for tracked lecturers — tracked courses already
+  // auto-refresh via useTrackedCourses' own listeners.
   useEffect(() => {
-    document.title = 'דף הבית - Course4Me';
-    
-    // Cleanup function to reset title when component unmounts
+    const handleTrackedLecturerChange = () => refetchTrackedLecturers();
+    const handleStorage = (event) => {
+      if (event.key === "trackedLecturerChanged") refetchTrackedLecturers();
+    };
+    window.addEventListener("trackedLecturerAdded", handleTrackedLecturerChange);
+    window.addEventListener("trackedLecturerRemoved", handleTrackedLecturerChange);
+    window.addEventListener("storage", handleStorage);
     return () => {
-      document.title = 'Course4Me';
+      window.removeEventListener("trackedLecturerAdded", handleTrackedLecturerChange);
+      window.removeEventListener("trackedLecturerRemoved", handleTrackedLecturerChange);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, [refetchTrackedLecturers]);
+
+  // Global `courseMutated` broadcast — fired by any review/follow/unfollow
+  // mutation via `CourseDataContext.broadcastCourseMutation`. When it fires
+  // we refresh the dashboard slices that surface course aggregates so the
+  // carousels, tracked list and review counters all stay in sync without
+  // a manual reload.
+  useEffect(() => {
+    const handleCourseMutated = () => {
+      refetchCourses();
+      refetchTrackedCourses();
+      refetchReviews();
+    };
+    window.addEventListener(COURSE_MUTATED_EVENT, handleCourseMutated);
+    return () => {
+      window.removeEventListener(COURSE_MUTATED_EVENT, handleCourseMutated);
+    };
+  }, [refetchCourses, refetchTrackedCourses, refetchReviews]);
+
+  useEffect(() => {
+    document.title = "דף הבית - Course4Me";
+    return () => {
+      document.title = "Course4Me";
     };
   }, []);
 
-  const formatLecturersDisplay = (lecturers, max = 3, badgeClassName = "bg-blue-200 text-blue-800") => {
-    if (!Array.isArray(lecturers) || lecturers.length === 0) return "לא זמין";
+  // Carousel auto-scroll — UI behavior, not data fetching.
+  useEffect(() => {
+    if (allCourses.length <= 3) return undefined;
+    const interval = setInterval(() => {
+      setCourseCarouselIndex((prev) =>
+        prev >= allCourses.length - 3 ? 0 : prev + 1
+      );
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [allCourses.length]);
 
-    const lecturerNames = lecturers
-      .map(l => typeof l === "string" ? l : l?.name || "")
+  useEffect(() => {
+    if (lecturers.length <= 3) return undefined;
+    const interval = setInterval(() => {
+      setLecturerCarouselIndex((prev) =>
+        prev >= lecturers.length - 3 ? 0 : prev + 1
+      );
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [lecturers.length]);
+
+  // Presentation helpers.
+  const formatLecturersDisplay = (list, max = 3, badgeClassName = "bg-blue-200 text-blue-800") => {
+    if (!Array.isArray(list) || list.length === 0) return "לא זמין";
+    const names = list
+      .map((l) => (typeof l === "string" ? l : l?.name || ""))
       .filter(Boolean);
-
-    const displayed = lecturerNames.slice(0, max).join(", ");
-    const remaining = lecturerNames.length - max;
-
+    const displayed = names.slice(0, max).join(", ");
+    const remaining = names.length - max;
     return (
       <span className="flex items-center gap-2 flex-wrap">
         <span>{displayed}</span>
         {remaining > 0 && (
-          <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap ${badgeClassName}`}>
+          <span
+            className={`text-xs font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap ${badgeClassName}`}
+          >
             +{remaining} מרצים נוספים
           </span>
         )}
@@ -192,255 +229,70 @@ const Dashboard = () => {
 
   const handleTrackedCourseClick = (trackedCourse) => {
     const course = trackedCourse?.course;
-    if (course) {
-      handleCourseClick(course);
-    }
+    if (course) handleCourseClick(course);
   };
 
-  useEffect(() => {
-    const loadDataWithCache = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const userId = localStorage.getItem("userId");
-        if (!token) return;
-
-        const userFullName = localStorage.getItem("userFullName") || "User";
-        setUserName(userFullName);
-
-        // Try to load from preloaded cache first
-        const trackedCoursesCache = localStorage.getItem('tracked_courses_data');
-        const trackedLecturersCache = localStorage.getItem('tracked_lecturers_data');
-        const contactRequestsCache = localStorage.getItem('contact_requests_data');
-        
-        if (trackedCoursesCache && trackedLecturersCache) {
-          try {
-            const trackedCoursesData = JSON.parse(trackedCoursesCache);
-            const trackedLecturersData = JSON.parse(trackedLecturersCache);
-            const contactRequestsData = contactRequestsCache ? JSON.parse(contactRequestsCache) : { contactRequests: [] };
-            
-            // Check if cache is still valid (less than 10 minutes old)
-            const now = Date.now();
-            const cacheAge = 10 * 60 * 1000; // 10 minutes
-            
-            if (now - trackedCoursesData.timestamp < cacheAge && 
-                now - trackedLecturersData.timestamp < cacheAge) {
-              
-              setTrackedCourses(trackedCoursesData.trackedCourses || []);
-              setTrackedLecturers(trackedLecturersData.trackedLecturers || []);
-              
-              const stats = {
-                coursesCount: (trackedCoursesData.trackedCourses || []).length,
-                contactRequestsCount: (contactRequestsData.contactRequests || []).length
-              };
-              setStats(stats);
-              
-              setIsLoading(false);
-              setIsLoadedFromCache(true);
-              
-              // Hide cache message after 2 seconds
-              setTimeout(() => setIsLoadedFromCache(false), 2000);
-              
-              // Load other data in background if needed
-              setTimeout(() => loadAdditionalData(token, userId), 100);
-              return;
-            }
-          } catch (error) {
-            console.log('Error loading from preloaded cache, falling back to regular cache');
-          }
-        }
-
-        // Check if we have valid cached data using cache manager
-        if (dashboardCache.isCacheValid(CACHE_KEYS.TRACKED_COURSES)) {
-          const cachedTrackedCourses = dashboardCache.getFromCache(CACHE_KEYS.TRACKED_COURSES);
-          const cachedTrackedLecturers = dashboardCache.getFromCache('tracked_lecturers');
-          const cachedAllCourses = dashboardCache.getFromCache(CACHE_KEYS.ALL_COURSES);
-          const cachedLecturers = dashboardCache.getFromCache(CACHE_KEYS.LECTURERS);
-          const cachedStats = dashboardCache.getFromCache(CACHE_KEYS.STATS);
-
-          if (cachedTrackedCourses && cachedTrackedLecturers && cachedAllCourses && cachedLecturers && cachedStats) {
-            // Load from cache immediately
-            setTrackedCourses(cachedTrackedCourses);
-            setTrackedLecturers(cachedTrackedLecturers);
-            setAllCourses(cachedAllCourses);
-            setLecturers(cachedLecturers);
-            setStats(cachedStats);
-            setIsLoading(false);
-            setIsLoadedFromCache(true);
-            
-            // Hide cache message after 2 seconds
-            setTimeout(() => setIsLoadedFromCache(false), 2000);
-            
-            // Optionally fetch fresh data in background
-            setTimeout(() => fetchFreshData(token, userId, true), 100);
-            return;
-          }
-        }
-
-        // No valid cache, fetch fresh data with loading indicator
-        await fetchFreshData(token, userId, false);
-        
-      } catch (error) {
-        setIsLoading(false);
-      }
-    };
-
-    const loadAdditionalData = async (tok, uid) => {
-      try {
-        if (!dashboardCache.isCacheValid(CACHE_KEYS.ALL_COURSES)) {
-          const [coursesRes, lecturersRes] = await Promise.all([
-            axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/courses`),
-            axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/lecturers`)
-          ]);
-          setAllCourses(coursesRes.data);
-          setLecturers(lecturersRes.data);
-          dashboardCache.saveToCache(CACHE_KEYS.ALL_COURSES, coursesRes.data);
-          dashboardCache.saveToCache(CACHE_KEYS.LECTURERS, lecturersRes.data);
-        } else {
-          const cachedAllCourses = dashboardCache.getFromCache(CACHE_KEYS.ALL_COURSES);
-          const cachedLecturers = dashboardCache.getFromCache(CACHE_KEYS.LECTURERS);
-          if (cachedAllCourses) setAllCourses(cachedAllCourses);
-          if (cachedLecturers) setLecturers(cachedLecturers);
-        }
-      } catch (error) {
-        console.log('Error loading additional data:', error);
-      }
-    };
-
-    loadDataWithCache();
-  }, [fetchFreshData]);
-
-  useEffect(() => {
-    const handleTrackedCourseAdded = () => {
-      const token = localStorage.getItem("token");
-      const userId = localStorage.getItem("userId");
-      if (token && userId) fetchFreshData(token, userId, true);
-    };
-    const handleTrackedCourseRemoved = () => {
-      const token = localStorage.getItem("token");
-      const userId = localStorage.getItem("userId");
-      if (token && userId) fetchFreshData(token, userId, true);
-    };
-    const handleTrackedLecturerAdded = () => {
-      const token = localStorage.getItem("token");
-      const userId = localStorage.getItem("userId");
-      if (token && userId) fetchFreshData(token, userId, true);
-    };
-    const handleTrackedLecturerRemoved = () => {
-      const token = localStorage.getItem("token");
-      const userId = localStorage.getItem("userId");
-      if (token && userId) fetchFreshData(token, userId, true);
-    };
-    const handleTrackedCoursesPreloaded = () => {
-      if (dashboardCache.isCacheValid(CACHE_KEYS.TRACKED_COURSES)) {
-        const cachedTrackedCourses = dashboardCache.getFromCache(CACHE_KEYS.TRACKED_COURSES);
-        if (cachedTrackedCourses && Array.isArray(cachedTrackedCourses)) {
-          setTrackedCourses(cachedTrackedCourses);
-        }
-      }
-    };
-    const handleStorageChange = (event) => {
-      if (event.key === 'trackedCourseChanged' || event.key === 'trackedLecturerChanged') {
-        const token = localStorage.getItem("token");
-        const userId = localStorage.getItem("userId");
-        if (token && userId) fetchFreshData(token, userId, true);
-      }
-    };
-
-    window.addEventListener('trackedCourseAdded', handleTrackedCourseAdded);
-    window.addEventListener('trackedCourseRemoved', handleTrackedCourseRemoved);
-    window.addEventListener('trackedLecturerAdded', handleTrackedLecturerAdded);
-    window.addEventListener('trackedLecturerRemoved', handleTrackedLecturerRemoved);
-    window.addEventListener('trackedCoursesPreloaded', handleTrackedCoursesPreloaded);
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('trackedCourseAdded', handleTrackedCourseAdded);
-      window.removeEventListener('trackedCourseRemoved', handleTrackedCourseRemoved);
-      window.removeEventListener('trackedLecturerAdded', handleTrackedLecturerAdded);
-      window.removeEventListener('trackedLecturerRemoved', handleTrackedLecturerRemoved);
-      window.removeEventListener('trackedCoursesPreloaded', handleTrackedCoursesPreloaded);
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, [fetchFreshData]);
-
-  useEffect(() => {
-    if (allCourses.length > 3) {
-      const interval = setInterval(() => {
-        setCourseCarouselIndex(prev =>
-          prev >= allCourses.length - 3 ? 0 : prev + 1
-        );
-      }, 4000);
-      return () => clearInterval(interval);
-    }
-  }, [allCourses.length]);
-
-  useEffect(() => {
-    if (lecturers.length > 3) {
-      const interval = setInterval(() => {
-        setLecturerCarouselIndex(prev =>
-          prev >= lecturers.length - 3 ? 0 : prev + 1
-        );
-      }, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [lecturers.length]);
-
-  const handleCourseCarouselPrev = () => {
-    setCourseCarouselIndex(prev =>
+  const handleCourseCarouselPrev = () =>
+    setCourseCarouselIndex((prev) =>
       prev <= 0 ? Math.max(0, allCourses.length - 3) : prev - 1
     );
-  };
-
-  const handleCourseCarouselNext = () => {
-    setCourseCarouselIndex(prev =>
+  const handleCourseCarouselNext = () =>
+    setCourseCarouselIndex((prev) =>
       prev >= allCourses.length - 3 ? 0 : prev + 1
     );
-  };
-
-  const handleLecturerCarouselPrev = () => {
-    setLecturerCarouselIndex(prev =>
+  const handleLecturerCarouselPrev = () =>
+    setLecturerCarouselIndex((prev) =>
       prev <= 0 ? Math.max(0, lecturers.length - 3) : prev - 1
     );
-  };
-
-  const handleLecturerCarouselNext = () => {
-    setLecturerCarouselIndex(prev =>
+  const handleLecturerCarouselNext = () =>
+    setLecturerCarouselIndex((prev) =>
       prev >= lecturers.length - 3 ? 0 : prev + 1
     );
-  };
-
-  const visibleCourses = allCourses.slice(courseCarouselIndex, courseCarouselIndex + 3);
-  const visibleLecturers = lecturers.slice(lecturerCarouselIndex, lecturerCarouselIndex + 3);
-  const visibleTrackedCourses = trackedCourses.slice(trackedCarouselIndex, trackedCarouselIndex + 3);
-
-  const handleTrackedPrev = () => {
-    setTrackedCarouselIndex(prev =>
+  const handleTrackedPrev = () =>
+    setTrackedCarouselIndex((prev) =>
       prev <= 0 ? Math.max(0, trackedCourses.length - 3) : prev - 1
     );
-  };
-
-  const handleTrackedNext = () => {
-    setTrackedCarouselIndex(prev =>
+  const handleTrackedNext = () =>
+    setTrackedCarouselIndex((prev) =>
       prev >= trackedCourses.length - 3 ? 0 : prev + 1
     );
-  };
+
+  const visibleCourses = allCourses.slice(
+    courseCarouselIndex,
+    courseCarouselIndex + 3
+  );
+  const visibleLecturers = lecturers.slice(
+    lecturerCarouselIndex,
+    lecturerCarouselIndex + 3
+  );
+  const visibleTrackedCourses = trackedCourses.slice(
+    trackedCarouselIndex,
+    trackedCarouselIndex + 3
+  );
 
   if (isLoading) {
     return <ElegantLoadingSpinner message="טוען נתונים" />;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50" dir="rtl">
-      {isSecondaryLoading && <ElegantSecondaryLoading message="מרענן נתונים..." />}
-      <WelcomeHeader userName={userName} />
-        
-      <div className="max-w-6xl mx-auto p-6 space-y-8">
+    <div
+      className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50"
+      dir="rtl"
+    >
+      {isSecondaryLoading && (
+        <ElegantSecondaryLoading message="מרענן נתונים..." />
+      )}
+      <WelcomeHeader userName={userFullName} />
+
+      <div className="max-w-6xl mx-auto p-3 sm:p-6 space-y-5 sm:space-y-8">
         <StatsCards
           coursesCount={stats.coursesCount}
-          trackedLecturersCount={trackedLecturers.filter(({ lecturer }) => lecturer).length}
+          trackedLecturersCount={
+            trackedLecturers.filter(({ lecturer }) => lecturer).length
+          }
           contactRequestsCount={stats.contactRequestsCount}
-          refreshData={refreshData}
-          isLoadedFromCache={isLoadedFromCache}
+          refreshData={refreshAll}
+          isLoadedFromCache={false}
           allCoursesCount={allCourses.length}
           lecturersCount={lecturers.length}
         />

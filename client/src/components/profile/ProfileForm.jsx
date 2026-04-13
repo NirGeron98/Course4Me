@@ -21,7 +21,7 @@ const ProfileForm = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-8 border border-emerald-100">
+    <div className="bg-white rounded-card-lg shadow-card p-8 border border-emerald-100">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
           <User className="w-6 h-6 text-emerald-600" />
@@ -29,7 +29,7 @@ const ProfileForm = ({
         </h2>
         <button
           onClick={handleEditToggle}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-card font-medium transition-all duration-ui ${
             isEditing
               ? 'bg-gray-500 hover:bg-gray-600 text-white'
               : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700'
@@ -54,7 +54,7 @@ const ProfileForm = ({
               value={isEditing ? editedProfile.fullName || "" : userProfile.fullName}
               onChange={(e) => setEditedProfile(prev => ({ ...prev, fullName: e.target.value }))}
               disabled={!isEditing}
-              className={`w-full pr-11 pl-4 py-3 border rounded-lg transition-all duration-300 ${
+              className={`w-full pr-11 pl-4 py-3 border rounded-card transition-all duration-ui ${
                 isEditing
                   ? 'border-emerald-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500'
                   : 'border-gray-200 bg-gray-50'
@@ -75,7 +75,7 @@ const ProfileForm = ({
               value={isEditing ? editedProfile.email || "" : userProfile.email}
               onChange={(e) => setEditedProfile(prev => ({ ...prev, email: e.target.value }))}
               disabled={!isEditing}
-              className={`w-full pr-11 pl-4 py-3 border rounded-lg transition-all duration-300 ${
+              className={`w-full pr-11 pl-4 py-3 border rounded-card transition-all duration-ui ${
                 isEditing
                   ? 'border-emerald-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500'
                   : 'border-gray-200 bg-gray-50'
@@ -94,7 +94,7 @@ const ProfileForm = ({
             value={isEditing ? editedProfile.academicInstitution || "" : userProfile.academicInstitution || "מכללת אפקה"}
             onChange={(e) => setEditedProfile(prev => ({ ...prev, academicInstitution: e.target.value }))}
             disabled={!isEditing}
-            className={`w-full px-4 py-3 border rounded-lg transition-all duration-300 ${
+            className={`w-full px-4 py-3 border rounded-card transition-all duration-ui ${
               isEditing
                 ? 'border-emerald-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500'
                 : 'border-gray-200 bg-gray-50'
@@ -108,7 +108,7 @@ const ProfileForm = ({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               תפקיד
             </label>
-            <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg">
+            <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border border-gray-200 rounded-card">
               {userProfile.role === 'admin' ? (
                 <>
                   <Shield className="w-5 h-5 text-purple-600" />
@@ -127,7 +127,7 @@ const ProfileForm = ({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               תאריך הצטרפות
             </label>
-            <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg">
+            <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border border-gray-200 rounded-card">
               <Calendar className="w-5 h-5 text-gray-400" />
               <span className="text-gray-700">
                 {userProfile.createdAt ? formatDate(userProfile.createdAt) : "לא זמין"}
@@ -140,7 +140,7 @@ const ProfileForm = ({
           <button
             type="submit"
             disabled={loading.updateProfile}
-            className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white py-3 px-6 rounded-lg font-medium flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white py-3 px-6 rounded-card font-medium flex items-center justify-center gap-2 transition-all duration-ui shadow-card hover:shadow-card-hover disabled:opacity-50"
           >
             {loading.updateProfile ? (
               <Loader2 className="w-5 h-5 animate-spin" />

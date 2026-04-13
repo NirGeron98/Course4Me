@@ -11,7 +11,7 @@ exports.getTrackedCourses = async (req, res) => {
           select: "name email department",
         },
       })
-      .exec();
+      .lean();
 
     const validTrackedCourses = trackedCourses.filter(
       (tc) => tc.course !== null
@@ -41,7 +41,7 @@ exports.addTrackedCourse = async (req, res) => {
     const exists = await TrackedCourse.findOne({
       user: req.user._id,
       course: courseId,
-    });
+    }).select("_id").lean();
 
     if (exists) {
       return res.status(400).json({ message: "כבר עוקבים אחר קורס זה" });

@@ -92,7 +92,7 @@ const Navbar = ({ user, onLogout }) => {
   }
 
   return (
-    <nav className="bg-white/95 backdrop-blur-md border-b-2 border-gray-200 shadow-lg sticky top-0 z-50">
+    <nav className="bg-white/95 backdrop-blur-md border-b-2 border-gray-200 shadow-card sticky top-0 z-50">
       {/* Make container wider */}
       <div className="max-w-8xl mx-auto px-3 sm:px-4 lg:px-6">
         <div className="flex items-center justify-between h-16" dir="rtl">
@@ -103,11 +103,11 @@ const Navbar = ({ user, onLogout }) => {
               to="/dashboard"
               className="flex items-center space-x-3 group"
             >
-              <div className="bg-gradient-to-r from-slate-600 to-slate-700 rounded-xl p-2 shadow-lg group-hover:shadow-xl transition-all duration-300 ml-2">
+              <div className="bg-gradient-to-r from-slate-600 to-slate-700 rounded-card p-2 shadow-card group-hover:shadow-card-hover transition-all duration-ui ml-2">
                 <BookOpen className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
               </div>
               <span className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-slate-700 to-slate-800 bg-clip-text text-transparent mr-3">
-                Course4Me
+                {'Course4Me'}
               </span>
             </Link>
           </div>
@@ -121,8 +121,8 @@ const Navbar = ({ user, onLogout }) => {
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-xl font-medium transition-all duration-300 whitespace-nowrap text-sm xl:text-base ${isActivePage(item.path)
-                        ? 'bg-slate-100 text-slate-800 shadow-md'
+                    className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-card font-medium transition-all duration-ui whitespace-nowrap text-sm xl:text-base ${isActivePage(item.path)
+                        ? 'bg-slate-100 text-slate-800 shadow-card'
                         : item.path === '/admin'
                           ? 'text-purple-600 hover:text-purple-700 hover:bg-purple-50'
                           : 'text-gray-600 hover:text-slate-700 hover:bg-slate-50'
@@ -147,8 +147,8 @@ const Navbar = ({ user, onLogout }) => {
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300 ${isActivePage(item.path)
-                        ? 'bg-slate-100 text-slate-800 shadow-md'
+                    className={`flex items-center justify-center w-10 h-10 rounded-card transition-all duration-ui ${isActivePage(item.path)
+                        ? 'bg-slate-100 text-slate-800 shadow-card'
                         : item.path === '/admin'
                           ? 'text-purple-600 hover:text-purple-700 hover:bg-purple-50'
                           : 'text-gray-600 hover:text-slate-700 hover:bg-slate-50'
@@ -167,7 +167,7 @@ const Navbar = ({ user, onLogout }) => {
             {/* Contact Request Button */}
             <button
               onClick={() => setIsContactModalOpen(true)}
-              className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-3 py-2 rounded-xl font-medium text-sm shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300"
+              className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-3 py-2 rounded-card font-medium text-sm shadow-card hover:shadow-card-hover transform hover:-translate-y-0.5 transition-all duration-ui"
               title="פתח פנייה חדשה"
             >
               <HelpCircle className="w-3.5 h-3.5 ml-1" />
@@ -177,7 +177,7 @@ const Navbar = ({ user, onLogout }) => {
             {/* User Profile Button - More compact */}
             <button
               onClick={handleUserNameClick}
-              className={`flex items-center space-x-2 lg:space-x-3 rounded-xl px-2 lg:px-3 py-2 transition-all duration-300 cursor-pointer ${isActivePage('/profile')
+              className={`flex items-center space-x-2 lg:space-x-3 rounded-card px-2 lg:px-3 py-2 transition-all duration-ui cursor-pointer ${isActivePage('/profile')
                   ? 'bg-slate-100 hover:bg-slate-200'
                   : 'bg-gray-50 hover:bg-slate-50'
                 }`}
@@ -205,7 +205,7 @@ const Navbar = ({ user, onLogout }) => {
             {/* Logout Button - More compact */}
             <button
               onClick={handleLogout}
-              className="flex items-center space-x-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-2 lg:px-3 py-2 rounded-xl font-medium text-sm shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300"
+              className="flex items-center space-x-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-2 lg:px-3 py-2 rounded-card font-medium text-sm shadow-card hover:shadow-card-hover transform hover:-translate-y-0.5 transition-all duration-ui"
               title="יציאה מהמערכת"
             >
               <LogOut className="w-3.5 h-3.5 ml-1" />
@@ -217,7 +217,7 @@ const Navbar = ({ user, onLogout }) => {
           <div className="md:hidden">
             <button
               onClick={toggleMobileMenu}
-              className="bg-slate-100 text-slate-600 p-2 rounded-xl hover:bg-slate-200 transition-colors"
+              className="bg-slate-100 text-slate-600 p-2 rounded-card hover:bg-slate-200 transition-colors"
             >
               {isMobileMenuOpen ? (
                 <X className="w-6 h-6" />
@@ -239,7 +239,7 @@ const Navbar = ({ user, onLogout }) => {
                   handleUserNameClick();
                   setIsMobileMenuOpen(false);
                 }}
-                className={`w-full flex items-center space-x-3 rounded-xl px-4 py-3 mb-4 transition-all duration-300 ${isActivePage('/profile')
+                className={`w-full flex items-center space-x-3 rounded-card px-4 py-3 mb-4 transition-all duration-ui ${isActivePage('/profile')
                     ? 'bg-slate-100'
                     : 'bg-slate-50 hover:bg-slate-100'
                   }`}
@@ -271,7 +271,7 @@ const Navbar = ({ user, onLogout }) => {
                     key={item.path}
                     to={item.path}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-300 ${isActivePage(item.path)
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-card font-medium transition-all duration-ui ${isActivePage(item.path)
                         ? 'bg-slate-100 text-slate-800'
                         : item.path === '/admin'
                           ? 'text-purple-600 hover:text-purple-700 hover:bg-purple-50'
@@ -288,7 +288,7 @@ const Navbar = ({ user, onLogout }) => {
               <div className="w-full space-y-2 mt-4">
                 <button
                   onClick={() => setIsContactModalOpen(true)}
-                  className="flex items-center space-x-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 rounded-xl font-medium shadow-lg w-full justify-center"
+                  className="flex items-center space-x-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 rounded-card font-medium shadow-card w-full justify-center"
                 >
                   <HelpCircle className="w-5 h-5 ml-3" />
                   <span>פתח פנייה</span>
@@ -298,7 +298,7 @@ const Navbar = ({ user, onLogout }) => {
                     handleLogout();
                     setIsMobileMenuOpen(false);
                   }}
-                  className="flex items-center space-x-3 bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-3 rounded-xl font-medium shadow-lg w-full justify-center"
+                  className="flex items-center space-x-3 bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-3 rounded-card font-medium shadow-card w-full justify-center"
                 >
                   <LogOut className="w-5 h-5 ml-3" />
                   <span>יציאה</span>

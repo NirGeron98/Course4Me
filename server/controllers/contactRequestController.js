@@ -34,8 +34,9 @@ exports.getAllContactRequests = async (req, res) => {
     const requests = await ContactRequest.find(query)
       .populate("user", "fullName email")
       .populate("respondedBy", "fullName")
-      .sort({ createdAt: -1 });
-    
+      .sort({ createdAt: -1 })
+      .lean();
+
     res.status(200).json(requests);
   } catch (err) {
     console.error("Error fetching contact requests:", err);
@@ -76,8 +77,9 @@ exports.getUserContactRequests = async (req, res) => {
     
     const requests = await ContactRequest.find(query)
       .populate("respondedBy", "fullName")
-      .sort({ createdAt: -1 });
-    
+      .sort({ createdAt: -1 })
+      .lean();
+
     res.status(200).json(requests);
   } catch (err) {
     console.error("Error fetching user contact requests:", err);
@@ -89,18 +91,7 @@ exports.getUserContactRequests = async (req, res) => {
 exports.createContactRequest = async (req, res) => {
   try {
     const { subject, description } = req.body;
-    
-    // Validate required fields
-    if (!subject || !description) {
-      return res.status(400).json({ message: "נושא ותיאור הם שדות חובה" });
-    }
-    
-    // Validate subject enum
-    const validSubjects = ["add_lecturer_to_course", "add_course_to_lecturer", "add_course_to_system", "add_lecturer_to_system", "general_inquiry"];
-    if (!validSubjects.includes(subject)) {
-      return res.status(400).json({ message: "נושא לא חוקי" });
-    }
-    
+
     const contactRequest = new ContactRequest({
       user: req.user._id,
       subject,
@@ -124,13 +115,7 @@ exports.updateContactRequest = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, adminResponse } = req.body;
-    
-    // Validate status
-    const validStatuses = ["pending", "in_progress", "answered"];
-    if (status && !validStatuses.includes(status)) {
-      return res.status(400).json({ message: "סטטוס לא חוקי" });
-    }
-    
+
     const updateData = {};
     if (status) updateData.status = status;
     if (adminResponse !== undefined) updateData.adminResponse = adminResponse.trim();
@@ -147,12 +132,13 @@ exports.updateContactRequest = async (req, res) => {
       { new: true, runValidators: true }
     )
       .populate("user", "fullName email")
-      .populate("respondedBy", "fullName");
-    
+      .populate("respondedBy", "fullName")
+      .lean();
+
     if (!updatedRequest) {
       return res.status(404).json({ message: "פנייה לא נמצאה" });
     }
-    
+
     res.status(200).json(updatedRequest);
   } catch (err) {
     console.error("Error updating contact request:", err);
@@ -181,40 +167,27 @@ exports.deleteContactRequest = async (req, res) => {
 // Update user's own contact request
 exports.updateUserContactRequest = async (req, res) => {
   try {
-    console.log('=== Update Contact Request ===');
-    console.log('Request ID:', req.params.id);
-    console.log('Request body:', req.body);
-    console.log('User ID:', req.user._id);
-    
     const { id } = req.params;
     const { subject, description } = req.body;
     const userId = req.user._id;
-    
-    // Validate subject if provided
-    if (subject) {
-      const validSubjects = ["add_lecturer_to_course", "add_course_to_lecturer", "add_course_to_system", "add_lecturer_to_system", "general_inquiry"];
-      if (!validSubjects.includes(subject)) {
-        return res.status(400).json({ message: "נושא לא חוקי" });
-      }
-    }
-    
+
     // Find the request and check if it belongs to the user
-    const existingRequest = await ContactRequest.findById(id);
-    
+    const existingRequest = await ContactRequest.findById(id).select("user status").lean();
+
     if (!existingRequest) {
       return res.status(404).json({ message: "פנייה לא נמצאה" });
     }
-    
+
     // Check if user owns this request
     if (existingRequest.user.toString() !== userId.toString()) {
       return res.status(403).json({ message: "אין לך הרשאה לערוך פנייה זו" });
     }
-    
+
     // Don't allow editing if request has been answered
     if (existingRequest.status === "answered") {
       return res.status(400).json({ message: "לא ניתן לערוך פנייה שכבר נענתה" });
     }
-    
+
     const updateData = {};
     if (subject) updateData.subject = subject;
     if (description) updateData.description = description.trim();
@@ -226,7 +199,8 @@ exports.updateUserContactRequest = async (req, res) => {
       { new: true, runValidators: true }
     )
       .populate("user", "fullName email")
-      .populate("respondedBy", "fullName");
+      .populate("respondedBy", "fullName")
+      .lean();
 
     console.log('Updated request:', updatedRequest);
     res.status(200).json(updatedRequest);
@@ -241,14 +215,14 @@ exports.deleteUserContactRequest = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user._id;
-    
+
     // Find the request and check if it belongs to the user
-    const existingRequest = await ContactRequest.findById(id);
-    
+    const existingRequest = await ContactRequest.findById(id).select("user status").lean();
+
     if (!existingRequest) {
       return res.status(404).json({ message: "פנייה לא נמצאה" });
     }
-    
+
     // Check if user owns this request
     if (existingRequest.user.toString() !== userId.toString()) {
       return res.status(403).json({ message: "אין לך הרשאה למחוק פנייה זו" });
@@ -273,8 +247,8 @@ exports.updateAdminResponse = async (req, res) => {
   try {
     const { id } = req.params;
     const { adminResponse } = req.body;
-    
-    const existingRequest = await ContactRequest.findById(id);
+
+    const existingRequest = await ContactRequest.findById(id).select("respondedBy").lean();
     
     if (!existingRequest) {
       return res.status(404).json({ message: "פנייה לא נמצאה" });
@@ -297,8 +271,9 @@ exports.updateAdminResponse = async (req, res) => {
       { new: true, runValidators: true }
     )
       .populate("user", "fullName email")
-      .populate("respondedBy", "fullName");
-    
+      .populate("respondedBy", "fullName")
+      .lean();
+
     res.status(200).json(updatedRequest);
   } catch (err) {
     console.error("Error updating admin response:", err);
@@ -310,8 +285,8 @@ exports.updateAdminResponse = async (req, res) => {
 exports.deleteAdminResponse = async (req, res) => {
   try {
     const { id } = req.params;
-    
-    const existingRequest = await ContactRequest.findById(id);
+
+    const existingRequest = await ContactRequest.findById(id).select("respondedBy").lean();
     
     if (!existingRequest) {
       return res.status(404).json({ message: "פנייה לא נמצאה" });
@@ -335,8 +310,9 @@ exports.deleteAdminResponse = async (req, res) => {
       { new: true, runValidators: true }
     )
       .populate("user", "fullName email")
-      .populate("respondedBy", "fullName");
-    
+      .populate("respondedBy", "fullName")
+      .lean();
+
     res.status(200).json(updatedRequest);
   } catch (err) {
     console.error("Error deleting admin response:", err);

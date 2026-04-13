@@ -34,7 +34,7 @@ const TrackedCoursesList = ({
   };
 
   return (
-    <section className="bg-white rounded-2xl p-6 shadow-card border border-gray-100 transition-shadow duration-ui hover:shadow-card-hover" aria-labelledby="tracked-courses-heading">
+    <section className="bg-white rounded-card-lg p-6 shadow-card border border-gray-100 transition-shadow duration-ui hover:shadow-card-hover" aria-labelledby="tracked-courses-heading">
       <div className="flex items-center justify-between mb-6">
         <h2 id="tracked-courses-heading" className="text-2xl font-bold text-gray-800 flex items-center gap-3">
           <BookOpen className="w-6 h-6 text-emerald-600" aria-hidden="true" />
@@ -45,7 +45,7 @@ const TrackedCoursesList = ({
             <button
               type="button"
               onClick={onPrev}
-              className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:opacity-50"
+              className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors duration-ui focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:opacity-50"
               disabled={trackedCourses.length <= 3}
               aria-label="הקודם"
             >
@@ -54,7 +54,7 @@ const TrackedCoursesList = ({
             <button
               type="button"
               onClick={onNext}
-              className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:opacity-50"
+              className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors duration-ui focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:opacity-50"
               disabled={trackedCourses.length <= 3}
               aria-label="הבא"
             >
@@ -83,7 +83,7 @@ const TrackedCoursesList = ({
                 <div
                   key={course._id || index}
                   onClick={() => onCourseClick(tracked)}
-                  className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-card-lg p-4 border border-emerald-200 hover:shadow-card-hover transition-shadow duration-200 cursor-pointer"
+                  className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-card-lg p-4 border border-emerald-200 hover:shadow-card-hover transition-shadow duration-ui cursor-pointer"
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCourseClick(tracked); } }}

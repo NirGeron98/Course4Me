@@ -17,10 +17,10 @@ import {
     ThumbsUp,
     Users,
     Tag,
-    ExternalLink
+    ExternalLink,
+    Pencil,
+    Trash2
 } from 'lucide-react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPen, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { getLecturerSlug } from '../../utils/slugUtils';
 
 const ReviewsList = ({ reviews, onEditClick, onDeleteClick }) => {
@@ -84,7 +84,7 @@ const ReviewsList = ({ reviews, onEditClick, onDeleteClick }) => {
 
     if (reviews.length === 0) {
         return (
-            <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+            <div className="bg-white rounded-card-lg shadow-card p-12 text-center">
                 <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-800 mb-2">
                     לא נמצאו ביקורות
@@ -104,7 +104,7 @@ const ReviewsList = ({ reviews, onEditClick, onDeleteClick }) => {
                 return (
                     <div
                         key={review._id}
-                        className="bg-white rounded-2xl shadow-lg p-5 hover:shadow-xl transition-all duration-300 border border-gray-100"
+                        className="bg-white rounded-card-lg shadow-card p-5 hover:shadow-card-hover transition-all duration-ui border border-gray-100"
                     >
                         {/* Header with Course Info and Actions */}
                         <div className="flex flex-col gap-3 mb-4">
@@ -125,13 +125,13 @@ const ReviewsList = ({ reviews, onEditClick, onDeleteClick }) => {
                                     {actualReviewType === 'course' && (
                                         <>
                                             {review.course?.courseNumber && (
-                                                <span className="flex items-center gap-1 bg-gray-100 text-gray-700 px-2 py-1 rounded-lg text-xs">
+                                                <span className="flex items-center gap-1 bg-gray-100 text-gray-700 px-2 py-1 rounded-card text-xs">
                                                     <Hash className="w-3 h-3" />
                                                     {review.course.courseNumber}
                                                 </span>
                                             )}
                                             {review.course?.department && (
-                                                <span className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded-lg text-xs">
+                                                <span className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded-card text-xs">
                                                     <Building className="w-3 h-3" />
                                                     {review.course.department}
                                                 </span>
@@ -218,18 +218,18 @@ const ReviewsList = ({ reviews, onEditClick, onDeleteClick }) => {
                             <div className="flex gap-2 justify-end pt-2 border-t border-gray-100">
                                 <button
                                     onClick={() => onEditClick(review)}
-                                    className="flex items-center justify-center gap-1 px-2 py-1 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg transition-colors text-xs"
+                                    className="flex items-center justify-center gap-1 px-2 py-1 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-card transition-colors text-xs"
                                     title="ערוך ביקורת"
                                 >
-                                    <FontAwesomeIcon icon={faPen} className="w-3 h-3" />
+                                    <Pencil className="w-3 h-3" />
                                     <span>ערוך</span>
                                 </button>
                                 <button
                                     onClick={() => onDeleteClick(review)}
-                                    className="flex items-center justify-center gap-1 px-2 py-1 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg transition-colors text-xs"
+                                    className="flex items-center justify-center gap-1 px-2 py-1 bg-red-100 text-red-700 hover:bg-red-200 rounded-card transition-colors text-xs"
                                     title="מחק ביקורת"
                                 >
-                                    <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
+                                    <Trash2 className="w-3 h-3" />
                                     <span>מחק</span>
                                 </button>
                             </div>
@@ -266,7 +266,7 @@ const ReviewsList = ({ reviews, onEditClick, onDeleteClick }) => {
 
                         {/* Detailed Ratings Grid - more compact */}
                         {actualReviewType === 'course' ? (
-                            <div className="grid grid-cols-3 gap-2 mb-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                            <div className="grid grid-cols-3 gap-2 mb-3 p-3 bg-emerald-50 border border-emerald-200 rounded-card">
                                 <div className="text-center">
                                     <div className="flex items-center justify-center gap-1 mb-1">
                                         <Heart className="w-3 h-3 text-red-500" />
@@ -306,7 +306,7 @@ const ReviewsList = ({ reviews, onEditClick, onDeleteClick }) => {
                                 )}
                             </div>
                         ) : (
-                            <div className="grid grid-cols-3 gap-2 mb-3 p-3 bg-purple-50 rounded-lg">
+                            <div className="grid grid-cols-3 gap-2 mb-3 p-3 bg-purple-50 rounded-card">
                                 <div className="text-center">
                                     <div className="flex items-center justify-center gap-1 mb-1">
                                         <Eye className="w-3 h-3 text-blue-500" />
@@ -350,7 +350,7 @@ const ReviewsList = ({ reviews, onEditClick, onDeleteClick }) => {
                             <div className={`relative bg-gradient-to-br ${actualReviewType === 'course'
                                 ? 'from-emerald-50 via-white to-emerald-50 border-emerald-200'
                                 : 'from-purple-50 via-white to-purple-50 border-purple-200'
-                                } border rounded-lg p-3 shadow-sm mb-2`}>
+                                } border rounded-card p-3 shadow-sm mb-2`}>
                                 <p className="text-gray-800 text-sm leading-relaxed italic">
                                     "{review.comment}"
                                 </p>

@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
+import { apiFetch } from "../hooks/useApi";
 import { Plus } from "lucide-react";
 import AddCoursePopup from "../components/tracked-courses/AddCoursePopup";
 import TrackedCourseCard from "../components/tracked-courses/TrackedCourseCard";
 import CourseDetailsModal from "../components/tracked-courses/CourseDetailsModal";
-import { useCourseDataContext } from "../contexts/CourseDataContext";
+import {
+  useCourseDataContext,
+  COURSE_MUTATED_EVENT,
+} from "../contexts/CourseDataContext";
 import { SkeletonCardGrid } from '../components/common/Skeleton';
 
 const CACHE_KEY = 'tracked_courses_data';
@@ -82,11 +85,8 @@ const TrackedCourses = () => {
       }
 
       setIsLoading(true);
-      const token = localStorage.getItem("token");
-      const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-courses`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const validTrackedCourses = res.data.filter(({ course }) => course && course._id);
+      const data = await apiFetch(`/api/tracked-courses`);
+      const validTrackedCourses = data.filter(({ course }) => course && course._id);
       setTrackedCourses(validTrackedCourses);
       saveTrackedCoursesToCache(validTrackedCourses);
     } catch (err) {
@@ -145,6 +145,19 @@ const TrackedCourses = () => {
     };
   }, [fetchTrackedCourses]);
 
+  // Cross-page `courseMutated` broadcast: whenever any review/follow
+  // mutation bumps a course aggregate, refetch the tracked list so the
+  // cards on this page reflect the latest averages and review counts.
+  useEffect(() => {
+    const handleCourseMutated = () => {
+      fetchTrackedCourses(true);
+    };
+    window.addEventListener(COURSE_MUTATED_EVENT, handleCourseMutated);
+    return () => {
+      window.removeEventListener(COURSE_MUTATED_EVENT, handleCourseMutated);
+    };
+  }, [fetchTrackedCourses]);
+
   // Popup handlers
   const openPopup = () => setIsPopupOpen(true);
   const closePopup = () => setIsPopupOpen(false);
@@ -158,10 +171,9 @@ const TrackedCourses = () => {
   // Remove course from tracking list
   const handleRemoveCourse = async (courseId) => {
     try {
-      const token = localStorage.getItem("token");
       // Send DELETE request to API
-      await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-courses/${courseId}`, {
-        headers: { Authorization: `Bearer ${token}` },
+      await apiFetch(`/api/tracked-courses/${courseId}`, {
+        method: "DELETE",
       });
 
       // Update local state to remove the course immediately
@@ -225,10 +237,10 @@ const TrackedCourses = () => {
         <button
           type="button"
           onClick={openPopup}
-          className="absolute top-4 left-4 bg-white text-emerald-600 hover:text-emerald-700 py-2.5 px-5 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2 group text-sm border-2 border-white hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white focus-visible:ring-offset-emerald-600"
+          className="absolute top-4 left-4 bg-white text-emerald-600 hover:text-emerald-700 py-2.5 px-5 rounded-card font-semibold transition-all duration-ui shadow-card hover:shadow-card-hover flex items-center gap-2 group text-sm border-2 border-white hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white focus-visible:ring-offset-emerald-600"
           aria-label="הוספת קורס"
         >
-          <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
+          <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-ui" />
           <span className="hidden sm:inline">הוספת קורס</span>
         </button>
 
@@ -271,7 +283,7 @@ const TrackedCourses = () => {
                 <div className="relative mx-auto mb-8 w-32 h-32">
                   <div className="absolute inset-0 bg-gradient-to-r from-emerald-100 to-blue-100 rounded-full animate-pulse"></div>
                   {/* Book/courses icon SVG */}
-                  <div className="absolute inset-3 bg-white rounded-full flex items-center justify-center shadow-lg border border-gray-100">
+                  <div className="absolute inset-3 bg-white rounded-full flex items-center justify-center shadow-card border border-gray-100">
                     <svg className="w-16 h-16 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                     </svg>
@@ -289,9 +301,9 @@ const TrackedCourses = () => {
                 {/* Primary call-to-action button */}
                 <button
                   onClick={openPopup}
-                  className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white py-4 px-8 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-3 mx-auto group"
+                  className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white py-4 px-8 rounded-card font-bold text-lg transition-all duration-ui shadow-card hover:shadow-card-hover transform hover:scale-105 flex items-center gap-3 mx-auto group"
                 >
-                  <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
+                  <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform duration-ui" />
                   הוסיפו את הקורס הראשון
                 </button>
 
@@ -305,7 +317,7 @@ const TrackedCourses = () => {
             ) : (
               <>
                 {/* Grid layout for course cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mt-6 sm:mt-8">
                   {trackedCourses
                     .filter(({ course }) => course) // Filter out null/undefined courses
                     .map(({ course }) => (

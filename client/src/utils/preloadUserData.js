@@ -1,188 +1,276 @@
-import axios from 'axios';
+import { apiFetch } from '../hooks/useApi';
 import { dashboardCache } from './cacheUtils';
 
-const updateLoadingProgress = (message, progress) => {
-  try {
-    const progressEvent = new CustomEvent('userDataLoadingProgress', {
-      detail: { message, progress }
-    });
-    window.dispatchEvent(progressEvent);
-  } catch (error) {
-    console.error('שגיאה בעדכון התקדמות הטעינה:', error);
+const REQUEST_TIMEOUT_MS = 5000;
+const MAX_RETRIES = 1;
+
+// Module-level controller so logout (or a subsequent login) can cancel an
+// in-flight preload. Exported via `abortPreload` below.
+let currentController = null;
+
+export const abortPreload = () => {
+  if (currentController) {
+    try {
+      currentController.abort();
+    } catch (error) {
+      console.error('Failed to abort in-flight preload:', error);
+    }
+    currentController = null;
   }
+};
+
+const emitProgress = (completed, total, message) => {
+  try {
+    const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+    window.dispatchEvent(
+      new CustomEvent('userDataPreloadProgress', {
+        detail: { completed, total, progress, message },
+      })
+    );
+    // Legacy event retained so existing listeners keep working.
+    window.dispatchEvent(
+      new CustomEvent('userDataLoadingProgress', {
+        detail: { message, progress },
+      })
+    );
+  } catch (error) {
+    console.error('Failed to dispatch preload progress event:', error);
+  }
+};
+
+// Fetch helper with a 5s timeout and one retry on failure. Honors an
+// external AbortSignal so callers can cancel mid-flight without triggering
+// a retry. Returns `null` when the request ultimately fails.
+const safeFetch = async (path, { token, signal, attempt = 0 } = {}) => {
+  if (signal && signal.aborted) {
+    throw new DOMException('Preload aborted', 'AbortError');
+  }
+
+  try {
+    const data = await apiFetch(path, {
+      token,
+      auth: Boolean(token),
+      signal,
+      timeout: REQUEST_TIMEOUT_MS,
+    });
+    return data;
+  } catch (error) {
+    // Do not retry if the caller explicitly aborted — surface the abort.
+    if (signal && signal.aborted) {
+      throw error;
+    }
+    if (attempt < MAX_RETRIES) {
+      return safeFetch(path, { token, signal, attempt: attempt + 1 });
+    }
+    console.error(
+      `safeFetch gave up on ${path}:`,
+      (error && error.message) || error
+    );
+    return null;
+  }
+};
+
+const buildEndpoints = () => [
+  { key: 'trackedCourses', url: `/api/tracked-courses`, auth: true },
+  { key: 'trackedLecturers', url: `/api/tracked-lecturers`, auth: true },
+  { key: 'allCourses', url: `/api/courses`, auth: false },
+  { key: 'allLecturers', url: `/api/lecturers`, auth: false },
+  { key: 'courseReviews', url: `/api/reviews`, auth: true },
+  { key: 'lecturerReviews', url: `/api/lecturer-reviews`, auth: true },
+  { key: 'contactRequests', url: `/api/contact-requests/my-requests`, auth: true },
+];
+
+const filterReviewsByUser = (reviews, userId) => {
+  if (!Array.isArray(reviews)) return [];
+  return reviews.filter(
+    (review) =>
+      (typeof review.user === 'string' && review.user === userId) ||
+      (typeof review.user === 'object' &&
+        review.user &&
+        review.user._id === userId)
+  );
 };
 
 export const preloadUserData = async (token, userId) => {
   const userData = {
     trackedCourses: [],
     trackedLecturers: [],
-    reviews: {
-      courseReviews: [],
-      lecturerReviews: []
-    },
-    stats: {
-      coursesCount: 0,
-      reviewsCount: 0
-    },
+    reviews: { courseReviews: [], lecturerReviews: [] },
+    stats: { coursesCount: 0, reviewsCount: 0 },
     allCourses: [],
     allLecturers: [],
-    contactRequests: []
+    contactRequests: [],
+  };
+
+  if (!token || !userId) return userData;
+
+  // Cancel any previous in-flight preload before starting a new one so two
+  // concurrent logins cannot race each other.
+  abortPreload();
+  currentController = new AbortController();
+  const { signal } = currentController;
+  const localController = currentController;
+
+  const endpoints = buildEndpoints();
+  const total = endpoints.length;
+  let completed = 0;
+
+  emitProgress(0, total, 'starting preload');
+
+  // Fire all requests in parallel. Each one updates progress as soon as it
+  // settles so the UI reflects real completion, not fixed checkpoints.
+  const results = await Promise.allSettled(
+    endpoints.map((endpoint) =>
+      safeFetch(endpoint.url, {
+        token: endpoint.auth ? token : undefined,
+        signal,
+      }).then(
+        (data) => {
+          completed += 1;
+          emitProgress(completed, total, `loaded ${endpoint.key}`);
+          return { key: endpoint.key, data };
+        },
+        (error) => {
+          completed += 1;
+          emitProgress(completed, total, `failed ${endpoint.key}`);
+          throw error;
+        }
+      )
+    )
+  );
+
+  // If the preload was aborted (e.g. logout) bail out without touching caches
+  // — we do not want to persist data that belongs to a session the user just
+  // ended.
+  if (signal.aborted) {
+    if (currentController === localController) currentController = null;
+    return userData;
+  }
+
+  const resultMap = {};
+  for (const result of results) {
+    if (result.status === 'fulfilled' && result.value && result.value.data) {
+      resultMap[result.value.key] = result.value.data;
+    }
+  }
+
+  userData.trackedCourses = resultMap.trackedCourses || [];
+  userData.trackedLecturers = resultMap.trackedLecturers || [];
+  userData.allCourses = resultMap.allCourses || [];
+  userData.allLecturers = resultMap.allLecturers || [];
+  userData.contactRequests = resultMap.contactRequests || [];
+
+  const userCourseReviews = filterReviewsByUser(
+    resultMap.courseReviews || [],
+    userId
+  );
+  const userLecturerReviews = filterReviewsByUser(
+    resultMap.lecturerReviews || [],
+    userId
+  );
+  userData.reviews.courseReviews = userCourseReviews;
+  userData.reviews.lecturerReviews = userLecturerReviews;
+
+  userData.stats = {
+    coursesCount: userData.trackedCourses.length,
+    reviewsCount: userCourseReviews.length + userLecturerReviews.length,
   };
 
   try {
-    updateLoadingProgress('טוען קורסים ומרצים במעקב', 10);
-    
-    const [trackedCoursesRes, trackedLecturersRes] = await Promise.all([
-      axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-courses`, {
-        headers: { Authorization: `Bearer ${token}` }
-      }).catch(err => ({ data: [] })),
-      
-      axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-lecturers`, {
-        headers: { Authorization: `Bearer ${token}` }
-      }).catch(err => ({ data: [] })),
-    ]);
-    
-    userData.trackedCourses = trackedCoursesRes.data || [];
-    userData.trackedLecturers = trackedLecturersRes.data || [];
-    
-    updateLoadingProgress('טוען את כל הקורסים והמרצים במערכת', 30);
-    
-    const [coursesRes, lecturersRes] = await Promise.all([
-      axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/courses`)
-        .catch(err => ({ data: [] })),
-      
-      axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/lecturers`)
-        .catch(err => ({ data: [] })),
-    ]);
-    
-    userData.allCourses = coursesRes.data || [];
-    userData.allLecturers = lecturersRes.data || [];
-    
-    updateLoadingProgress('טוען ביקורות ופניות', 60);
-    
-    const [courseReviewsRes, lecturerReviewsRes, contactRequestsRes] = await Promise.all([
-      axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/reviews`, {
-        headers: { Authorization: `Bearer ${token}` }
-      }).catch(err => ({ data: [] })),
-      
-      axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/lecturer-reviews`, {
-        headers: { Authorization: `Bearer ${token}` }
-      }).catch(err => ({ data: [] })),
-      
-      axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/contact-requests/my-requests`, {
-        headers: { Authorization: `Bearer ${token}` }
-      }).catch(err => ({ data: [] })),
-    ]);
-
-    userData.trackedCourses = trackedCoursesRes.data || [];
-    userData.trackedLecturers = trackedLecturersRes.data || [];
-    userData.allCourses = coursesRes.data || [];
-    userData.allLecturers = lecturersRes.data || [];
-    userData.contactRequests = contactRequestsRes.data || [];
-    
-    const userCourseReviews = filterReviewsByUser(courseReviewsRes.data || [], userId);
-    const userLecturerReviews = filterReviewsByUser(lecturerReviewsRes.data || [], userId);
-    
-    userData.reviews.courseReviews = userCourseReviews;
-    userData.reviews.lecturerReviews = userLecturerReviews;
-    
-    updateLoadingProgress('מחשב סטטיסטיקות', 80);
-    
-    userData.stats = {
-      coursesCount: userData.trackedCourses.length,
-      reviewsCount: userCourseReviews.length + userLecturerReviews.length
-    };
-
-    updateLoadingProgress('שומר נתונים במטמון', 90);
-    
     saveToCache(userData);
-    
-    updateLoadingProgress('הטעינה הושלמה', 100);
-
-    return userData;
   } catch (error) {
-    console.error('שגיאה בטעינה מקדימה של נתוני המשתמש:', error);
-    return userData;
+    console.error('Failed to persist preloaded data to cache:', error);
   }
-};
 
-const filterReviewsByUser = (reviews, userId) => {
-  if (!Array.isArray(reviews)) return [];
-  
-  return reviews.filter(review => {
-    return (typeof review.user === "string" && review.user === userId) ||
-      (typeof review.user === "object" && review.user._id === userId);
-  });
+  emitProgress(total, total, 'preload complete');
+  if (currentController === localController) currentController = null;
+
+  return userData;
 };
 
 const saveToCache = (userData) => {
-  try {
-    dashboardCache.saveToCache('tracked_courses', userData.trackedCourses);
-    dashboardCache.saveToCache('all_courses', userData.allCourses);
-    dashboardCache.saveToCache('lecturers', userData.allLecturers);
-    dashboardCache.saveToCache('stats', userData.stats);
-    
-    const reviewsCache = {
+  dashboardCache.saveToCache('tracked_courses', userData.trackedCourses);
+  dashboardCache.saveToCache('all_courses', userData.allCourses);
+  dashboardCache.saveToCache('lecturers', userData.allLecturers);
+  dashboardCache.saveToCache('stats', userData.stats);
+
+  const timestamp = Date.now();
+
+  localStorage.setItem(
+    'my_reviews_data',
+    JSON.stringify({
       courseReviews: userData.reviews.courseReviews,
       lecturerReviews: userData.reviews.lecturerReviews,
-      timestamp: Date.now()
-    };
-    localStorage.setItem('my_reviews_data', JSON.stringify(reviewsCache));
-    
-    const trackedCoursesCache = {
+      timestamp,
+    })
+  );
+
+  localStorage.setItem(
+    'tracked_courses_data',
+    JSON.stringify({
       trackedCourses: userData.trackedCourses,
-      timestamp: Date.now()
-    };
-    localStorage.setItem('tracked_courses_data', JSON.stringify(trackedCoursesCache));
-    
-    const trackedLecturersCache = {
+      timestamp,
+    })
+  );
+
+  localStorage.setItem(
+    'tracked_lecturers_data',
+    JSON.stringify({
       trackedLecturers: userData.trackedLecturers,
-      timestamp: Date.now()
-    };
-    localStorage.setItem('tracked_lecturers_data', JSON.stringify(trackedLecturersCache));
-    
-    const contactRequestsCache = {
+      timestamp,
+    })
+  );
+
+  localStorage.setItem(
+    'contact_requests_data',
+    JSON.stringify({
       contactRequests: userData.contactRequests,
-      timestamp: Date.now()
-    };
-    localStorage.setItem('contact_requests_data', JSON.stringify(contactRequestsCache));
-    
-    sendDataLoadedEvents(userData);
-  } catch (error) {
-    console.error('שגיאה בשמירת הנתונים במטמון:', error);
-  }
-}
+      timestamp,
+    })
+  );
+
+  sendDataLoadedEvents(userData);
+};
 
 const sendDataLoadedEvents = (userData) => {
   try {
-    const coursesEvent = new CustomEvent('trackedCoursesPreloaded', {
-      detail: { count: userData.trackedCourses.length, timestamp: Date.now() }
-    });
-    window.dispatchEvent(coursesEvent);
-    
-    const lecturersEvent = new CustomEvent('trackedLecturersPreloaded', {
-      detail: { count: userData.trackedLecturers.length, timestamp: Date.now() }
-    });
-    window.dispatchEvent(lecturersEvent);
-    
-    const reviewsEvent = new CustomEvent('reviewsPreloaded', {
-      detail: { 
-        count: userData.reviews.courseReviews.length + userData.reviews.lecturerReviews.length, 
-        timestamp: Date.now() 
-      }
-    });
-    window.dispatchEvent(reviewsEvent);
-    
-    const contactRequestsEvent = new CustomEvent('contactRequestsPreloaded', {
-      detail: { 
-        count: userData.contactRequests.length, 
-        timestamp: Date.now() 
-      }
-    });
-    window.dispatchEvent(contactRequestsEvent);
+    window.dispatchEvent(
+      new CustomEvent('trackedCoursesPreloaded', {
+        detail: {
+          count: userData.trackedCourses.length,
+          timestamp: Date.now(),
+        },
+      })
+    );
+    window.dispatchEvent(
+      new CustomEvent('trackedLecturersPreloaded', {
+        detail: {
+          count: userData.trackedLecturers.length,
+          timestamp: Date.now(),
+        },
+      })
+    );
+    window.dispatchEvent(
+      new CustomEvent('reviewsPreloaded', {
+        detail: {
+          count:
+            userData.reviews.courseReviews.length +
+            userData.reviews.lecturerReviews.length,
+          timestamp: Date.now(),
+        },
+      })
+    );
+    window.dispatchEvent(
+      new CustomEvent('contactRequestsPreloaded', {
+        detail: {
+          count: userData.contactRequests.length,
+          timestamp: Date.now(),
+        },
+      })
+    );
   } catch (error) {
-    console.error('שגיאה בשליחת אירועי טעינת נתונים:', error);
+    console.error('Failed to dispatch data-loaded events:', error);
   }
-}
+};
 
 export default preloadUserData;

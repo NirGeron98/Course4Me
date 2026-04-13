@@ -109,7 +109,7 @@ const CourseQuickActions = ({ onShowReviewForm, courseId, courseName, user, onDa
                     },
                 });
             } else {
-                // הוספה למעקב
+                // Add to tracking
                 response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-courses`, {
                     method: 'POST',
                     headers: {
@@ -188,7 +188,7 @@ const CourseQuickActions = ({ onShowReviewForm, courseId, courseName, user, onDa
 
     return (
         <>
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="bg-white rounded-card-lg shadow-card p-6">
                 <h3 className="text-xl font-bold text-gray-800 mb-4">פעולות מהירות</h3>
 
                 <div className="space-y-3">
@@ -196,7 +196,7 @@ const CourseQuickActions = ({ onShowReviewForm, courseId, courseName, user, onDa
                         <button 
                             onClick={handleFollowToggle}
                             disabled={isLoading}
-                            className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-300 text-white py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                            className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-300 text-white py-3 rounded-card transition-colors flex items-center justify-center gap-2"
                         >
                             {isLoading ? (
                                 <>
@@ -216,7 +216,7 @@ const CourseQuickActions = ({ onShowReviewForm, courseId, courseName, user, onDa
                         <button 
                             onClick={handleFollowToggle}
                             disabled={isLoading}
-                            className="w-full bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                            className="w-full bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white py-3 rounded-card transition-colors flex items-center justify-center gap-2"
                         >
                             {isLoading ? (
                                 <>
@@ -234,7 +234,7 @@ const CourseQuickActions = ({ onShowReviewForm, courseId, courseName, user, onDa
 
                     <button
                         onClick={handleWriteReviewClick}
-                        className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                        className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-card transition-colors flex items-center justify-center gap-2"
                     >
                         <Plus className="w-5 h-5" />
                         כתוב ביקורת
@@ -242,7 +242,7 @@ const CourseQuickActions = ({ onShowReviewForm, courseId, courseName, user, onDa
 
                     <button 
                         onClick={handleShare}
-                        className={`w-full py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 ${
+                        className={`w-full py-3 rounded-card transition-all duration-ui flex items-center justify-center gap-2 ${
                             copySuccess 
                                 ? 'bg-green-500 text-white' 
                                 : 'bg-gray-500 hover:bg-gray-600 text-white'
@@ -263,7 +263,7 @@ const CourseQuickActions = ({ onShowReviewForm, courseId, courseName, user, onDa
                 </div>
 
                 {copySuccess && (
-                    <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                    <div className="mt-3 p-3 bg-blue-50 rounded-card">
                         <p className="text-sm text-blue-700 text-center">
                             חברים שיקבלו את הקישור יצטרכו להתחבר למערכת כדי לצפות בפרטים
                         </p>

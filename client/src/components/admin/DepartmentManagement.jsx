@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
+import { apiFetch } from "../../hooks/useApi";
 import { Building, Trash2, Edit, Save, Plus, X } from "lucide-react";
 
 const DepartmentManagement = ({ onMessage, onError }) => {
@@ -15,8 +15,8 @@ const DepartmentManagement = ({ onMessage, onError }) => {
 
   const fetchDepartments = useCallback(async () => {
     try {
-      const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/departments`);
-      setDepartments(res.data);
+      const data = await apiFetch(`/api/departments`);
+      setDepartments(data);
     } catch (err) {
       onError("שגיאה בטעינת המחלקות");
     }
@@ -86,29 +86,26 @@ const DepartmentManagement = ({ onMessage, onError }) => {
     }
 
     try {
-      const token = localStorage.getItem("token");
       setLoading(true);
 
       if (isEditing) {
-        await axios.put(
-          `${process.env.REACT_APP_API_BASE_URL}/api/departments/${editId}`,
-          formData,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await apiFetch(`/api/departments/${editId}`, {
+          method: "PUT",
+          body: formData,
+        });
         onMessage("מחלקה עודכנה בהצלחה!");
       } else {
-        await axios.post(
-          `${process.env.REACT_APP_API_BASE_URL}/api/departments`,
-          formData,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await apiFetch(`/api/departments`, {
+          method: "POST",
+          body: formData,
+        });
         onMessage("מחלקה נוספה בהצלחה!");
       }
 
       resetForm();
       fetchDepartments();
     } catch (err) {
-      onError(err.response?.data?.message || "שגיאה בשמירת המחלקה");
+      onError(err.message || "שגיאה בשמירת המחלקה");
     } finally {
       setLoading(false);
     }
@@ -131,9 +128,8 @@ const DepartmentManagement = ({ onMessage, onError }) => {
   const handleDelete = async (id) => {
     if (!window.confirm("האם למחוק את המחלקה הזו?")) return;
     try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/departments/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
+      await apiFetch(`/api/departments/${id}`, {
+        method: "DELETE",
       });
       onMessage("המחלקה נמחקה בהצלחה!");
       fetchDepartments();
@@ -143,8 +139,8 @@ const DepartmentManagement = ({ onMessage, onError }) => {
   };
 
   return (
-    <div className="p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="p-3 sm:p-6 xl:p-8">
+      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
         <div className="flex items-center gap-3 mb-6">
           <Building className="w-8 h-8 text-emerald-600" />
           <h2 className="text-2xl font-bold text-gray-800">
@@ -153,7 +149,7 @@ const DepartmentManagement = ({ onMessage, onError }) => {
         </div>
 
         {/* Add/Edit Form */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-card shadow-sm border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
             {isEditing ? "עריכת מחלקה" : "הוספת מחלקה חדשה"}
           </h3>
@@ -169,7 +165,7 @@ const DepartmentManagement = ({ onMessage, onError }) => {
                   type="text"
                   value={formData.name}
                   onChange={handleNameChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-emerald-500 text-right"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-card focus:outline-none focus:border-emerald-500 text-right"
                   placeholder="לדוגמה: מדעי המחשב"
                   required
                 />
@@ -185,7 +181,7 @@ const DepartmentManagement = ({ onMessage, onError }) => {
                   type="text"
                   value={formData.code}
                   onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value }))}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-emerald-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-card focus:outline-none focus:border-emerald-500"
                   placeholder="לדוגמה: cs"
                   required
                 />
@@ -200,7 +196,7 @@ const DepartmentManagement = ({ onMessage, onError }) => {
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-emerald-500 text-right"
+                className="w-full px-4 py-3 border border-gray-300 rounded-card focus:outline-none focus:border-emerald-500 text-right"
                 placeholder="תיאור קצר של המחלקה..."
                 rows="2"
               />
@@ -211,7 +207,7 @@ const DepartmentManagement = ({ onMessage, onError }) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex items-center gap-2 bg-emerald-500 text-white px-6 py-3 rounded-lg hover:bg-emerald-600 transition disabled:opacity-50"
+                className="flex items-center gap-2 bg-emerald-500 text-white px-6 py-3 rounded-card hover:bg-emerald-600 transition disabled:opacity-50"
               >
                 {loading ? "שומר..." : (
                   <>
@@ -225,7 +221,7 @@ const DepartmentManagement = ({ onMessage, onError }) => {
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="flex items-center gap-2 bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition"
+                  className="flex items-center gap-2 bg-gray-500 text-white px-6 py-3 rounded-card hover:bg-gray-600 transition"
                 >
                   <X className="w-4 h-4" />
                   ביטול
@@ -236,7 +232,7 @@ const DepartmentManagement = ({ onMessage, onError }) => {
         </div>
 
         {/* Departments List */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-card shadow-sm border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
             מחלקות קיימות ({departments.length})
           </h3>
@@ -250,7 +246,7 @@ const DepartmentManagement = ({ onMessage, onError }) => {
               {departments.map((dept) => (
                 <div
                   key={dept._id}
-                  className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow"
+                  className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-card p-4 hover:shadow-sm transition-shadow"
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-4">
@@ -273,14 +269,14 @@ const DepartmentManagement = ({ onMessage, onError }) => {
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleEdit(dept)}
-                      className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                      className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-card transition-colors"
                       title="ערוך מחלקה"
                     >
                       <Edit className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(dept._id)}
-                      className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                      className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-card transition-colors"
                       title="מחק מחלקה"
                     >
                       <Trash2 className="w-4 h-4" />

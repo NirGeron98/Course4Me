@@ -42,7 +42,7 @@ const ReviewFilters = ({
   ];
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+    <div className="bg-white rounded-card-lg shadow-card p-6 mb-6">
       {/* Main Search and Quick Actions */}
       <div className="flex flex-col lg:flex-row gap-4 mb-4">
         {/* Search Bar */}
@@ -53,7 +53,7 @@ const ReviewFilters = ({
             placeholder="חיפוש לפי שם קורס, מרצה, מחלקה או תוכן..."
             value={filters.searchTerm}
             onChange={(e) => onFilterChange('searchTerm', e.target.value)}
-            className="w-full pr-10 pl-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            className="w-full pr-10 pl-4 py-3 border border-gray-300 rounded-card focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           />
         </div>
 
@@ -64,7 +64,7 @@ const ReviewFilters = ({
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              className="border border-gray-300 rounded-card px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             >
               {sortOptions.map(option => (
                 <option key={option.value} value={option.value}>
@@ -76,7 +76,7 @@ const ReviewFilters = ({
 
           <button
             onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')}
-            className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="p-2 border border-gray-300 rounded-card hover:bg-gray-50 transition-colors"
             title={sortOrder === 'desc' ? 'מיון יורד' : 'מיון עולה'}
           >
             {sortOrder === 'desc' ? (
@@ -88,7 +88,7 @@ const ReviewFilters = ({
 
           <button
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-card transition-colors ${
               showAdvancedFilters 
                 ? 'bg-emerald-100 text-emerald-700 border-emerald-200' 
                 : 'bg-gray-100 text-gray-700 border-gray-200'
@@ -101,7 +101,7 @@ const ReviewFilters = ({
           {hasActiveFilters && (
             <button
               onClick={onClearFilters}
-              className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 border border-red-200 rounded-lg hover:bg-red-200 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 border border-red-200 rounded-card hover:bg-red-200 transition-colors"
             >
               <X className="w-4 h-4" />
               <span className="hidden sm:inline">נקה סינון</span>
@@ -123,7 +123,7 @@ const ReviewFilters = ({
               <select
                 value={filters.lecturer}
                 onChange={(e) => onFilterChange('lecturer', e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className="w-full border border-gray-300 rounded-card px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               >
                 <option value="">כל המרצים</option>
                 {uniqueLecturers.map(lecturer => (
@@ -143,7 +143,7 @@ const ReviewFilters = ({
               <select
                 value={filters.course}
                 onChange={(e) => onFilterChange('course', e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className="w-full border border-gray-300 rounded-card px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               >
                 <option value="">כל הקורסים</option>
                 {uniqueCourses.map(course => (
@@ -165,7 +165,7 @@ const ReviewFilters = ({
                 placeholder="לדוגמה: 12345"
                 value={filters.courseNumber}
                 onChange={(e) => onFilterChange('courseNumber', e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className="w-full border border-gray-300 rounded-card px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               />
             </div>
 
@@ -178,7 +178,7 @@ const ReviewFilters = ({
               <select
                 value={filters.department}
                 onChange={(e) => onFilterChange('department', e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className="w-full border border-gray-300 rounded-card px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               >
                 <option value="">כל המחלקות</option>
                 {uniqueDepartments.map(department => (
@@ -199,7 +199,7 @@ const ReviewFilters = ({
                 type="date"
                 value={filters.startDate}
                 onChange={(e) => onFilterChange('startDate', e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className="w-full border border-gray-300 rounded-card px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               />
             </div>
 
@@ -213,7 +213,7 @@ const ReviewFilters = ({
                 type="date"
                 value={filters.endDate}
                 onChange={(e) => onFilterChange('endDate', e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className="w-full border border-gray-300 rounded-card px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               />
             </div>
 
@@ -226,7 +226,7 @@ const ReviewFilters = ({
               <select
                 value={filters.minRating}
                 onChange={(e) => onFilterChange('minRating', e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className="w-full border border-gray-300 rounded-card px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               >
                 <option value="">ללא מגבלה</option>
                 <option value="1">1 כוכב ומעלה</option>
@@ -246,7 +246,7 @@ const ReviewFilters = ({
               <select
                 value={filters.maxRating}
                 onChange={(e) => onFilterChange('maxRating', e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className="w-full border border-gray-300 rounded-card px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               >
                 <option value="">ללא מגבלה</option>
                 <option value="1">1 כוכב</option>
@@ -266,7 +266,7 @@ const ReviewFilters = ({
               <select
                 value={filters.isAnonymous}
                 onChange={(e) => onFilterChange('isAnonymous', e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className="w-full border border-gray-300 rounded-card px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               >
                 <option value="all">כל הביקורות</option>
                 <option value="false">ביקורות גלויות</option>
@@ -283,7 +283,7 @@ const ReviewFilters = ({
               <select
                 value={filters.reviewType}
                 onChange={(e) => onFilterChange('reviewType', e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className="w-full border border-gray-300 rounded-card px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               >
                 <option value="all">כל הדירוגים</option>
                 <option value="course">דירוגי קורסים</option>

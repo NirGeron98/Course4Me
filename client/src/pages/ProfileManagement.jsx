@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { apiFetch } from "../hooks/useApi";
 import ProfileHeader from '../components/profile/ProfileHeader';
 import ProfileForm from '../components/profile/ProfileForm';
 import PasswordForm from '../components/profile/PasswordForm';
@@ -78,29 +78,29 @@ const ProfileManagement = () => {
           return;
         }
 
-        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/user/profile`, {
-          headers: { Authorization: `Bearer ${token}` },
-          timeout: 5000
+        const data = await apiFetch(`/api/user/profile`, {
+          token,
+          timeout: 5000,
         });
-        
-        setUserProfile(response.data);
-        setEditedProfile(response.data);
+
+        setUserProfile(data);
+        setEditedProfile(data);
         setUseMockData(false);
       } catch (error) {
         console.error("Error fetching profile:", error);
-        
+
         // Use mock data when API fails
         setUserProfile(mockUserProfile);
         setEditedProfile(mockUserProfile);
         setUseMockData(true);
-        
+
         let errorMessage = "שגיאה בטעינת הפרופיל - עובד עם נתונים לדוגמה";
-        
-        if (error.code === 'ECONNABORTED') {
+
+        if (error?.message === 'TimeoutError') {
           errorMessage = "זמן תגובה ארוך מדי - עובד עם נתונים לדוגמה";
-        } else if (error.response?.status === 404) {
+        } else if (error?.status === 404) {
           errorMessage = "ה-API לא נמצא - עובד עם נתונים לדוגמה";
-        } else if (error.response?.status === 401) {
+        } else if (error?.status === 401) {
           errorMessage = "אין הרשאה - עובד עם נתונים לדוגמה";
         }
         
@@ -130,17 +130,13 @@ const ProfileManagement = () => {
           profile: { type: "success", text: "הפרופיל עודכן בהצלחה! (מצב פיתוח)" }
         }));
       } else {
-        const token = localStorage.getItem("token");
-        const response = await axios.put(
-          `${process.env.REACT_APP_API_BASE_URL}/api/user/profile`,
-          editedProfile,
-          { 
-            headers: { Authorization: `Bearer ${token}` },
-            timeout: 5000
-          }
-        );
+        const data = await apiFetch(`/api/user/profile`, {
+          method: "PUT",
+          body: editedProfile,
+          timeout: 5000,
+        });
 
-        setUserProfile(response.data);
+        setUserProfile(data);
         setIsEditing(false);
         setMessages(prev => ({
           ...prev,
@@ -156,7 +152,7 @@ const ProfileManagement = () => {
       console.error("Error updating profile:", error);
       setMessages(prev => ({
         ...prev,
-        profile: { type: "error", text: error.response?.data?.message || "שגיאה בעדכון הפרופיל" }
+        profile: { type: "error", text: error.message || "שגיאה בעדכון הפרופיל" }
       }));
     } finally {
       setLoading(prev => ({ ...prev, updateProfile: false }));
@@ -197,18 +193,14 @@ const ProfileManagement = () => {
           password: { type: "success", text: "הסיסמה עודכנה בהצלחה! (מצב פיתוח)" }
         }));
       } else {
-        const token = localStorage.getItem("token");
-        await axios.put(
-          `${process.env.REACT_APP_API_BASE_URL}/api/user/password`,
-          {
+        await apiFetch(`/api/user/password`, {
+          method: "PUT",
+          body: {
             currentPassword: passwords.currentPassword,
-            newPassword: passwords.newPassword
+            newPassword: passwords.newPassword,
           },
-          { 
-            headers: { Authorization: `Bearer ${token}` },
-            timeout: 5000
-          }
-        );
+          timeout: 5000,
+        });
 
         setPasswords({
           currentPassword: "",
@@ -226,7 +218,7 @@ const ProfileManagement = () => {
       console.error("Error updating password:", error);
       setMessages(prev => ({
         ...prev,
-        password: { type: "error", text: error.response?.data?.message || "שגיאה בעדכון הסיסמה" }
+        password: { type: "error", text: error.message || "שגיאה בעדכון הסיסמה" }
       }));
     } finally {
       setLoading(prev => ({ ...prev, updatePassword: false }));
@@ -276,18 +268,18 @@ const ProfileManagement = () => {
 
       <div className="max-w-4xl mx-auto px-6 py-8">
         {useMockData && (
-          <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-card p-4">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
               <span className="text-yellow-800 font-medium">מצב פיתוח - עובד עם נתונים לדוגמה</span>
             </div>
             <p className="text-yellow-700 text-sm mt-1">
-              השרת לא זמין או ה-API endpoint לא קיים. המערכת עובדת עם נתונים מקומיים.
+              השרת לא זמין או שה-{'API'} לא קיים. המערכת עובדת עם נתונים מקומיים.
             </p>
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
           <ProfileForm
             userProfile={userProfile}
             editedProfile={editedProfile}

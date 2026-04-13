@@ -60,14 +60,14 @@ const CourseDetailsModal = ({ course, onClose }) => {
       aria-modal="true"
       aria-labelledby="course-modal-title"
     >
-      <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden relative flex flex-col animate-modalEnter">
+      <div className="bg-white rounded-3xl shadow-elevated max-w-4xl w-full max-h-[95vh] overflow-hidden relative flex flex-col animate-modalEnter">
 
         {/* Elegant Header with integrated info */}
         <div className="bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 p-6 relative flex-shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-4 left-4 text-white hover:text-emerald-200 transition-all duration-200 bg-white/20 rounded-full p-2 hover:bg-white/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-600"
+            className="absolute top-4 left-4 text-white hover:text-emerald-200 transition-all duration-ui bg-white/20 rounded-full p-2 hover:bg-white/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-600"
             aria-label="סגור"
           >
             <X className="w-5 h-5" />
@@ -76,7 +76,7 @@ const CourseDetailsModal = ({ course, onClose }) => {
           {/* Course Title and Main Info */}
           <div className="text-center">
             <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="bg-white/25 rounded-2xl p-2 flex-shrink-0">
+              <div className="bg-white/25 rounded-card-lg p-2 flex-shrink-0">
                 <BookOpen className="w-6 h-6 text-white" />
               </div>
               <h2 id="course-modal-title" className="text-2xl lg:text-3xl font-bold text-white leading-tight">
@@ -117,9 +117,9 @@ const CourseDetailsModal = ({ course, onClose }) => {
 
             {/* Lecturers Display - Compact and Centered */}
             {allLecturers.length > 0 && (
-              <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2 max-w-md mx-auto">
+              <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-card px-4 py-2 max-w-md mx-auto">
                 <div className="flex items-center justify-center gap-2 mb-3">
-                  <div className="bg-white/20 rounded-lg p-1.5">
+                  <div className="bg-white/20 rounded-card p-1.5">
                     <Users className="w-4 h-4 text-white" />
                   </div>
                   <h3 className="font-semibold text-white text-base">
@@ -137,9 +137,9 @@ const CourseDetailsModal = ({ course, onClose }) => {
                     </div>
                   ))}
 
-                  {/* Show "+X נוספים" in a separate box */}
+                  {/* Show extra lecturers count in a separate box */}
                   {allLecturers.length > 3 && (
-                    <div className="mt-3 px-3 py-1.5 bg-white/10 border border-white/20 rounded-xl text-center">
+                    <div className="mt-3 px-3 py-1.5 bg-white/10 border border-white/20 rounded-card text-center">
                       <span className="text-white text-sm font-medium">
                         +{allLecturers.length - 3} נוספים
                       </span>
@@ -157,9 +157,9 @@ const CourseDetailsModal = ({ course, onClose }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {/* Department */}
             {course.department && (
-              <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-4 border border-indigo-100">
+              <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-card p-4 border border-indigo-100">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="bg-indigo-100 rounded-lg p-2">
+                  <div className="bg-indigo-100 rounded-card p-2">
                     <Building className="w-4 h-4 text-indigo-600" />
                   </div>
                   <h3 className="font-semibold text-gray-800 text-sm">מחלקה</h3>
@@ -170,9 +170,9 @@ const CourseDetailsModal = ({ course, onClose }) => {
 
             {/* Prerequisites */}
             {course.prerequisites && (
-              <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-100">
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-card p-4 border border-amber-100">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="bg-amber-100 rounded-lg p-2">
+                  <div className="bg-amber-100 rounded-card p-2">
                     <BookOpen className="w-4 h-4 text-amber-600" />
                   </div>
                   <h3 className="font-semibold text-gray-800 text-sm">דרישות קדם</h3>
@@ -186,9 +186,9 @@ const CourseDetailsModal = ({ course, onClose }) => {
 
           {/* Course Description - Main Focus with Controlled Length */}
           {description && (
-            <div className="bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 rounded-2xl p-6 border border-emerald-100 shadow-sm">
+            <div className="bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 rounded-card-lg p-6 border border-emerald-100 shadow-sm">
               <div className="flex items-center gap-3 mb-5">
-                <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl p-3 shadow-md">
+                <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-card p-3 shadow-card">
                   <FileText className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-800 bg-gradient-to-r from-emerald-700 to-teal-700 bg-clip-text text-transparent">
@@ -210,7 +210,7 @@ const CourseDetailsModal = ({ course, onClose }) => {
                   <div className="mt-4 text-center">
                     <button
                       onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-lg font-medium transition-all duration-200 text-sm"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-card font-medium transition-all duration-ui text-sm"
                     >
                       <span>
                         {isDescriptionExpanded ? "הצג פחות" : "הצג עוד"}
@@ -234,7 +234,7 @@ const CourseDetailsModal = ({ course, onClose }) => {
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2.5 bg-white hover:bg-gray-50 text-gray-700 rounded-xl font-medium transition-all duration-200 text-sm border border-gray-200 hover:border-gray-300 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+              className="px-6 py-2.5 bg-white hover:bg-gray-50 text-gray-700 rounded-card font-medium transition-all duration-ui text-sm border border-gray-200 hover:border-gray-300 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
             >
               סגור
             </button>
@@ -242,7 +242,7 @@ const CourseDetailsModal = ({ course, onClose }) => {
             <button
               type="button"
               onClick={handleGoToCourse}
-              className="px-8 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl font-medium transition-all duration-200 text-sm shadow-md hover:shadow-lg flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+              className="px-8 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-card font-medium transition-all duration-ui text-sm shadow-card hover:shadow-card flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
             >
               <span>מעבר לדף הקורס</span>
               <ArrowLeft className="w-4 h-4" />

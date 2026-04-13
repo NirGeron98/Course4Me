@@ -5,7 +5,7 @@ import { Star, BookMarked, Loader2 } from "lucide-react";
 const ElegantLoadingSpinner = ({ message = "טוען...", size = "large" }) => {
   return (
     <div className="flex flex-col items-center justify-center min-h-[50vh]">
-      <div className="flex flex-col items-center p-8 rounded-xl bg-white shadow-xl animate-fadeIn">
+      <div className="flex flex-col items-center p-8 rounded-card bg-white shadow-card-hover animate-fadeIn">
         <div className="animate-spin mb-4">
           {size === "large" ? (
             <Loader2 className="w-16 h-16 text-gray-700" />
@@ -24,7 +24,7 @@ const ElegantLoadingSpinner = ({ message = "טוען...", size = "large" }) => {
 // Secondary loading indicator for background operations
 export const ElegantSecondaryLoading = ({ message = "מרענן נתונים..." }) => {
   return (
-    <div className="fixed bottom-4 left-4 bg-white p-3 rounded-lg shadow-lg flex items-center space-x-3 z-50 rtl:space-x-reverse">
+    <div className="fixed bottom-4 left-4 bg-white p-3 rounded-card shadow-card flex items-center space-x-3 z-50 rtl:space-x-reverse">
       <div className="animate-spin">
         <Loader2 className="w-5 h-5 text-gray-600" />
       </div>
@@ -98,14 +98,14 @@ export const StatsCards = ({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {showCacheMessage && (
-        <div className="col-span-1 sm:col-span-2 bg-blue-50 p-2 rounded-lg text-center text-sm text-blue-700">
+        <div className="col-span-1 sm:col-span-2 bg-blue-50 p-2 rounded-card text-center text-sm text-blue-700">
           נטען מהמטמון ומתרענן ברקע...
         </div>
       )}
 
       {/* Tracked Courses Stats Card */}
       <div
-        className="bg-gradient-to-br from-emerald-50 to-teal-100 rounded-xl p-5 shadow-md"
+        className="bg-gradient-to-br from-emerald-50 to-teal-100 rounded-card p-5 shadow-card"
       >
         <div className="flex items-center justify-between">
           <div>
@@ -120,7 +120,7 @@ export const StatsCards = ({
 
       {/* Reviews Stats Card */}
       <div
-        className="bg-gradient-to-br from-indigo-50 to-blue-100 rounded-xl p-5 shadow-md"
+        className="bg-gradient-to-br from-indigo-50 to-blue-100 rounded-card p-5 shadow-card"
       >
         <div className="flex items-center justify-between">
           <div>

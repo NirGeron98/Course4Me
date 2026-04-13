@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useCourseDataContext } from "../contexts/CourseDataContext";
+import {
+  useCourseDataContext,
+  COURSE_MUTATED_EVENT,
+} from "../contexts/CourseDataContext";
 
 export const useCourseDataWithSync = (
   identifier,
@@ -86,6 +89,31 @@ export const useCourseDataWithSync = (
       fetchCourse();
     }
   }, [refreshTrigger, courseId, fetchCourse]);
+
+  // Cross-page invalidation: when any part of the app broadcasts a
+  // `courseMutated` event for the course we are currently showing, drop
+  // the local state and force a fresh fetch. Closes the sync gap where
+  // a CoursePage remained stale after a review submit in another tab
+  // or a modal sibling component.
+  useEffect(() => {
+    const handleCourseMutated = (event) => {
+      const mutatedId = event?.detail?.courseId;
+      if (!mutatedId || !courseId) return;
+      if (String(mutatedId) !== String(courseId)) return;
+
+      // Invalidate local state so the next render shows fresh data.
+      setStats(null);
+      // Reset the de-dupe ref so `fetchCourse` is allowed to re-run
+      // even though the identifier hasn't changed.
+      lastFetchedIdentifierRef.current = null;
+      fetchCourse();
+    };
+
+    window.addEventListener(COURSE_MUTATED_EVENT, handleCourseMutated);
+    return () => {
+      window.removeEventListener(COURSE_MUTATED_EVENT, handleCourseMutated);
+    };
+  }, [courseId, fetchCourse]);
 
   return {
     course,

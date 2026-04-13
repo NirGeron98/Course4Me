@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { apiFetch } from "../hooks/useApi";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, User, Mail, Lock, CheckCircle, AlertCircle } from "lucide-react";
 
@@ -57,20 +57,24 @@ const Signup = ({ onLogin }) => {
 
     try {
       const { confirmPassword, ...dataToSend } = formData;
-      const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/auth/signup`, dataToSend);
-      
+      const data = await apiFetch(`/api/auth/signup`, {
+        method: "POST",
+        body: dataToSend,
+        auth: false,
+      });
+
       // Store user data in localStorage
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("userFullName", res.data.user.fullName);
-      localStorage.setItem("userRole", res.data.user.role);
-      
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("userFullName", data.user.fullName);
+      localStorage.setItem("userRole", data.user.role);
+
       // Call onLogin with the complete response data
-      onLogin(res.data);
-      
+      onLogin(data);
+
       navigate("/dashboard");
     } catch (err) {
       console.error("Signup error:", err);
-      setMessage(err.response?.data?.message || "ההרשמה נכשלה");
+      setMessage(err.message || "ההרשמה נכשלה");
     } finally {
       setIsLoading(false);
     }
@@ -80,13 +84,13 @@ const Signup = ({ onLogin }) => {
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-500 rounded-full mb-4 shadow-lg">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-500 rounded-full mb-4 shadow-card">
             <User className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-800 mb-2">הרשמה</h1>
         </div>
 
-        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl border border-emerald-100 p-8" dir="rtl">
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-elevated border border-emerald-100 p-8" dir="rtl">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="relative">
               <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-emerald-500">
@@ -98,7 +102,7 @@ const Signup = ({ onLogin }) => {
                 placeholder="שם מלא"
                 value={formData.fullName}
                 onChange={handleChange}
-                className="w-full bg-gray-50/70 border-2 border-gray-200 rounded-2xl py-4 pr-12 pl-4 text-right text-gray-700 placeholder-gray-400 focus:outline-none focus:border-emerald-400 focus:bg-white/90 transition-all duration-300"
+                className="w-full bg-gray-50/70 border-2 border-gray-200 rounded-card-lg py-4 pr-12 pl-4 text-right text-gray-700 placeholder-gray-400 focus:outline-none focus:border-emerald-400 focus:bg-white/90 transition-all duration-ui"
                 required
               />
             </div>
@@ -113,7 +117,7 @@ const Signup = ({ onLogin }) => {
                 placeholder="כתובת אימייל"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full bg-gray-50/70 border-2 border-gray-200 rounded-2xl py-4 pr-12 pl-4 text-right text-gray-700 placeholder-gray-400 focus:outline-none focus:border-emerald-400 focus:bg-white/90 transition-all duration-300"
+                className="w-full bg-gray-50/70 border-2 border-gray-200 rounded-card-lg py-4 pr-12 pl-4 text-right text-gray-700 placeholder-gray-400 focus:outline-none focus:border-emerald-400 focus:bg-white/90 transition-all duration-ui"
                 required
               />
             </div>
@@ -128,7 +132,7 @@ const Signup = ({ onLogin }) => {
                 placeholder="סיסמה (לפחות 6 תווים)"
                 value={formData.password}
                 onChange={handleChange}
-                className={`w-full bg-gray-50/70 border-2 rounded-2xl py-4 pr-12 pl-12 text-right text-gray-700 placeholder-gray-400 focus:outline-none focus:bg-white/90 transition-all duration-300 ${
+                className={`w-full bg-gray-50/70 border-2 rounded-card-lg py-4 pr-12 pl-12 text-right text-gray-700 placeholder-gray-400 focus:outline-none focus:bg-white/90 transition-all duration-ui ${
                   passwordError ? "border-red-300 focus:border-red-400" : "border-gray-200 focus:border-emerald-400"
                 }`}
                 required
@@ -152,7 +156,7 @@ const Signup = ({ onLogin }) => {
                 placeholder="אימות סיסמה"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className={`w-full bg-gray-50/70 border-2 rounded-2xl py-4 pr-12 pl-12 text-right text-gray-700 placeholder-gray-400 focus:outline-none focus:bg-white/90 transition-all duration-300 ${
+                className={`w-full bg-gray-50/70 border-2 rounded-card-lg py-4 pr-12 pl-12 text-right text-gray-700 placeholder-gray-400 focus:outline-none focus:bg-white/90 transition-all duration-ui ${
                   passwordError ? "border-red-300 focus:border-red-400" : "border-gray-200 focus:border-emerald-400"
                 }`}
                 required
@@ -167,7 +171,7 @@ const Signup = ({ onLogin }) => {
             </div>
 
             {passwordError && (
-              <div className="bg-red-50 text-red-700 border border-red-200 p-3 rounded-2xl flex items-center space-x-3">
+              <div className="bg-red-50 text-red-700 border border-red-200 p-3 rounded-card-lg flex items-center space-x-3">
                 <AlertCircle className="w-5 h-5 text-red-500 ml-3" />
                 <p className="text-right font-medium">{passwordError}</p>
               </div>
@@ -176,7 +180,7 @@ const Signup = ({ onLogin }) => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold py-4 rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold py-4 rounded-card-lg shadow-card hover:shadow-card-hover transform hover:-translate-y-0.5 transition-all duration-ui disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center space-x-2">
@@ -191,7 +195,7 @@ const Signup = ({ onLogin }) => {
 
           {message && (
             <div
-              className={`mt-6 p-4 rounded-2xl flex items-center space-x-3 ${
+              className={`mt-6 p-4 rounded-card-lg flex items-center space-x-3 ${
                 message.includes("בהצלחה")
                   ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                   : "bg-red-50 text-red-700 border border-red-200"

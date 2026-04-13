@@ -5,7 +5,7 @@ const MessageAlert = ({ message }) => {
   if (!message.text) return null;
 
   return (
-    <div className={`mb-6 p-4 rounded-lg border-r-4 ${
+    <div className={`mb-6 p-4 rounded-card border-r-4 ${
       message.type === 'success'
         ? 'bg-green-50 border-green-500 text-green-700'
         : 'bg-red-50 border-red-500 text-red-700'

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { apiFetch } from '../hooks/useApi';
 import { Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import SearchTypeToggle from '../components/search/SearchTypeToggle';
@@ -79,9 +79,6 @@ const AdvancedSearch = ({ user }) => {
     const fetchFilterOptions = async () => {
       setFiltersLoading(true);
       try {
-        const token = localStorage.getItem("token");
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
         // Try to load from cache first
         const cachedDepartments = localStorage.getItem('advanced_search_departments');
         const cachedLecturers = localStorage.getItem('advanced_search_lecturers');
@@ -102,18 +99,18 @@ const AdvancedSearch = ({ user }) => {
               setLecturers(lecturersData.data);
               setInstitutions(institutionsData.data);
               setFiltersLoading(false);
-              
+
               // Optionally fetch fresh data in background
-              setTimeout(() => fetchFreshFilterData(headers), 100);
+              setTimeout(() => fetchFreshFilterData(), 100);
               return;
             }
           } catch (error) {
-            console.log('Cache corrupted, fetching fresh data');
+            // Corrupt cache entry — fall through to a fresh fetch.
           }
         }
 
         // No valid cache, fetch fresh data
-        await fetchFreshFilterData(headers);
+        await fetchFreshFilterData();
 
       } catch (error) {
         console.error('Error fetching filter options:', error);
@@ -121,31 +118,31 @@ const AdvancedSearch = ({ user }) => {
       }
     };
 
-    const fetchFreshFilterData = async (headers) => {
+    const fetchFreshFilterData = async () => {
       try {
         // Fetch departments from the separate departments model instead of extracting from courses/lecturers
-        const [departmentsRes, lecturersRes, coursesRes] = await Promise.all([
-          axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/departments`, { headers }),
-          axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/lecturers`, { headers }),
-          axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/courses`, { headers })
+        const [departmentsData, lecturersData, coursesData] = await Promise.all([
+          apiFetch(`/api/departments`),
+          apiFetch(`/api/lecturers`),
+          apiFetch(`/api/courses`)
         ]);
 
         // Extract department names from the departments model
-        const allDepts = departmentsRes.data.map(dept => dept.name).sort();
+        const allDepts = departmentsData.map(dept => dept.name).sort();
 
         // Extract unique institutions from both courses and lecturers
-        const courseInsts = coursesRes.data.map(course => course.academicInstitution).filter(Boolean);
-        const lecturerInsts = lecturersRes.data.map(lecturer => lecturer.academicInstitution).filter(Boolean);
+        const courseInsts = coursesData.map(course => course.academicInstitution).filter(Boolean);
+        const lecturerInsts = lecturersData.map(lecturer => lecturer.academicInstitution).filter(Boolean);
         const allInsts = [...new Set([...courseInsts, ...lecturerInsts])].sort();
 
         setDepartments(allDepts);
-        setLecturers(lecturersRes.data);
+        setLecturers(lecturersData);
         setInstitutions(allInsts);
 
         // Save to cache
         const timestamp = Date.now();
         localStorage.setItem('advanced_search_departments', JSON.stringify({ data: allDepts, timestamp }));
-        localStorage.setItem('advanced_search_lecturers', JSON.stringify({ data: lecturersRes.data, timestamp }));
+        localStorage.setItem('advanced_search_lecturers', JSON.stringify({ data: lecturersData, timestamp }));
         localStorage.setItem('advanced_search_institutions', JSON.stringify({ data: allInsts, timestamp }));
 
         setFiltersLoading(false);
@@ -223,12 +220,9 @@ const AdvancedSearch = ({ user }) => {
     setHasSearched(true);
 
     try {
-      const token = localStorage.getItem("token");
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
       if (searchType === 'courses') {
-        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/courses`, { headers });
-        let filteredResults = response.data;
+        const data = await apiFetch(`/api/courses`);
+        let filteredResults = data;
 
         // Apply search term filter
         if (filters.searchTerm) {
@@ -313,8 +307,8 @@ const AdvancedSearch = ({ user }) => {
         setResults(filteredResults);
       } else {
         // Lecturers search
-        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/lecturers`, { headers });
-        let filteredResults = response.data;
+        const data = await apiFetch(`/api/lecturers`);
+        let filteredResults = data;
 
         // Apply search term filter for lecturers
         if (filters.searchTerm || filters.lecturerName) {
@@ -403,15 +397,15 @@ const AdvancedSearch = ({ user }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50" dir="rtl">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-12 px-6">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-6 sm:py-12 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto text-center">
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <div className="bg-white/20 rounded-full p-4">
-              <Search className="w-10 h-10 text-white" />
+          <div className="flex items-center justify-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+            <div className="bg-white/20 rounded-full p-3 sm:p-4 shrink-0">
+              <Search className="w-7 h-7 sm:w-10 sm:h-10 text-white" />
             </div>
-            <div>
-              <h1 className="text-4xl font-bold mb-2">חיפוש מתקדם</h1>
-              <p className="text-blue-100 text-lg">חפש קורסים ומרצים עם פילטרים מתקדמים</p>
+            <div className="text-start">
+              <h1 className="text-2xl sm:text-4xl font-bold mb-1 sm:mb-2">חיפוש מתקדם</h1>
+              <p className="text-blue-100 text-sm sm:text-lg">חפש קורסים ומרצים עם פילטרים מתקדמים</p>
             </div>
           </div>
 
@@ -423,10 +417,10 @@ const AdvancedSearch = ({ user }) => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-8">
         {/* Filters Section */}
         {filtersLoading ? (
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+          <div className="bg-white rounded-card-lg shadow-card border border-gray-100 p-6">
             <div className="flex items-center justify-center py-8">
               <div className="flex items-center gap-3">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>

@@ -91,7 +91,7 @@ const CourseCarousel = ({
   };
 
   return (
-    <section className="bg-white rounded-2xl p-6 shadow-card border border-gray-100 transition-shadow duration-ui hover:shadow-card-hover" aria-labelledby="courses-system-heading">
+    <section className="bg-white rounded-card-lg p-6 shadow-card border border-gray-100 transition-shadow duration-ui hover:shadow-card-hover" aria-labelledby="courses-system-heading">
       <div className="flex items-center justify-between mb-6">
         <h2 id="courses-system-heading" className="text-2xl font-bold text-gray-800 flex items-center gap-3">
           <BookOpen className="w-6 h-6 text-blue-600" aria-hidden="true" />
@@ -102,7 +102,7 @@ const CourseCarousel = ({
             <button
               type="button"
               onClick={onPrev}
-              className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50"
+              className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors duration-ui focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50"
               disabled={courses.length <= 3}
               aria-label="הקודם"
             >
@@ -111,7 +111,7 @@ const CourseCarousel = ({
             <button
               type="button"
               onClick={onNext}
-              className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50"
+              className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors duration-ui focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50"
               disabled={courses.length <= 3}
               aria-label="הבא"
             >
@@ -134,7 +134,7 @@ const CourseCarousel = ({
           <div
             key={course._id}
             onClick={() => onCourseClick(course)}
-            className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-card-lg p-4 border border-blue-200 hover:shadow-card-hover transition-shadow duration-200 cursor-pointer"
+            className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-card-lg p-4 border border-blue-200 hover:shadow-card-hover transition-shadow duration-ui cursor-pointer"
             role="button"
             tabIndex={0}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCourseClick(course); } }}

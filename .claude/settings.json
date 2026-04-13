@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx eslint:*)",
+      "Bash(npm run:*)",
+      "Bash(echo \"EXIT=$?\")",
+      "Read(//tmp/**)",
+      "Read(//private/tmp/**)",
+      "Bash(sed -n '/Failed to compile/,/webpack compiled/p' /tmp/build.log)",
+      "Bash(npm uninstall:*)",
+      "Bash(awk '{print $NF}')",
+      "Bash(node -e \"console.log\\(JSON.stringify\\(require\\('/Users/nirgeron/Desktop/Projects/Course4Me/Course4Me/client/package.json'\\).eslintConfig, null, 2\\)\\)\")",
+      "Bash(grep -oE \"no-[a-z-]+$\" /Users/nirgeron/.claude/projects/-Users-nirgeron-Desktop-Projects-Course4Me-Course4Me/a445b288-91ce-44c9-878c-8ba590f03dd9/tool-results/bbxnhlazb.txt)",
+      "Bash(find src -type f '\\(' -name '*.jsx' -o -name '*.js' '\\)' -exec perl -i -pe ':*)",
+      "Bash(xargs -0 perl -ne 'if \\(m{//.*[\\\\x{0590}-\\\\x{05FF}]} || m{/\\\\*.*[\\\\x{0590}-\\\\x{05FF}]}\\) { print \"$ARGV:$.\\\\n\"; }')"
+    ]
+  }
+}

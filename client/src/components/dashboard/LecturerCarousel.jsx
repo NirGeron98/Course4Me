@@ -110,7 +110,7 @@ const LecturerCarousel = ({
 
   return (
     <>
-      <section className="bg-white rounded-2xl p-6 shadow-card border border-gray-100 transition-shadow duration-ui hover:shadow-card-hover" aria-labelledby="lecturers-system-heading">
+      <section className="bg-white rounded-card-lg p-6 shadow-card border border-gray-100 transition-shadow duration-ui hover:shadow-card-hover" aria-labelledby="lecturers-system-heading">
         <div className="flex items-center justify-between mb-6">
           <h2 id="lecturers-system-heading" className="text-2xl font-bold text-gray-800 flex items-center gap-3">
             <Users className="w-6 h-6 text-purple-600" aria-hidden="true" />
@@ -121,7 +121,7 @@ const LecturerCarousel = ({
               <button
                 type="button"
                 onClick={onPrev}
-                className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 disabled:opacity-50"
+                className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors duration-ui focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 disabled:opacity-50"
                 disabled={lecturers.length <= 3}
                 aria-label="הקודם"
               >
@@ -130,7 +130,7 @@ const LecturerCarousel = ({
               <button
                 type="button"
                 onClick={onNext}
-                className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 disabled:opacity-50"
+                className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors duration-ui focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 disabled:opacity-50"
                 disabled={lecturers.length <= 3}
                 aria-label="הבא"
               >
@@ -153,7 +153,7 @@ const LecturerCarousel = ({
             <div
               key={lecturer._id}
               onClick={() => handleLecturerClick(lecturer)}
-              className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-card-lg p-5 border border-purple-200 hover:shadow-card-hover transition-all duration-200 cursor-pointer group"
+              className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-card-lg p-5 border border-purple-200 hover:shadow-card-hover transition-all duration-ui cursor-pointer group"
               role="button"
               tabIndex={0}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleLecturerClick(lecturer); } }}
@@ -200,7 +200,7 @@ const LecturerCarousel = ({
       {/* Confirmation Modal */}
       {showModal && selectedLecturer && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+          <div className="bg-white rounded-card-lg shadow-elevated max-w-md w-full mx-4 overflow-hidden">
             {/* Modal Header */}
             <div className="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -211,7 +211,7 @@ const LecturerCarousel = ({
               </div>
               <button
                 onClick={closeModal}
-                className="text-white/80 hover:text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
+                className="text-white/80 hover:text-white hover:bg-white/20 rounded-card p-2 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -229,7 +229,7 @@ const LecturerCarousel = ({
                 </div>
               </div>
 
-              <div className="bg-purple-50 rounded-xl p-4 mb-6">
+              <div className="bg-purple-50 rounded-card p-4 mb-6">
                 <p className="text-gray-700 text-center">
                   האם תרצה לעבור לעמוד הפרופיל של המרצה <span className="font-semibold">{selectedLecturer.name}</span>?
                 </p>
@@ -242,13 +242,13 @@ const LecturerCarousel = ({
               <div className="flex gap-3 justify-end">
                 <button
                   onClick={closeModal}
-                  className="px-6 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors font-medium"
+                  className="px-6 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-card transition-colors font-medium"
                 >
                   ביטול
                 </button>
                 <button
                   onClick={handleConfirm}
-                  className="px-6 py-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-lg transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center gap-2"
+                  className="px-6 py-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-card transition-all duration-ui font-medium shadow-card hover:shadow-card-hover transform hover:-translate-y-0.5 flex items-center gap-2"
                 >
                   <ExternalLink className="w-4 h-4" />
                   עבור לפרופיל

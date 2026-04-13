@@ -1,5 +1,10 @@
 const CourseReview = require("../models/CourseReview");
 const Course = require("../models/Course");
+const { clearByPrefix: cacheClearCourses } = require("../utils/listCache");
+
+// Prefix used by courseController for course list cache keys.
+// Keep in sync with CACHE_KEY_PREFIX in courseController.js.
+const COURSE_CACHE_PREFIX = "courses:";
 
 // Create a new review
 exports.createReview = async (req, res) => {
@@ -40,7 +45,7 @@ exports.createReview = async (req, res) => {
     const existing = await CourseReview.findOne({
       course,
       user: req.user._id,
-    });
+    }).select("_id").lean();
 
     if (existing) {
       return res.status(400).json({
@@ -66,8 +71,9 @@ exports.createReview = async (req, res) => {
 
     const savedReview = await review.save();
 
-    // Update the course's average rating based on recommendation score
-    const allReviews = await CourseReview.find({ course });
+    // Update the course's average rating based on recommendation score.
+    // .lean() — only reading recommendation values for the aggregate.
+    const allReviews = await CourseReview.find({ course }).select("recommendation").lean();
     const avgRecommendation =
       allReviews.reduce((sum, r) => sum + r.recommendation, 0) /
       allReviews.length;
@@ -78,20 +84,22 @@ exports.createReview = async (req, res) => {
     });
 
     // Return the review with populated fields
-    const populatedReview = await CourseReview.findById(savedReview._id)
+    const reviewObj = await CourseReview.findById(savedReview._id)
       .populate("user", "fullName _id")
       .populate("lecturer", "name")
-      .populate("lecturers", "name");
+      .populate("lecturers", "name")
+      .lean();
 
     // Process the returned review to handle anonymity
-    const reviewObj = populatedReview.toObject();
-
-    if (reviewObj.isAnonymous === true) {
+    if (reviewObj.isAnonymous === true && reviewObj.user) {
       reviewObj.user = {
         _id: reviewObj.user._id,
         fullName: "משתמש אנונימי",
       };
     }
+
+    // Invalidate server-side course list cache so fresh ratings are served.
+    cacheClearCourses(COURSE_CACHE_PREFIX);
 
     res.status(201).json(reviewObj);
   } catch (err) {
@@ -133,20 +141,15 @@ exports.getReviewsByCourse = async (req, res) => {
       .populate("user", "fullName _id")
       .populate("lecturer", "name")
       .populate("lecturers", "name")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
-    // Process reviews to handle anonymous ones and map workload to workload
+    // Process reviews to handle anonymous ones
     const processedReviews = reviews.map((review) => {
-      const reviewObj = review.toObject();
-
-      if (reviewObj.isAnonymous === true) {
-        reviewObj.user = {
-          _id: reviewObj.user._id,
-          fullName: "משתמש אנונימי",
-        };
+      if (review.isAnonymous === true && review.user) {
+        return { ...review, user: { _id: review.user._id, fullName: "משתמש אנונימי" } };
       }
-
-      return reviewObj;
+      return review;
     });
 
     res.status(200).json(processedReviews);
@@ -223,7 +226,7 @@ exports.updateReview = async (req, res) => {
     } = req.body;
 
     // Find the existing review
-    const existingReview = await CourseReview.findById(reviewId);
+    const existingReview = await CourseReview.findById(reviewId).lean();
 
     if (!existingReview) {
       return res.status(404).json({ message: "ביקורת לא נמצאה" });
@@ -238,7 +241,7 @@ exports.updateReview = async (req, res) => {
     const lecturerList = lecturers && lecturers.length > 0 ? lecturers : (lecturer ? [lecturer] : existingReview.lecturers || [existingReview.lecturer]);
 
     // Update the review
-    const updatedReview = await CourseReview.findByIdAndUpdate(
+    const reviewObj = await CourseReview.findByIdAndUpdate(
       reviewId,
       {
         lecturers: lecturerList,
@@ -255,12 +258,11 @@ exports.updateReview = async (req, res) => {
     )
       .populate("user", "fullName _id")
       .populate("lecturer", "name")
-      .populate("lecturers", "name");
+      .populate("lecturers", "name")
+      .lean();
 
     // Process the updated review to handle anonymity
-    const reviewObj = updatedReview.toObject();
-
-    if (reviewObj.isAnonymous === true) {
+    if (reviewObj.isAnonymous === true && reviewObj.user) {
       reviewObj.user = {
         _id: reviewObj.user._id,
         fullName: "משתמש אנונימי",
@@ -270,7 +272,7 @@ exports.updateReview = async (req, res) => {
     // Recalculate course's average rating based on recommendation
     const allReviews = await CourseReview.find({
       course: existingReview.course,
-    });
+    }).select("recommendation").lean();
     const avgRecommendation =
       allReviews.reduce((sum, r) => sum + r.recommendation, 0) /
       allReviews.length;
@@ -279,6 +281,9 @@ exports.updateReview = async (req, res) => {
       averageRating: avgRecommendation.toFixed(2),
       ratingsCount: allReviews.length,
     });
+
+    // Invalidate course list cache after rating recalculation.
+    cacheClearCourses(COURSE_CACHE_PREFIX);
 
     res.status(200).json(reviewObj);
   } catch (err) {
@@ -305,7 +310,7 @@ exports.deleteReview = async (req, res) => {
     const { reviewId } = req.params;
 
     // Find the existing review
-    const existingReview = await CourseReview.findById(reviewId);
+    const existingReview = await CourseReview.findById(reviewId).select("user course").lean();
 
     if (!existingReview) {
       return res.status(404).json({ message: "ביקורת לא נמצאה" });
@@ -324,7 +329,7 @@ exports.deleteReview = async (req, res) => {
     // Recalculate course's average rating
     const allReviews = await CourseReview.find({
       course: existingReview.course,
-    });
+    }).select("recommendation").lean();
 
     if (allReviews.length > 0) {
       const avgRecommendation =
@@ -343,6 +348,9 @@ exports.deleteReview = async (req, res) => {
       });
     }
 
+    // Invalidate course list cache after the rating was recomputed or reset.
+    cacheClearCourses(COURSE_CACHE_PREFIX);
+
     res.status(200).json({ message: "ביקורת נמחקה בהצלחה" });
   } catch (err) {
     console.error("Error deleting review:", err);
@@ -358,7 +366,7 @@ exports.getCourseReviewStats = async (req, res) => {
   try {
     const { courseId } = req.params;
 
-    const reviews = await CourseReview.find({ course: courseId });
+    const reviews = await CourseReview.find({ course: courseId }).select("recommendation").lean();
 
     if (!reviews.length) {
       return res.status(200).json({ recommendation: null, total: 0 });

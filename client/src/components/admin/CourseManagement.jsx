@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
+import { apiFetch } from "../../hooks/useApi";
 import { BookOpen, Hash, Save, Trash2, X, ChevronLeft, ChevronRight } from "lucide-react";
 import Select from "react-select";
 
@@ -29,9 +29,9 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
     // Fetch all courses from API
     const fetchCourses = useCallback(async () => {
         try {
-            const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/courses`);
-            setCourses(response.data);
-            setFilteredCourses(response.data);
+            const data = await apiFetch(`/api/courses`);
+            setCourses(data);
+            setFilteredCourses(data);
         } catch (err) {
             console.error("Error fetching courses:", err);
             onError("שגיאה בטעינת הקורסים");
@@ -75,7 +75,6 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            const token = localStorage.getItem("token");
             const user = JSON.parse(localStorage.getItem("user"));
             const courseData = {
                 ...courseForm,
@@ -84,27 +83,26 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
                 createdBy: user?._id,
             };
 
-            let response;
             if (isEditing) {
-                response = await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/courses/${editId}`, courseData, {
-                    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+                await apiFetch(`/api/courses/${editId}`, {
+                    method: "PUT",
+                    body: courseData,
                 });
                 onMessage("הקורס עודכן בהצלחה!");
             } else {
-                response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/courses`, courseData, {
-                    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+                await apiFetch(`/api/courses`, {
+                    method: "POST",
+                    body: courseData,
                 });
                 onMessage("קורס נוסף בהצלחה!");
             }
 
-            if (response.status === 200 || response.status === 201) {
-                resetForm();
-                fetchCourses();
-                // Removed setCurrentPage(1) to preserve current page position
-            }
+            resetForm();
+            fetchCourses();
+            // Removed setCurrentPage(1) to preserve current page position
         } catch (err) {
             console.error("Error creating course:", err);
-            onError(err.response?.data?.message || "שגיאה בהוספת הקורס");
+            onError(err.message || "שגיאה בהוספת הקורס");
         } finally {
             setIsLoading(false);
         }
@@ -131,22 +129,19 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
     const handleDeleteCourse = async (courseId) => {
         if (!window.confirm("האם אתה בטוח שברצונך למחוק את הקורס?")) return;
         try {
-            const token = localStorage.getItem("token");
-            const response = await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/courses/${courseId}`, {
-                headers: { Authorization: `Bearer ${token}` },
+            await apiFetch(`/api/courses/${courseId}`, {
+                method: "DELETE",
             });
-            if (response.status === 200) {
-                onMessage("קורס נמחק בהצלחה!");
-                fetchCourses();
-                // Adjust current page if needed after deletion
-                const totalPages = Math.ceil((courses.length - 1) / coursesPerPage);
-                if (currentPage > totalPages && totalPages > 0) {
-                    setCurrentPage(totalPages);
-                }
+            onMessage("קורס נמחק בהצלחה!");
+            fetchCourses();
+            // Adjust current page if needed after deletion
+            const totalPages = Math.ceil((courses.length - 1) / coursesPerPage);
+            if (currentPage > totalPages && totalPages > 0) {
+                setCurrentPage(totalPages);
             }
         } catch (err) {
             console.error("Error deleting course:", err);
-            onError(err.response?.data?.message || "שגיאה במחיקת הקורס");
+            onError(err.message || "שגיאה במחיקת הקורס");
         }
     };
 
@@ -162,15 +157,15 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
     const handlePageClick = (pageNumber) => setCurrentPage(pageNumber);
 
     return (
-        <div className="p-8">
+        <div className="p-3 sm:p-6 xl:p-8">
             {/* Main Grid Layout - 3/4 for form, 1/4 for list */}
-            <div className="grid grid-cols-1 xl:grid-cols-4 gap-8 max-w-8xl mx-auto">
+            <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 sm:gap-6 xl:gap-8 max-w-8xl mx-auto">
 
                 {/* Left Side - Add Course Form (3/4 width) */}
-                <div className="xl:col-span-3 space-y-6">
-                    <h2 className="text-3xl font-bold text-gray-800 mb-8">הוספת קורס חדש</h2>
+                <div className="xl:col-span-3 space-y-4 sm:space-y-6">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-8">הוספת קורס חדש</h2>
 
-                    <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl p-8 shadow-lg border border-gray-200">
+                    <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl p-4 sm:p-6 xl:p-8 shadow-card border border-gray-200">
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {/* Course Number Input */}
                             <div>
@@ -183,7 +178,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
                                         type="text"
                                         value={courseForm.courseNumber}
                                         onChange={(e) => setCourseForm({ ...courseForm, courseNumber: e.target.value })}
-                                        className="w-full pr-12 pl-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all"
+                                        className="w-full pr-12 pl-4 py-3 border border-gray-300 rounded-card focus:outline-none focus:border-emerald-500 focus:ring-2 focus-visible:ring-2 focus-visible:ring-brand transition-all"
                                         placeholder="123456"
                                         required
                                     />
@@ -201,7 +196,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
                                         type="text"
                                         value={courseForm.title}
                                         onChange={(e) => setCourseForm({ ...courseForm, title: e.target.value })}
-                                        className="w-full pr-12 pl-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all"
+                                        className="w-full pr-12 pl-4 py-3 border border-gray-300 rounded-card focus:outline-none focus:border-emerald-500 focus:ring-2 focus-visible:ring-2 focus-visible:ring-brand transition-all"
                                         placeholder="שם הקורס"
                                         required
                                     />
@@ -219,7 +214,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
                                     max="20"
                                     value={courseForm.credits}
                                     onChange={(e) => setCourseForm({ ...courseForm, credits: e.target.value })}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-card focus:outline-none focus:border-emerald-500 focus:ring-2 focus-visible:ring-2 focus-visible:ring-brand transition-all"
                                     placeholder="4"
                                     required
                                 />
@@ -329,7 +324,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
                                     value={courseForm.description}
                                     onChange={(e) => setCourseForm({ ...courseForm, description: e.target.value })}
                                     rows={4}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all resize-none"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-card focus:outline-none focus:border-emerald-500 focus:ring-2 focus-visible:ring-2 focus-visible:ring-brand transition-all resize-none"
                                     placeholder="תיאור מפורט של הקורס..."
                                 />
                             </div>
@@ -339,7 +334,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
                                 <button
                                     onClick={handleCourseSubmit}
                                     disabled={isLoading}
-                                    className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold py-4 rounded-xl transition-all duration-300 disabled:opacity-50 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                                    className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold py-4 rounded-card transition-all duration-ui disabled:opacity-50 shadow-card hover:shadow-card-hover transform hover:-translate-y-0.5"
                                 >
                                     {isLoading ? (
                                         <div className="flex items-center justify-center">
@@ -371,7 +366,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
                             placeholder="חפש לפי שם קורס..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full px-10 py-2 border border-emerald-500 rounded-lg focus:outline-none focus:border-emerald-500 mb-3 text-right"
+                            className="w-full px-10 py-2 border border-emerald-500 rounded-card focus:outline-none focus:border-emerald-500 mb-3 text-right"
                         />
                         {searchTerm && (
                             <button
@@ -394,7 +389,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
                         ) : (
                             <div className="space-y-3">
                                 {currentCourses.map((course) => (
-                                    <div key={course._id} className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow group min-h-[100px] flex flex-col">
+                                    <div key={course._id} className="bg-white border border-gray-200 rounded-card p-3 hover:shadow-card transition-shadow group min-h-[100px] flex flex-col">
                                         <div className="flex items-start justify-between flex-1">
                                             <div className="flex-1 min-w-0">
                                                 <h4 className="font-semibold text-sm mb-1 truncate" title={course.title}>
@@ -452,7 +447,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
                             <button
                                 onClick={handlePrevPage}
                                 disabled={currentPage === 1}
-                                className={`p-2 rounded-lg ${currentPage === 1
+                                className={`p-2 rounded-card ${currentPage === 1
                                     ? "text-gray-300 cursor-not-allowed"
                                     : "text-gray-600 hover:text-emerald-600 hover:bg-emerald-50"
                                     }`}
@@ -469,8 +464,8 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
                                         <button
                                             key={pageNumber}
                                             onClick={() => handlePageClick(pageNumber)}
-                                            className={`w-8 h-8 rounded-lg text-sm font-medium ${currentPage === pageNumber
-                                                ? "bg-emerald-500 text-white shadow-md"
+                                            className={`w-8 h-8 rounded-card text-sm font-medium ${currentPage === pageNumber
+                                                ? "bg-emerald-500 text-white shadow-card"
                                                 : "text-gray-600 hover:text-emerald-600 hover:bg-emerald-50"
                                                 }`}
                                         >
@@ -482,7 +477,7 @@ const CourseManagement = ({ lecturers, onMessage, onError }) => {
                             <button
                                 onClick={handleNextPage}
                                 disabled={currentPage === totalPages}
-                                className={`p-2 rounded-lg ${currentPage === totalPages
+                                className={`p-2 rounded-card ${currentPage === totalPages
                                     ? "text-gray-300 cursor-not-allowed"
                                     : "text-gray-600 hover:text-emerald-600 hover:bg-emerald-50"
                                     }`}

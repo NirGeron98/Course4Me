@@ -77,11 +77,11 @@ const TrackedCourseCard = ({ course, onRemove, onViewDetails }) => {
     return (
         <div
             onClick={handleViewDetails}
-            className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1 border border-emerald-100"
+            className="bg-white rounded-card-lg shadow-card p-6 hover:shadow-card-hover transition-all duration-ui cursor-pointer transform hover:-translate-y-1 border border-emerald-100"
         >
             {/* Course Header */}
             <div className="flex items-start gap-4 mb-4">
-                <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full p-3 shadow-lg">
+                <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full p-3 shadow-card">
                     <BookOpen className="w-6 h-6 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -121,7 +121,7 @@ const TrackedCourseCard = ({ course, onRemove, onViewDetails }) => {
 
             {/* Recommendation Rating */}
             {recommendationRating && reviewsCount > 0 ? (
-                <div className="bg-gradient-to-r from-emerald-50 to-emerald-100 rounded-lg p-4 mb-4 border border-emerald-200">
+                <div className="bg-gradient-to-r from-emerald-50 to-emerald-100 rounded-card p-4 mb-4 border border-emerald-200">
                     <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                             <ThumbsUp className="w-4 h-4 text-emerald-600" />
@@ -144,7 +144,7 @@ const TrackedCourseCard = ({ course, onRemove, onViewDetails }) => {
                     </div>
                 </div>
             ) : (
-                <div className="bg-gray-50 rounded-lg p-4 mb-4 text-center border border-gray-200">
+                <div className="bg-gray-50 rounded-card p-4 mb-4 text-center border border-gray-200">
                     <div className="flex items-center justify-center gap-2 mb-1">
                         <ThumbsUp className="w-4 h-4 text-gray-400" />
                         <span className="text-sm text-gray-500">עדיין אין ביקורות</span>

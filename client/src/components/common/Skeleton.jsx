@@ -14,7 +14,7 @@ export const SkeletonLine = ({ className = "", width = "100%" }) => (
 
 export const SkeletonCard = () => (
   <div
-    className="rounded-xl border border-gray-100 bg-white p-4 space-y-3"
+    className="rounded-card border border-gray-100 bg-white p-4 space-y-3"
     aria-hidden="true"
   >
     <div className="flex items-center gap-3">

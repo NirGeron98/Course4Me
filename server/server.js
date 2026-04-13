@@ -73,17 +73,34 @@ app.use((req, res) => {
   });
 });
 
-// Global error handler
+// Global error handler — unified JSON shape:
+// { message: <Hebrew user-facing>, error?: <English dev detail, non-prod only> }
 app.use((err, req, res, next) => {
-  res.status(err.status || 500).json({
-    message: err.message || "משהו השתבש!",
-    ...(process.env.NODE_ENV !== "production" && {
-      error: {
-        message: err.message,
-        stack: err.stack
-      }
-    })
-  });
+  // Developer log in English.
+  console.error(`[${req.method} ${req.originalUrl}]`, err);
+
+  let status = err.status || 500;
+  let message = "משהו השתבש, נסה שוב מאוחר יותר";
+
+  if (err.name === "ValidationError") {
+    status = 400;
+    message = "נתוני הבקשה אינם תקינים";
+  } else if (err.name === "CastError") {
+    status = 400;
+    message = "מזהה לא תקין";
+  } else if (err.code === 11000) {
+    status = 409;
+    message = "הערך כבר קיים במערכת";
+  } else if (err.status && err.message) {
+    message = err.message;
+  }
+
+  const body = { message };
+  if (process.env.NODE_ENV !== "production") {
+    body.error = err.message;
+    body.stack = err.stack;
+  }
+  res.status(status).json(body);
 });
 
 // DB connection

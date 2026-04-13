@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import { apiFetch } from './useApi';
 
 export const useContactRequestsWithSync = (token) => {
   const [requests, setRequests] = useState([]);
@@ -39,23 +39,17 @@ export const useContactRequestsWithSync = (token) => {
       if (filters.endDate) params.append('endDate', filters.endDate);
       if (filters.search) params.append('search', filters.search);
 
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_BASE_URL}/api/contact-requests/my-requests?${params}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const data = await apiFetch(`/api/contact-requests/my-requests?${params}`);
+      const list = Array.isArray(data) ? data : [];
 
-      setRequests(Array.isArray(response.data) ? response.data : []);
+      setRequests(list);
 
       // Save to cache only when loading without filters
       const hasFilters = filters.status !== 'all' || filters.startDate || filters.endDate || filters.search;
       if (!hasFilters) {
         try {
           const contactRequestsCache = {
-            contactRequests: Array.isArray(response.data) ? response.data : [],
+            contactRequests: list,
             timestamp: Date.now()
           };
           localStorage.setItem('contact_requests_data', JSON.stringify(contactRequestsCache));
@@ -64,9 +58,9 @@ export const useContactRequestsWithSync = (token) => {
         }
       }
 
-      return Array.isArray(response.data) ? response.data : [];
+      return list;
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'שגיאה בטעינת הפניות');
+      setError(err.message || 'שגיאה בטעינת הפניות');
       throw err;
     } finally {
       setLoading(false);
@@ -86,19 +80,14 @@ export const useContactRequestsWithSync = (token) => {
     setError('');
 
     try {
-      const response = await axios.put(
-        `${process.env.REACT_APP_API_BASE_URL}/api/contact-requests/my-requests/${id}`,
-        updateData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const data = await apiFetch(`/api/contact-requests/my-requests/${id}`, {
+        method: 'PUT',
+        body: updateData,
+      });
 
       // Update the request in the local state
-      setRequests(prev => 
-        Array.isArray(prev) ? prev.map(req => req._id === id ? response.data : req) : []
+      setRequests(prev =>
+        Array.isArray(prev) ? prev.map(req => req._id === id ? data : req) : []
       );
 
       // Update cache
@@ -107,8 +96,8 @@ export const useContactRequestsWithSync = (token) => {
         if (cachedData) {
           const parsedData = JSON.parse(cachedData);
           if (Array.isArray(parsedData.contactRequests)) {
-            const updatedRequests = parsedData.contactRequests.map(req => 
-              req._id === id ? response.data : req
+            const updatedRequests = parsedData.contactRequests.map(req =>
+              req._id === id ? data : req
             );
             const contactRequestsCache = {
               contactRequests: updatedRequests,
@@ -121,9 +110,9 @@ export const useContactRequestsWithSync = (token) => {
         console.error('שגיאה בעדכון מטמון:', cacheError);
       }
 
-      return response.data;
+      return data;
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'שגיאה בעדכון הפנייה');
+      setError(err.message || 'שגיאה בעדכון הפנייה');
       throw err;
     } finally {
       setLoading(false);
@@ -138,14 +127,9 @@ export const useContactRequestsWithSync = (token) => {
     setError('');
 
     try {
-      await axios.delete(
-        `${process.env.REACT_APP_API_BASE_URL}/api/contact-requests/my-requests/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await apiFetch(`/api/contact-requests/my-requests/${id}`, {
+        method: 'DELETE',
+      });
 
       // Remove the request from local state
       setRequests(prev => Array.isArray(prev) ? prev.filter(req => req._id !== id) : []);
@@ -170,7 +154,7 @@ export const useContactRequestsWithSync = (token) => {
 
       return true;
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'שגיאה במחיקת הפנייה');
+      setError(err.message || 'שגיאה במחיקת הפנייה');
       throw err;
     } finally {
       setLoading(false);
@@ -194,7 +178,7 @@ export const useContactRequestsWithSync = (token) => {
     };
 
     window.addEventListener('contactRequestsPreloaded', handleContactRequestsPreloaded);
-    
+
     return () => {
       window.removeEventListener('contactRequestsPreloaded', handleContactRequestsPreloaded);
     };

@@ -81,7 +81,7 @@ const ContactModal = ({ isOpen, onClose, user }) => {
       onClick={handleClose}
     >
       <div 
-        className="bg-white rounded-3xl shadow-2xl w-full max-w-lg transform transition-all duration-300 scale-100" 
+        className="bg-white rounded-3xl shadow-elevated w-full max-w-lg transform transition-all duration-ui scale-100" 
         dir="rtl"
         onClick={e => e.stopPropagation()}
         style={{
@@ -93,7 +93,7 @@ const ContactModal = ({ isOpen, onClose, user }) => {
         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-t-3xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <div className="bg-white/20 p-2 rounded-lg ml-3">
+              <div className="bg-white/20 p-2 rounded-card ml-3">
                 <MessageSquare className="w-6 h-6" />
               </div>
               <div>
@@ -104,7 +104,7 @@ const ContactModal = ({ isOpen, onClose, user }) => {
             <button
               onClick={handleClose}
               disabled={isSubmitting}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              className="p-2 hover:bg-white/20 rounded-card transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -131,7 +131,7 @@ const ContactModal = ({ isOpen, onClose, user }) => {
                 <select
                   value={formData.subject}
                   onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                  className="w-full px-4 py-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-base"
+                  className="w-full px-4 py-4 border border-slate-300 rounded-card focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-base"
                   required
                 >
                   <option value="">בחר נושא...</option>
@@ -154,7 +154,7 @@ const ContactModal = ({ isOpen, onClose, user }) => {
                   placeholder="אנא תאר את בקשתך בפירוט..."
                   rows={5}
                   maxLength={1000}
-                  className="w-full px-4 py-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all resize-none text-base leading-relaxed"
+                  className="w-full px-4 py-4 border border-slate-300 rounded-card focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all resize-none text-base leading-relaxed"
                   required
                 />
                 <div className="text-sm text-slate-500 mt-2 text-left">
@@ -164,7 +164,7 @@ const ContactModal = ({ isOpen, onClose, user }) => {
 
               {/* Error Message */}
               {error && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+                <div className="p-4 bg-red-50 border border-red-200 rounded-card">
                   <p className="text-sm text-red-600 font-medium">{error}</p>
                 </div>
               )}
@@ -175,7 +175,7 @@ const ContactModal = ({ isOpen, onClose, user }) => {
                   type="button"
                   onClick={handleClose}
                   disabled={isSubmitting}
-                  className="flex-1 px-6 py-4 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-all disabled:opacity-50 font-medium"
+                  className="flex-1 px-6 py-4 border border-slate-300 text-slate-700 rounded-card hover:bg-slate-50 transition-all disabled:opacity-50 font-medium"
                 >
                   ביטול
                 </button>
@@ -183,7 +183,7 @@ const ContactModal = ({ isOpen, onClose, user }) => {
                   type="button"
                   onClick={handleSubmit}
                   disabled={isSubmitting || !formData.subject || !formData.description.trim()}
-                  className="flex-1 px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all disabled:opacity-50 flex items-center justify-center font-medium shadow-lg"
+                  className="flex-1 px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-card hover:from-indigo-700 hover:to-purple-700 transition-all disabled:opacity-50 flex items-center justify-center font-medium shadow-card"
                 >
                   {isSubmitting ? (
                     <div className="flex items-center">

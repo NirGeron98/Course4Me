@@ -17,7 +17,7 @@ export class CacheManager {
     const timestampKey = this.getCacheKey(`${key}_timestamp`);
     const timestamp = localStorage.getItem(timestampKey);
     if (!timestamp) return false;
-    
+
     const duration = customDuration || this.defaultDuration;
     return Date.now() - parseInt(timestamp) < duration;
   }
@@ -27,16 +27,16 @@ export class CacheManager {
     try {
       const cacheKey = this.getCacheKey(key);
       const timestampKey = this.getCacheKey(`${key}_timestamp`);
-      
+
       localStorage.setItem(cacheKey, JSON.stringify(data));
       localStorage.setItem(timestampKey, Date.now().toString());
-      
+
       // Set expiration for cleanup
       if (customDuration) {
         const expirationKey = this.getCacheKey(`${key}_expiration`);
         localStorage.setItem(expirationKey, (Date.now() + customDuration).toString());
       }
-      
+
       return true;
     } catch (error) {
       // Storage full or disabled
@@ -63,7 +63,7 @@ export class CacheManager {
     const cacheKey = this.getCacheKey(key);
     const timestampKey = this.getCacheKey(`${key}_timestamp`);
     const expirationKey = this.getCacheKey(`${key}_expiration`);
-    
+
     localStorage.removeItem(cacheKey);
     localStorage.removeItem(timestampKey);
     localStorage.removeItem(expirationKey);
@@ -106,7 +106,7 @@ export class CacheManager {
   getCacheInfo() {
     let totalSize = 0;
     let itemCount = 0;
-    
+
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (key && key.startsWith(this.prefix)) {
@@ -115,7 +115,7 @@ export class CacheManager {
         itemCount++;
       }
     }
-    
+
     return {
       itemCount,
       totalSize: Math.round(totalSize / 1024) + ' KB' // Convert to KB
@@ -134,7 +134,7 @@ export const initializeCacheCleanup = () => {
   dashboardCache.clearOldCache();
   courseCache.clearOldCache();
   lecturerCache.clearOldCache();
-  
+
   // Set up periodic cleanup every 30 minutes
   setInterval(() => {
     dashboardCache.clearOldCache();
@@ -148,15 +148,21 @@ export const clearAllUserCache = () => {
   dashboardCache.clearAllCache();
   courseCache.clearAllCache();
   lecturerCache.clearAllCache();
-  
-  // Clear other user-specific cache
+
+  // Clear other user-specific cache. Includes the CourseDataContext map
+  // (`courseCache`) and the advanced-search preloads so a new session
+  // never inherits the previous user's data.
   const keysToRemove = [
     'my_reviews_data',
-    'tracked_courses_data', 
+    'tracked_courses_data',
     'tracked_lecturers_data',
-    'contact_requests_data'
+    'contact_requests_data',
+    'courseCache',
+    'advanced_search_departments',
+    'advanced_search_lecturers',
+    'advanced_search_institutions',
   ];
-  
+
   keysToRemove.forEach(key => {
     try {
       localStorage.removeItem(key);

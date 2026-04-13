@@ -54,7 +54,7 @@ const MultiSelectDepartments = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 text-right bg-white flex justify-between items-center hover:bg-gray-50 transition-all"
+        className="w-full px-4 py-3 border border-gray-300 rounded-card focus:outline-none focus:border-blue-500 text-right bg-white flex justify-between items-center hover:bg-gray-50 transition-all"
       >
         <div className="flex items-center gap-2 flex-1">
           <Building className="w-4 h-4 text-gray-400" />
@@ -77,7 +77,7 @@ const MultiSelectDepartments = ({
 
       {/* Dropdown with checkboxes */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-xl shadow-lg z-50 max-h-64 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-card shadow-card z-50 max-h-64 overflow-y-auto">
           {processedDepartments.length === 0 ? (
             <div className="p-4 text-center text-gray-500">
               אין מחלקות זמינות
@@ -87,13 +87,13 @@ const MultiSelectDepartments = ({
               {processedDepartments.map((deptName, index) => (
                 <label
                   key={`${deptName}-${index}`}
-                  className="flex items-center p-3 hover:bg-gray-50 rounded-lg cursor-pointer"
+                  className="flex items-center p-3 hover:bg-gray-50 rounded-card cursor-pointer"
                 >
                   <input
                     type="checkbox"
                     checked={selectedDepartments.includes(deptName)}
                     onChange={() => handleDepartmentToggle(deptName)}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 ml-3"
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus-visible:ring-2 focus-visible:ring-brand ml-3"
                   />
                   <div className="flex-1 text-right">
                     <div className="font-medium text-sm">{deptName}</div>

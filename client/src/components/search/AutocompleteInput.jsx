@@ -113,7 +113,7 @@ const AutocompleteInput = ({
           onFocus={handleInputFocus}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="w-full pr-10 pl-10 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full pr-10 pl-10 py-3 border border-gray-300 rounded-card focus:ring-2 focus-visible:ring-2 focus-visible:ring-brand focus:border-transparent"
         />
         <div className="absolute left-3 top-3.5 flex items-center gap-1">
           {selectedOption ? (
@@ -134,7 +134,7 @@ const AutocompleteInput = ({
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-64 overflow-y-auto"
+          className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-card shadow-card z-50 max-h-64 overflow-y-auto"
         >
           {filteredOptions.length > 0 ? (
             <div className="py-2">

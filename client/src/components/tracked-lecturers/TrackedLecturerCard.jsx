@@ -32,11 +32,11 @@ const TrackedLecturerCard = ({ lecturer, onRemove, onViewDetails }) => {
     return (
         <div
             onClick={handleViewDetails}
-            className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1 border border-purple-100"
+            className="bg-white rounded-card-lg shadow-card p-6 hover:shadow-card-hover transition-all duration-ui cursor-pointer transform hover:-translate-y-1 border border-purple-100"
         >
             {/* Header */}
             <div className="flex items-start gap-4 mb-4">
-                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-full p-3 shadow-lg">
+                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-full p-3 shadow-card">
                     <User className="w-6 h-6 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -70,7 +70,7 @@ const TrackedLecturerCard = ({ lecturer, onRemove, onViewDetails }) => {
 
             {/* Rating */}
             {lecturer.averageRating && lecturer.ratingsCount > 0 ? (
-                <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-lg p-4 mb-4">
+                <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-card p-4 mb-4">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-medium text-gray-700">דירוג</span>
                         <span className="text-lg font-bold text-yellow-600">
@@ -87,7 +87,7 @@ const TrackedLecturerCard = ({ lecturer, onRemove, onViewDetails }) => {
                     </div>
                 </div>
             ) : (
-                <div className="bg-gray-50 rounded-lg p-4 mb-4 text-center">
+                <div className="bg-gray-50 rounded-card p-4 mb-4 text-center">
                     <span className="text-sm text-gray-500">עדיין אין ביקורות</span>
                 </div>
             )}

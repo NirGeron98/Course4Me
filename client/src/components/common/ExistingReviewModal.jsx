@@ -114,7 +114,7 @@ const ExistingReviewModal = ({ onEdit, onCancel, existingReview, reviewType = 'l
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4" dir="rtl">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in duration-300">
+            <div className="bg-white rounded-card-lg shadow-elevated max-w-lg w-full overflow-hidden animate-in fade-in duration-ui">
                 {/* Header */}
                 <div className={`bg-gradient-to-r ${actualReviewType === 'course' ? 'from-emerald-500 to-emerald-600' : 'from-purple-500 to-purple-600'} text-white p-6`}>
                     <div className="flex items-center justify-between">
@@ -144,7 +144,7 @@ const ExistingReviewModal = ({ onEdit, onCancel, existingReview, reviewType = 'l
                         </div>
 
                         {/* Current Review Preview */}
-                        <div className="bg-gray-50 rounded-xl p-4 mb-6">
+                        <div className="bg-gray-50 rounded-card p-4 mb-6">
                             <div className="flex items-center justify-center gap-2 mb-3">
                                 <div className="flex gap-1">
                                     {renderStars(parseFloat(overallRating))}
@@ -167,7 +167,7 @@ const ExistingReviewModal = ({ onEdit, onCancel, existingReview, reviewType = 'l
                             </div>
 
                             {existingReview.comment && (
-                                <div className="mt-3 p-3 bg-white rounded-lg">
+                                <div className="mt-3 p-3 bg-white rounded-card">
                                     <p className="text-xs text-gray-700 italic">
                                         "{existingReview.comment.substring(0, 100)}{existingReview.comment.length > 100 ? '...' : ''}"
                                     </p>
@@ -184,13 +184,13 @@ const ExistingReviewModal = ({ onEdit, onCancel, existingReview, reviewType = 'l
                     <div className="flex gap-3">
                         <button
                             onClick={onCancel}
-                            className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl transition-colors font-medium"
+                            className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-card transition-colors font-medium"
                         >
                             ביטול
                         </button>
                         <button
                             onClick={onEdit}
-                            className={`flex-1 ${actualReviewType === 'course' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-purple-500 hover:bg-purple-600'} text-white py-3 rounded-xl transition-colors flex items-center justify-center gap-2 font-medium`}
+                            className={`flex-1 ${actualReviewType === 'course' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-purple-500 hover:bg-purple-600'} text-white py-3 rounded-card transition-colors flex items-center justify-center gap-2 font-medium`}
                         >
                             <Edit3 className="w-4 h-4" />
                             ערוך ביקורת

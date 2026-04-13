@@ -20,7 +20,7 @@ import MyReviewsPage from "./pages/MyReviewsPage";
 import MyContactRequests from "./pages/MyContactRequests";
 import { CourseDataProvider } from "./contexts/CourseDataContext";
 import { initializeCacheCleanup, clearAllUserCache } from "./utils/cacheUtils";
-import preloadUserData from "./utils/preloadUserData";
+import preloadUserData, { abortPreload } from "./utils/preloadUserData";
 
 // Lazy-load heavier routes to reduce initial bundle and improve TTI
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
@@ -95,16 +95,21 @@ function App() {
   };
 
   const handleLogout = () => {
-    // Clear localStorage
+    // Cancel any in-flight preload from a prior login before we wipe the
+    // session so stale responses cannot land in the next user's cache.
+    abortPreload();
+
     localStorage.removeItem("token");
     localStorage.removeItem("userFullName");
     localStorage.removeItem("userRole");
     localStorage.removeItem("userId");
     localStorage.removeItem("requiresPasswordReset");
-    
-    // Clear all user cache data
+
+    // clearAllUserCache() walks every registered CacheManager prefix
+    // (dashboard_, course_, lecturer_) plus the per-feature localStorage
+    // blobs, so there is nothing else to scrub here.
     clearAllUserCache();
-    
+
     setUser(null);
   };
 
@@ -262,7 +267,7 @@ function App() {
                       onClick={() =>
                         (window.location.href = user ? "/dashboard" : "/login")
                       }
-                      className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl transition-colors"
+                      className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-card transition-colors"
                     >
                       {user ? "חזור לדף הבית" : "חזור להתחברות"}
                     </button>

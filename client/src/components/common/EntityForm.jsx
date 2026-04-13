@@ -16,7 +16,7 @@ const EntityForm = ({
 
       <form
         onSubmit={onSubmit}
-        className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl p-8 shadow-lg border border-gray-200"
+        className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl p-8 shadow-card border border-gray-200"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {fields.map((field) => (
@@ -44,7 +44,7 @@ const EntityForm = ({
                   }
                   required={field.required}
                   placeholder={field.placeholder}
-                  className="w-full pr-12 pl-4 py-4 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all"
+                  className="w-full pr-12 pl-4 py-4 border border-gray-300 rounded-card focus:outline-none focus:border-emerald-500 focus:ring-2 focus-visible:ring-2 focus-visible:ring-brand transition-all"
                 />
               </div>
             </div>
@@ -54,7 +54,7 @@ const EntityForm = ({
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold py-4 rounded-xl transition-all duration-300 disabled:opacity-50 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 mt-4"
+              className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold py-4 rounded-card transition-all duration-ui disabled:opacity-50 shadow-card hover:shadow-card-hover transform hover:-translate-y-0.5 mt-4"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">

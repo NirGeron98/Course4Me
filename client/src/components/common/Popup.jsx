@@ -22,20 +22,20 @@ const Popup = ({
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
       <div
-        className={`bg-white rounded-lg p-6 max-w-sm w-full shadow-lg border ${styles[type]}`}
+        className={`bg-white rounded-card p-6 max-w-sm w-full shadow-card border ${styles[type]}`}
       >
         <h3 className="text-lg font-semibold mb-4">{title}</h3>
         <p className="text-sm text-gray-500 mb-6">{message}</p>
         <div className="flex justify-between">
           <button
             onClick={onConfirm}
-            className="bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600"
+            className="bg-emerald-500 text-white px-4 py-2 rounded-card hover:bg-emerald-600"
           >
             {confirmText}
           </button>
           <button
             onClick={onClose}
-            className="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400"
+            className="bg-gray-300 text-gray-800 px-4 py-2 rounded-card hover:bg-gray-400"
           >
             {cancelText}
           </button>

@@ -4,7 +4,7 @@ exports.createDepartment = async (req, res) => {
   try {
     const { name, code, description } = req.body;
 
-    const existing = await Department.findOne({ $or: [{ name }, { code }] });
+    const existing = await Department.findOne({ $or: [{ name }, { code }] }).select("_id").lean();
     if (existing) {
       return res.status(400).json({ message: "Department already exists" });
     }
@@ -19,7 +19,7 @@ exports.createDepartment = async (req, res) => {
 
 exports.getAllDepartments = async (req, res) => {
   try {
-    const departments = await Department.find().sort({ name: 1 });
+    const departments = await Department.find().sort({ name: 1 }).lean();
     res.json(departments);
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch departments" });
@@ -35,7 +35,7 @@ exports.updateDepartment = async (req, res) => {
       id,
       { name, code, description },
       { new: true }
-    );
+    ).lean();
 
     res.json(updated);
   } catch (err) {

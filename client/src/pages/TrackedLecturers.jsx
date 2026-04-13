@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import axios from "axios";
+import { apiFetch } from "../hooks/useApi";
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import AddLecturerPopup from "../components/tracked-lecturers/AddLecturerPopup";
@@ -70,11 +70,8 @@ const TrackedLecturers = () => {
       }
 
       setIsLoading(true);
-      const token = localStorage.getItem("token");
-      const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-lecturers`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const validTrackedLecturers = res.data.filter(({ lecturer }) => lecturer && lecturer._id);
+      const data = await apiFetch(`/api/tracked-lecturers`);
+      const validTrackedLecturers = data.filter(({ lecturer }) => lecturer && lecturer._id);
       setTrackedLecturers(validTrackedLecturers);
       saveTrackedLecturersToCache(validTrackedLecturers);
     } catch (err) {
@@ -108,19 +105,12 @@ const TrackedLecturers = () => {
         
         // If we have a lecturer ID, fetch the specific lecturer's updated data
         if (lecturerId) {
-          
-          const token = localStorage.getItem("token");
-          
-          // First get the lecturer's updated data directly from the API to ensure accurate ratings
-          const lecturerRes = await axios.get(
-            `${process.env.REACT_APP_API_BASE_URL}/api/lecturers/${lecturerId}`, 
-            {headers: { Authorization: `Bearer ${token}` }}
-          );
-          
-          // Now update the specific lecturer in our tracked list
-          if (lecturerRes.status === 200) {
-            const updatedLecturerData = lecturerRes.data;
 
+          // First get the lecturer's updated data directly from the API to ensure accurate ratings
+          const updatedLecturerData = await apiFetch(`/api/lecturers/${lecturerId}`);
+
+          // Now update the specific lecturer in our tracked list
+          if (updatedLecturerData) {
             // Update in the state
             setTrackedLecturers(prev => prev.map(item => {
               if (item.lecturer && item.lecturer._id === lecturerId) {
@@ -193,26 +183,22 @@ const TrackedLecturers = () => {
         }));
         
         localStorage.removeItem(TRACKED_LECTURERS_CACHE_KEY);
-        
+
         // Get fresh data from the API
-        const token = localStorage.getItem("token");
-        fetch(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-lecturers`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then(res => res.json())
-        .then(data => {
-          // Filter out any tracked lecturers with null/undefined lecturer objects
-          const validTrackedLecturers = data.filter(({ lecturer }) => lecturer && lecturer._id);
-          
-          // Save to cache
-          saveTrackedLecturersToCache(validTrackedLecturers);
-          
-          // Update the state
-          setTrackedLecturers(validTrackedLecturers);
-        })
-        .catch(err => {
-          console.error("Failed to fetch updated tracked lecturers:", err);
-        });
+        apiFetch(`/api/tracked-lecturers`)
+          .then(data => {
+            // Filter out any tracked lecturers with null/undefined lecturer objects
+            const validTrackedLecturers = data.filter(({ lecturer }) => lecturer && lecturer._id);
+
+            // Save to cache
+            saveTrackedLecturersToCache(validTrackedLecturers);
+
+            // Update the state
+            setTrackedLecturers(validTrackedLecturers);
+          })
+          .catch(err => {
+            console.error("Failed to fetch updated tracked lecturers:", err);
+          });
       }
     };
 
@@ -255,10 +241,9 @@ const TrackedLecturers = () => {
   // Remove lecturer from tracking list
   const handleRemoveLecturer = async (lecturerId) => {
     try {
-      const token = localStorage.getItem("token");
       // Send DELETE request to API
-      await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-lecturers/${lecturerId}`, {
-        headers: { Authorization: `Bearer ${token}` },
+      await apiFetch(`/api/tracked-lecturers/${lecturerId}`, {
+        method: "DELETE",
       });
 
       // Update local state to remove the lecturer immediately
@@ -306,9 +291,9 @@ const TrackedLecturers = () => {
         {/* Add Lecturer Button - positioned at top left */}
         <button
           onClick={openPopup}
-          className="absolute top-4 left-4 bg-white text-purple-600 hover:text-purple-700 py-2.5 px-5 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 group text-sm border-2 border-white hover:bg-gray-50"
+          className="absolute top-4 left-4 bg-white text-purple-600 hover:text-purple-700 py-2.5 px-5 rounded-card font-semibold transition-all duration-ui shadow-card hover:shadow-card-hover hover:scale-105 flex items-center gap-2 group text-sm border-2 border-white hover:bg-gray-50"
         >
-          <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
+          <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-ui" />
           <span className="hidden sm:inline">הוספת מרצה</span>
         </button>
 
@@ -348,7 +333,7 @@ const TrackedLecturers = () => {
                 <div className="relative mx-auto mb-8 w-32 h-32">
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-100 to-indigo-100 rounded-full animate-pulse"></div>
                   {/* User/lecturer icon SVG */}
-                  <div className="absolute inset-3 bg-white rounded-full flex items-center justify-center shadow-lg border border-gray-100">
+                  <div className="absolute inset-3 bg-white rounded-full flex items-center justify-center shadow-card border border-gray-100">
                     <svg className="w-16 h-16 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
@@ -366,9 +351,9 @@ const TrackedLecturers = () => {
                 {/* Primary call-to-action button */}
                 <button
                   onClick={openPopup}
-                  className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white py-4 px-8 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-3 mx-auto group"
+                  className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white py-4 px-8 rounded-card font-bold text-lg transition-all duration-ui shadow-card hover:shadow-card-hover transform hover:scale-105 flex items-center gap-3 mx-auto group"
                 >
-                  <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
+                  <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform duration-ui" />
                   הוסיפו את המרצה הראשון
                 </button>
 
@@ -382,7 +367,7 @@ const TrackedLecturers = () => {
             ) : (
               <>
                 {/* Grid layout for lecturer cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mt-6 sm:mt-8">
                   {trackedLecturers
                     .filter(({ lecturer }) => lecturer) // Filter out null/undefined lecturers
                     .map(({ lecturer }) => (

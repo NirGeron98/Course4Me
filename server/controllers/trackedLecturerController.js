@@ -2,7 +2,7 @@ const TrackedLecturer = require("../models/TrackedLecturer");
 
 exports.getTrackedLecturers = async (req, res) => {
   try {
-    const tracked = await TrackedLecturer.find({ user: req.user._id }).populate("lecturer");
+    const tracked = await TrackedLecturer.find({ user: req.user._id }).populate("lecturer").lean();
     res.status(200).json(tracked);
   } catch (err) {
     res.status(500).json({ message: "שגיאה בטעינת מרצים במעקב", error: err.message });
@@ -12,7 +12,7 @@ exports.getTrackedLecturers = async (req, res) => {
 exports.addTrackedLecturer = async (req, res) => {
   const { lecturerId } = req.body;
   try {
-    const exists = await TrackedLecturer.findOne({ user: req.user._id, lecturer: lecturerId });
+    const exists = await TrackedLecturer.findOne({ user: req.user._id, lecturer: lecturerId }).select("_id").lean();
     if (exists) {
       return res.status(400).json({ message: "כבר עוקבים אחר מרצה זה" });
     }

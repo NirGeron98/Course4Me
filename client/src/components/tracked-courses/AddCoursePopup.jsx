@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { apiFetch } from "../../hooks/useApi";
 import { Search, X, BookOpen, AlertCircle, Loader2 } from "lucide-react";
 import CourseItem from "./CourseItem";
 import CourseDetailsModal from "./CourseDetailsModal";
@@ -25,23 +25,20 @@ const AddCoursePopup = ({ onClose, onCourseAdded, user }) => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const token = localStorage.getItem("token");
-        
+
         // Fetch all courses
-        const coursesRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/courses`);
-        
+        const coursesData = await apiFetch(`/api/courses`, { auth: false });
+
         // Fetch user's tracked courses
-        const trackedRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-courses`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        
-        const trackedIds = trackedRes.data.map(tc => tc.course._id || tc.course);
-        
-        setAllCourses(coursesRes.data);
+        const trackedData = await apiFetch(`/api/tracked-courses`);
+
+        const trackedIds = trackedData.map(tc => tc.course._id || tc.course);
+
+        setAllCourses(coursesData);
         setTrackedCourseIds(trackedIds);
-        
+
         // Filter out already tracked courses
-        const availableCourses = coursesRes.data.filter(course => 
+        const availableCourses = coursesData.filter(course =>
           !trackedIds.includes(course._id)
         );
         
@@ -88,14 +85,11 @@ const AddCoursePopup = ({ onClose, onCourseAdded, user }) => {
     setIsAdding(true);
     setError("");
     try {
-      const token = localStorage.getItem("token");
-      
       // Add course to tracked courses
-      await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/tracked-courses`,
-        { courseId: course._id },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await apiFetch(`/api/tracked-courses`, {
+        method: "POST",
+        body: { courseId: course._id },
+      });
 
       // Update tracked course IDs to remove this course from available list
       setTrackedCourseIds(prev => [...prev, course._id]);
@@ -119,14 +113,11 @@ const AddCoursePopup = ({ onClose, onCourseAdded, user }) => {
         if (trackedCoursesCache) {
           const cacheData = JSON.parse(trackedCoursesCache);
           // Fetch latest course data to ensure we have complete information
-          const token = localStorage.getItem("token");
-          const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-courses/${course._id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }).catch(err => null);
-          
-          if (res && res.data) {
+          const fresh = await apiFetch(`/api/tracked-courses/${course._id}`).catch(() => null);
+
+          if (fresh) {
             // Add the new course to cache
-            cacheData.trackedCourses.push(res.data);
+            cacheData.trackedCourses.push(fresh);
             cacheData.timestamp = Date.now();
             localStorage.setItem('tracked_courses_data', JSON.stringify(cacheData));
           } else {
@@ -156,8 +147,8 @@ const AddCoursePopup = ({ onClose, onCourseAdded, user }) => {
       onClose();
     } catch (err) {
       console.error("Error adding course:", err);
-      if (err.response?.status === 400 && err.response?.data?.message) {
-        setError(err.response.data.message);
+      if (err.status === 400 && err.message) {
+        setError(err.message);
       } else {
         setError("שגיאה בהוספת הקורס");
       }
@@ -179,12 +170,12 @@ const AddCoursePopup = ({ onClose, onCourseAdded, user }) => {
         onClick={handleBackdropClick}
         dir="rtl"
       >
-        <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden relative transform transition-all duration-300">
+        <div className="bg-white rounded-3xl shadow-elevated w-full max-w-2xl max-h-[85vh] overflow-hidden relative transform transition-all duration-ui">
           <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 p-6 relative">
             <button
               onClick={onClose}
               disabled={isAdding}
-              className="absolute top-4 left-4 text-white hover:text-emerald-200 transition-colors duration-200 bg-white/20 rounded-full p-2 hover:bg-white/30 disabled:opacity-50"
+              className="absolute top-4 left-4 text-white hover:text-emerald-200 transition-colors duration-ui bg-white/20 rounded-full p-2 hover:bg-white/30 disabled:opacity-50"
               aria-label="סגור"
             >
               <X className="w-5 h-5" />
@@ -214,7 +205,7 @@ const AddCoursePopup = ({ onClose, onCourseAdded, user }) => {
                   setSearchTerm(e.target.value);
                   setError("");
                 }}
-                className="w-full bg-white border-2 border-gray-200 rounded-2xl py-4 pr-12 pl-4 text-right text-gray-700 placeholder-gray-400 focus:outline-none focus:border-emerald-400 focus:bg-white transition-all duration-300"
+                className="w-full bg-white border-2 border-gray-200 rounded-card-lg py-4 pr-12 pl-4 text-right text-gray-700 placeholder-gray-400 focus:outline-none focus:border-emerald-400 focus:bg-white transition-all duration-ui"
                 autoFocus
                 disabled={isAdding}
               />
@@ -284,7 +275,7 @@ const AddCoursePopup = ({ onClose, onCourseAdded, user }) => {
                 <button
                   onClick={onClose}
                   disabled={isAdding}
-                  className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-card font-medium transition-colors duration-ui disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isAdding ? "מוסיף..." : "ביטול"}
                 </button>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { apiFetch } from "../../hooks/useApi";
 import { Search, X, Loader2, Users } from "lucide-react";
 import LecturerItem from "./LecturerItem";
 import LecturerDetailsModal from "./LecturerDetailsModal";
@@ -17,20 +17,11 @@ const AddLecturerPopup = ({ onClose, onLecturerAdded }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem("token");
-        
         // Fetch all lecturers and tracked lecturers in parallel
-        const [lecturersRes, trackedRes] = await Promise.all([
-          axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/lecturers`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/tracked-lecturers`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
+        const [allLecturersData, trackedData] = await Promise.all([
+          apiFetch(`/api/lecturers`),
+          apiFetch(`/api/tracked-lecturers`)
         ]);
-
-        const allLecturersData = lecturersRes.data;
-        const trackedData = trackedRes.data;
 
         // Extract IDs of already tracked lecturers
         const trackedIds = trackedData
@@ -77,33 +68,24 @@ const AddLecturerPopup = ({ onClose, onLecturerAdded }) => {
   const handleAddLecturer = async (lecturerId) => {
     try {
       setIsAdding(lecturerId);
-      const token = localStorage.getItem("token");
-      
+
       // Add lecturer to tracked list
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/tracked-lecturers`,
-        { lecturerId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
+      const newTrackedLecturer = await apiFetch(`/api/tracked-lecturers`, {
+        method: "POST",
+        body: { lecturerId },
+      });
+
       // Remove the added lecturer from the available list
       setAllLecturers(prev => prev.filter(lecturer => lecturer._id !== lecturerId));
       setFilteredLecturers(prev => prev.filter(lecturer => lecturer._id !== lecturerId));
 
-      // Get the full tracked lecturer data returned from the API
-      const newTrackedLecturer = response.data;
-      
       // Get latest lecturer data to ensure we have the most up-to-date information
       // This is important for showing correct review stats
       try {
-        const lecturerResponse = await axios.get(
-          `${process.env.REACT_APP_API_BASE_URL}/api/lecturers/${lecturerId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        
-        if (lecturerResponse.status === 200) {
+        const updatedLecturer = await apiFetch(`/api/lecturers/${lecturerId}`);
+        if (updatedLecturer) {
           // Update lecturer data in our tracked lecturer object
-          newTrackedLecturer.lecturer = lecturerResponse.data;
+          newTrackedLecturer.lecturer = updatedLecturer;
         }
       } catch (error) {
         console.error("Error fetching updated lecturer data:", error);
@@ -198,7 +180,7 @@ const AddLecturerPopup = ({ onClose, onLecturerAdded }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
-      <div className="bg-white max-w-2xl w-full rounded-xl shadow-lg p-6 relative overflow-hidden">
+      <div className="bg-white max-w-2xl w-full rounded-card shadow-card p-6 relative overflow-hidden">
         <button
           onClick={onClose}
           className="absolute top-4 left-4 text-gray-500 hover:text-gray-700"
@@ -218,7 +200,7 @@ const AddLecturerPopup = ({ onClose, onLecturerAdded }) => {
             placeholder="חפש לפי שם, מחלקה, מוסד או אימייל..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+            className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-card focus:ring-2 focus:ring-purple-500"
             dir="rtl"
           />
         </div>
@@ -233,7 +215,7 @@ const AddLecturerPopup = ({ onClose, onLecturerAdded }) => {
             <p className="text-red-500 text-sm mb-4">{error}</p>
             <button
               onClick={() => window.location.reload()}
-              className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+              className="bg-purple-600 text-white px-4 py-2 rounded-card hover:bg-purple-700 transition-colors"
             >
               נסה שוב
             </button>

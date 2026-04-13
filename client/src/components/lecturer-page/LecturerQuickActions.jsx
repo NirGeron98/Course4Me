@@ -143,7 +143,7 @@ const LecturerQuickActions = ({ onShowReviewForm, lecturerId, lecturerName, user
 
     return (
         <>
-            <div className="bg-white rounded-2xl shadow-lg p-6" dir="rtl">
+            <div className="bg-white rounded-card-lg shadow-card p-6" dir="rtl">
                 <h3 className="text-xl font-bold text-gray-800 mb-4">פעולות מהירות</h3>
 
                 <div className="space-y-3">
@@ -153,7 +153,7 @@ const LecturerQuickActions = ({ onShowReviewForm, lecturerId, lecturerName, user
                             {followStatusLoading ? (
                                 <button 
                                     disabled
-                                    className="w-full bg-gray-300 text-gray-500 py-3 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-not-allowed"
+                                    className="w-full bg-gray-300 text-gray-500 py-3 rounded-card transition-colors flex items-center justify-center gap-2 cursor-not-allowed"
                                 >
                                     <div className="w-5 h-5 border-2 border-gray-500 border-t-transparent rounded-full animate-spin"></div>
                                     בודק סטטוס מעקב...
@@ -162,7 +162,7 @@ const LecturerQuickActions = ({ onShowReviewForm, lecturerId, lecturerName, user
                                 <button 
                                     onClick={handleFollowToggle}
                                     disabled={isLoading}
-                                    className="w-full bg-purple-500 hover:bg-purple-600 disabled:bg-purple-300 text-white py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                                    className="w-full bg-purple-500 hover:bg-purple-600 disabled:bg-purple-300 text-white py-3 rounded-card transition-colors flex items-center justify-center gap-2"
                                 >
                                     {isLoading ? (
                                         <>
@@ -180,7 +180,7 @@ const LecturerQuickActions = ({ onShowReviewForm, lecturerId, lecturerName, user
                                 <button 
                                     onClick={handleFollowToggle}
                                     disabled={isLoading}
-                                    className="w-full bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                                    className="w-full bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white py-3 rounded-card transition-colors flex items-center justify-center gap-2"
                                 >
                                     {isLoading ? (
                                         <>
@@ -198,7 +198,7 @@ const LecturerQuickActions = ({ onShowReviewForm, lecturerId, lecturerName, user
 
                             <button
                                 onClick={handleReviewClick}
-                                className="w-full bg-purple-500 hover:bg-purple-600 text-white py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                                className="w-full bg-purple-500 hover:bg-purple-600 text-white py-3 rounded-card transition-colors flex items-center justify-center gap-2"
                             >
                                 <Plus className="w-5 h-5" />
                                 כתוב ביקורת מרצה
@@ -208,7 +208,7 @@ const LecturerQuickActions = ({ onShowReviewForm, lecturerId, lecturerName, user
 
                     <button 
                         onClick={handleShare}
-                        className={`w-full py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 ${
+                        className={`w-full py-3 rounded-card transition-all duration-ui flex items-center justify-center gap-2 ${
                             copySuccess 
                                 ? 'bg-green-500 text-white' 
                                 : 'bg-gray-500 hover:bg-gray-600 text-white'
@@ -229,7 +229,7 @@ const LecturerQuickActions = ({ onShowReviewForm, lecturerId, lecturerName, user
                 </div>
 
                 {copySuccess && (
-                    <div className="mt-3 p-3 bg-purple-50 rounded-lg">
+                    <div className="mt-3 p-3 bg-purple-50 rounded-card">
                         <p className="text-sm text-purple-700 text-center">
                             חברים שיקבלו את הקישור יצטרכו להתחבר למערכת כדי לצפות בפרטים
                         </p>

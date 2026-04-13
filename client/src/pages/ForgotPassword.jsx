@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { apiFetch } from '../hooks/useApi';
 import { Link } from 'react-router-dom';
 import { 
   Mail, 
@@ -31,16 +31,17 @@ const ForgotPassword = () => {
     setMessage('');
 
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/auth/forgot-password`,
-        { email }
-      );
+      const data = await apiFetch(`/api/auth/forgot-password`, {
+        method: 'POST',
+        body: { email },
+        auth: false,
+      });
 
-      setMessage(response.data.message);
+      setMessage(data.message);
       setIsSuccess(true);
-      
+
     } catch (err) {
-      setMessage(err.response?.data?.message || 'שגיאה בשליחת הבקשה');
+      setMessage(err.message || 'שגיאה בשליחת הבקשה');
       setIsSuccess(false);
     } finally {
       setIsLoading(false);
@@ -51,14 +52,14 @@ const ForgotPassword = () => {
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-500 rounded-full mb-4 shadow-lg">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-500 rounded-full mb-4 shadow-card">
             <Key className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-800 mb-2">שכחתי סיסמה</h1>
           <p className="text-gray-600">נשלח לך סיסמה זמנית למייל</p>
         </div>
 
-        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl border border-emerald-100 p-8" dir="rtl">
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-elevated border border-emerald-100 p-8" dir="rtl">
           {!isSuccess ? (
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="relative">
@@ -70,7 +71,7 @@ const ForgotPassword = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="כתובת האימייל שלך"
-                  className="w-full bg-gray-50/70 border-2 border-gray-200 rounded-2xl py-4 pr-12 pl-4 text-right text-gray-700 placeholder-gray-400 focus:outline-none focus:border-emerald-400 focus:bg-white/90 transition-all duration-300"
+                  className="w-full bg-gray-50/70 border-2 border-gray-200 rounded-card-lg py-4 pr-12 pl-4 text-right text-gray-700 placeholder-gray-400 focus:outline-none focus:border-emerald-400 focus:bg-white/90 transition-all duration-ui"
                   required
                 />
               </div>
@@ -78,7 +79,7 @@ const ForgotPassword = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold py-4 rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold py-4 rounded-card-lg shadow-card hover:shadow-card-hover transform hover:-translate-y-0.5 transition-all duration-ui disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center space-x-2">
@@ -106,7 +107,7 @@ const ForgotPassword = () => {
                 </p>
               </div>
 
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-card p-4">
                 <p className="text-emerald-700 text-sm">
                   <strong>שים לב:</strong> הסיסמה הזמנית תפוג תוך 24 שעות. לאחר התחברות, תתבקש לשנות את הסיסמה שלך.
                 </p>
@@ -115,7 +116,7 @@ const ForgotPassword = () => {
           )}
 
           {message && (
-            <div className={`mt-6 p-4 rounded-2xl flex items-center space-x-3 ${
+            <div className={`mt-6 p-4 rounded-card-lg flex items-center space-x-3 ${
               isSuccess 
                 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                 : 'bg-red-50 text-red-700 border border-red-200'

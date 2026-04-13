@@ -42,10 +42,10 @@ const CourseResultCard = ({ course, onSelect }) => {
   };
 
   return (
-    <div className="border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:border-blue-300 bg-gradient-to-br from-white to-blue-50/30">
+    <div className="border border-gray-200 rounded-card p-6 hover:shadow-card transition-all duration-ui hover:border-blue-300 bg-gradient-to-br from-white to-blue-50/30">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-start gap-4 flex-1">
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-full p-3 shadow-lg">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-full p-3 shadow-card">
             <BookOpen className="w-6 h-6 text-white" />
           </div>
           <div className="flex-1 min-w-0">
@@ -157,7 +157,7 @@ const CourseResultCard = ({ course, onSelect }) => {
       <div className="flex justify-end pt-4 border-t border-gray-100">
         <button
           onClick={onSelect}
-          className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+          className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-card transition-all duration-ui font-medium shadow-card hover:shadow-card transform hover:-translate-y-0.5"
         >
           <Eye className="w-4 h-4" />
           פרטים מלאים

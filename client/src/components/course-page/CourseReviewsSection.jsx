@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { MessageCircle, Star, Plus, Loader2, User, Filter, SortAsc, Shield } from 'lucide-react';
+import { MessageCircle, Star, Plus, Loader2, User, Filter, SortAsc, Shield, Pencil, Trash2 } from 'lucide-react';
 import ReviewFormModal from './CourseReviewFormModal';
 import ExistingReviewModal from '../common/ExistingReviewModal';
 import DeleteConfirmationModal from '../common/DeleteConfirmationModal';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPen, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm, onReviewDeleted }) => {
     const [reviews, setReviews] = useState([]);
@@ -225,7 +223,7 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm, o
 
     if (loading) {
         return (
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="bg-white rounded-card-lg shadow-card p-6">
                 <div className="text-center py-8">
                     <Loader2 className="w-8 h-8 text-emerald-500 animate-spin mx-auto mb-4" />
                     <p className="text-gray-600">טוען ביקורות...</p>
@@ -238,7 +236,7 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm, o
 
     return (
         <>
-            <div className="bg-white rounded-2xl shadow-lg p-6" dir="rtl">
+            <div className="bg-white rounded-card-lg shadow-card p-6" dir="rtl">
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
                         <MessageCircle className="w-6 h-6 text-emerald-500" />
@@ -253,7 +251,7 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm, o
 
                     <button
                         onClick={handleWriteReviewClick}
-                        className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 transition-colors"
+                        className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-card flex items-center gap-2 transition-colors"
                     >
                         <Plus className="w-4 h-4" />
                         <span className="hidden sm:inline">כתוב ביקורת</span>
@@ -267,7 +265,7 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm, o
                             <select
                                 value={filterLecturer}
                                 onChange={(e) => setFilterLecturer(e.target.value)}
-                                className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                                className="border border-gray-300 rounded-card px-3 py-2 text-sm"
                             >
                                 <option value="all">כל המרצים</option>
                                 {lecturers.map((lecturer) => (
@@ -283,7 +281,7 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm, o
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
-                                className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                                className="border border-gray-300 rounded-card px-3 py-2 text-sm"
                             >
                                 <option value="newest">הכי חדש</option>
                                 <option value="oldest">הכי ישן</option>
@@ -308,7 +306,7 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm, o
                         </p>
                         <button
                             onClick={handleWriteReviewClick}
-                            className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl transition-colors"
+                            className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-card transition-colors"
                         >
                             כתוב ביקורת ראשונה
                         </button>
@@ -316,7 +314,7 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm, o
                 ) : (
                     <div className="space-y-4">
                         {filteredReviews.map((review) => (
-                            <div key={review._id} className="border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow">
+                            <div key={review._id} className="border border-gray-200 rounded-card p-5 hover:shadow-card transition-shadow">
                                 <div className="flex items-start justify-between mb-4">
                                     <div>
                                         <div className="flex items-center gap-3 mb-2">
@@ -352,7 +350,7 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm, o
                                                 className="text-emerald-500 hover:text-emerald-600"
                                                 title="ערוך ביקורת"
                                             >
-                                                <FontAwesomeIcon icon={faPen} className="h-5 w-5" />
+                                                <Pencil className="h-5 w-5" />
                                             </button>
                                         )}
 
@@ -362,7 +360,7 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm, o
                                                 className="text-red-500 hover:text-red-600"
                                                 title={isAdmin && !canEditReview(review) ? "מחק ביקורת (אדמין)" : "מחק ביקורת"}
                                             >
-                                                <FontAwesomeIcon icon={faTrash} className="h-5 w-5" />
+                                                <Trash2 className="h-5 w-5" />
                                             </button>
                                         )}
                                     </div>
@@ -392,7 +390,7 @@ const CourseReviewsSection = ({ courseId, courseTitle, user, onShowReviewForm, o
                                 </div>
 
                                 {review.comment && (
-                                    <div className="relative mt-3 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border border-emerald-200 rounded-xl p-5 shadow-sm">
+                                    <div className="relative mt-3 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border border-emerald-200 rounded-card p-5 shadow-sm">
                                         <span className="absolute top-2 right-4 text-emerald-300 text-3xl leading-none select-none font-serif">"</span>
                                         <p className="text-gray-800 text-base leading-relaxed font-medium italic">
                                             {review.comment}

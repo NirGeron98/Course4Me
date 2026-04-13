@@ -82,7 +82,8 @@ exports.getLecturerById = async (req, res) => {
   try {
     const lecturer = await Lecturer.findById(req.params.id)
       .populate("createdBy", "fullName email")
-      .populate("departments", "name code description");
+      .populate("departments", "name code description")
+      .lean();
 
     if (!lecturer) {
       return res.status(404).json({ message: "מרצה לא נמצא" });
@@ -129,7 +130,7 @@ exports.createLecturer = async (req, res) => {
 
     // Check if lecturer with this email already exists (only if email is provided)
     if (email && email.trim() !== "") {
-      const existingLecturer = await Lecturer.findOne({ email });
+      const existingLecturer = await Lecturer.findOne({ email }).select("_id").lean();
       if (existingLecturer) {
         return res
           .status(400)
@@ -150,7 +151,7 @@ exports.createLecturer = async (req, res) => {
     // If departments array is provided (new format)
     if (departments && Array.isArray(departments) && departments.length > 0) {
       // Validate that all department IDs exist
-      const existingDepartments = await Department.find({ _id: { $in: departments } });
+      const existingDepartments = await Department.find({ _id: { $in: departments } }).select("_id").lean();
       if (existingDepartments.length !== departments.length) {
         return res.status(400).json({ message: "אחת או יותר מהמחלקות שנבחרו לא קיימות" });
       }
@@ -193,7 +194,9 @@ exports.createLecturer = async (req, res) => {
 // PUT /api/lecturers/:id
 exports.updateLecturer = async (req, res) => {
   try {
-    const lecturer = await Lecturer.findById(req.params.id);
+    const lecturer = await Lecturer.findById(req.params.id)
+      .select("createdBy email")
+      .lean();
 
     if (!lecturer) {
       return res.status(404).json({ message: "מרצה לא נמצא" });
@@ -219,11 +222,11 @@ exports.updateLecturer = async (req, res) => {
       }
       
       // Validate that all department IDs exist
-      const existingDepartments = await Department.find({ _id: { $in: departments } });
+      const existingDepartments = await Department.find({ _id: { $in: departments } }).select("_id").lean();
       if (existingDepartments.length !== departments.length) {
         return res.status(400).json({ message: "אחת או יותר מהמחלקות שנבחרו לא קיימות" });
       }
-      
+
       updateData.departments = departments;
       updateData.department = undefined; // Clear old format when using new format
     } else if (department !== undefined) {
@@ -233,7 +236,7 @@ exports.updateLecturer = async (req, res) => {
 
     // Check email uniqueness (only if email is being changed and is not empty)
     if (email && email.trim() !== "" && email !== lecturer.email) {
-      const existingLecturer = await Lecturer.findOne({ email, _id: { $ne: req.params.id } });
+      const existingLecturer = await Lecturer.findOne({ email, _id: { $ne: req.params.id } }).select("_id").lean();
       if (existingLecturer) {
         return res.status(400).json({
           message: "מרצה אחר עם אימייל זה כבר קיים במערכת",
@@ -247,7 +250,8 @@ exports.updateLecturer = async (req, res) => {
       { new: true, runValidators: true }
     )
       .populate("createdBy", "fullName email")
-      .populate("departments", "name code description");
+      .populate("departments", "name code description")
+      .lean();
 
     cacheClearLecturers(LECTURER_CACHE_PREFIX);
     res.status(200).json({
@@ -271,7 +275,9 @@ exports.updateLecturer = async (req, res) => {
 // DELETE /api/lecturers/:id
 exports.deleteLecturer = async (req, res) => {
   try {
-    const lecturer = await Lecturer.findById(req.params.id);
+    const lecturer = await Lecturer.findById(req.params.id)
+      .select("createdBy")
+      .lean();
 
     if (!lecturer) {
       return res.status(404).json({ message: "מרצה לא נמצא" });
@@ -310,7 +316,8 @@ exports.searchLecturers = async (req, res) => {
     })
       .populate("createdBy", "fullName email")
       .populate("departments", "name code description")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     res.status(200).json(lecturers);
   } catch (err) {
@@ -327,7 +334,8 @@ exports.getLecturerWithCourses = async (req, res) => {
     const lecturer = await Lecturer.findById(req.params.id)
       .populate("createdBy", "fullName email")
       .populate("departments", "name code description")
-      .populate("courses");
+      .populate("courses")
+      .lean();
 
     if (!lecturer) {
       return res.status(404).json({ message: "מרצה לא נמצא" });
@@ -348,9 +356,9 @@ exports.getLecturersByDepartment = async (req, res) => {
     const { departmentId } = req.params;
     
     // Search in both new departments array and old department string (by name)
-    const department = await Department.findById(departmentId);
+    const department = await Department.findById(departmentId).select("name").lean();
     let lecturers;
-    
+
     if (department) {
       lecturers = await Lecturer.find({
         $or: [
@@ -360,7 +368,8 @@ exports.getLecturersByDepartment = async (req, res) => {
       })
         .populate("createdBy", "fullName email")
         .populate("departments", "name code description")
-        .sort({ name: 1 });
+        .sort({ name: 1 })
+        .lean();
     } else {
       lecturers = [];
     }

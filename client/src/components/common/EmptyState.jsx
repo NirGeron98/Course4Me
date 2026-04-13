@@ -14,7 +14,7 @@ const EmptyState = ({
 }) => {
   return (
     <div
-      className={`flex flex-col items-center justify-center py-10 px-6 text-center rounded-2xl border border-gray-100 bg-gray-50/50 ${className}`}
+      className={`flex flex-col items-center justify-center py-10 px-6 text-center rounded-card-lg border border-gray-100 bg-gray-50/50 ${className}`}
       role="status"
       aria-label={title}
     >
@@ -31,7 +31,7 @@ const EmptyState = ({
         <button
           type="button"
           onClick={onAction}
-          className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-emerald-500"
+          className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-card transition-colors duration-ui focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-emerald-500"
         >
           {actionLabel}
         </button>

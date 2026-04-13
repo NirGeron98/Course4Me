@@ -52,7 +52,7 @@ const LecturerHeader = ({ lecturer, courses, reviews = [], renderStars }) => {
             <div className="relative max-w-7xl mx-auto px-6 py-12">
                 {/* Lecturer Name and Icon - Centered at top */}
                 <div className="flex items-center justify-center gap-4 mb-8">
-                    <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl p-3 shadow-lg">
+                    <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-card-lg p-3 shadow-card">
                         <User className="w-8 h-8 text-white" />
                     </div>
                     <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight">
@@ -67,19 +67,19 @@ const LecturerHeader = ({ lecturer, courses, reviews = [], renderStars }) => {
                         {/* Lecturer Meta - Compact Pills */}
                         <div className="flex flex-wrap gap-2 mb-6 justify-center">
                             {lecturer.department && (
-                                <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
+                                <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-card flex items-center gap-2 text-sm font-medium text-white">
                                     <Building className="w-3.5 h-3.5" />
                                     {lecturer.department}
                                 </div>
                             )}
                             {lecturer.email && (
-                                <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
+                                <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-card flex items-center gap-2 text-sm font-medium text-white">
                                     <Mail className="w-3.5 h-3.5" />
                                     {lecturer.email}
                                 </div>
                             )}
                             {lecturer.academicInstitution && (
-                                <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-white">
+                                <div className="bg-white/25 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-card flex items-center gap-2 text-sm font-medium text-white">
                                     <Building className="w-3.5 h-3.5" />
                                     {lecturer.academicInstitution}
                                 </div>
@@ -89,7 +89,7 @@ const LecturerHeader = ({ lecturer, courses, reviews = [], renderStars }) => {
                         {/* Courses Section - Centered */}
                         {coursesToShow.length > 0 && (
                             <div className="mb-6 w-full">
-                                <div className={`bg-white/15 backdrop-blur-md border border-white/20 rounded-xl p-4 shadow-lg w-full ${getGridCols(coursesToShow.length)}`}>
+                                <div className={`bg-white/15 backdrop-blur-md border border-white/20 rounded-card p-4 shadow-card w-full ${getGridCols(coursesToShow.length)}`}>
                                     <div className="flex flex-col items-center gap-4">
                                         {/* Courses Label */}
                                         <div className="flex items-center gap-2 text-white font-semibold">
@@ -104,7 +104,7 @@ const LecturerHeader = ({ lecturer, courses, reviews = [], renderStars }) => {
                                                     <Link
                                                         key={course._id}
                                                         to={`/course/${course.courseNumber}`}
-                                                        className="bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg p-3 hover:bg-white/30 hover:scale-105 transition-all duration-200 group cursor-pointer w-full"
+                                                        className="bg-white/20 backdrop-blur-sm border border-white/20 rounded-card p-3 hover:bg-white/30 hover:scale-105 transition-all duration-ui group cursor-pointer w-full"
                                                     >
                                                         <div className="font-semibold text-white text-sm mb-1 group-hover:text-white/90 text-center">
                                                             {course.title}
@@ -127,7 +127,7 @@ const LecturerHeader = ({ lecturer, courses, reviews = [], renderStars }) => {
                                             {remainingCourses > 0 && (
                                                 <button
                                                     onClick={() => setShowAllCourses(true)}
-                                                    className="bg-purple-500/80 backdrop-blur-md border border-purple-400/50 rounded-lg px-4 py-2 shadow-lg hover:bg-purple-400/80 hover:scale-105 transition-all cursor-pointer mt-2"
+                                                    className="bg-purple-500/80 backdrop-blur-md border border-purple-400/50 rounded-card px-4 py-2 shadow-card hover:bg-purple-400/80 hover:scale-105 transition-all cursor-pointer mt-2"
                                                 >
                                                     <span className="text-white font-semibold text-sm">
                                                         +{remainingCourses} קורסים נוספים
@@ -144,7 +144,7 @@ const LecturerHeader = ({ lecturer, courses, reviews = [], renderStars }) => {
                     {/* Rating Section - On the left side */}
                     {displayRating && (
                         <div className="flex-shrink-0 order-first lg:order-last">
-                            <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl p-6 shadow-lg">
+                            <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-card p-6 shadow-card">
                                 <div className="text-center">
                                     <div className="text-3xl font-bold text-white mb-3">
                                         {displayRating.toFixed(1)}
@@ -165,7 +165,7 @@ const LecturerHeader = ({ lecturer, courses, reviews = [], renderStars }) => {
             {/* All courses popup */}
             {showAllCourses && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[80vh] overflow-hidden">
+                    <div className="bg-white rounded-card-lg shadow-elevated max-w-5xl w-full max-h-[80vh] overflow-hidden">
                         {/* Popup header */}
                         <div className="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4 flex items-center justify-between">
                             <h3 className="text-xl font-bold text-white flex items-center gap-2">
@@ -174,7 +174,7 @@ const LecturerHeader = ({ lecturer, courses, reviews = [], renderStars }) => {
                             </h3>
                             <button
                                 onClick={() => setShowAllCourses(false)}
-                                className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
+                                className="text-white hover:bg-white/20 rounded-card p-2 transition-colors"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -188,7 +188,7 @@ const LecturerHeader = ({ lecturer, courses, reviews = [], renderStars }) => {
                                         key={course._id}
                                         to={`/course/${course.courseNumber}`}
                                         onClick={() => setShowAllCourses(false)}
-                                        className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-xl p-4 hover:shadow-lg hover:scale-105 transition-all duration-200 group"
+                                        className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-card p-4 hover:shadow-card hover:scale-105 transition-all duration-ui group"
                                     >
                                         <div className="flex items-start gap-3">
                                             <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0">

@@ -4,8 +4,8 @@ const bcrypt = require("bcryptjs");
 // Get user profile
 const getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
-    
+    const user = await User.findById(req.user.id).select("-password").lean();
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -37,10 +37,10 @@ const updateUserProfile = async (req, res) => {
     }
 
     // Check if email is already taken by another user
-    const existingUser = await User.findOne({ 
+    const existingUser = await User.findOne({
       email: email.toLowerCase(),
       _id: { $ne: req.user.id }
-    });
+    }).select("_id").lean();
 
     if (existingUser) {
       return res.status(400).json({ message: "אימייל כבר קיים במערכת" });
@@ -55,7 +55,7 @@ const updateUserProfile = async (req, res) => {
         academicInstitution: academicInstitution?.trim()
       },
       { new: true, runValidators: true }
-    ).select("-password");
+    ).select("-password").lean();
 
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
@@ -127,7 +127,7 @@ const updateUserPassword = async (req, res) => {
 // Get current user (for /me endpoint)
 const getCurrentUser = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    const user = await User.findById(req.user.id).select("-password").lean();
     
     if (!user) {
       return res.status(404).json({ message: "User not found" });

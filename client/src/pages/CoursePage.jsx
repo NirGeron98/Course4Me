@@ -87,7 +87,7 @@ const CoursePage = ({ user }) => {
                     <p className="text-gray-600 mb-6">{error}</p>
                     <button
                         onClick={() => navigate(-1)}
-                        className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl transition-colors"
+                        className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-card transition-colors"
                     >
                         חזור אחורה
                     </button>
@@ -105,7 +105,7 @@ const CoursePage = ({ user }) => {
                     <p className="text-gray-600 mb-6">הקורס שחיפשת לא קיים במערכת</p>
                     <button
                         onClick={() => navigate('/')}
-                        className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl transition-colors"
+                        className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-card transition-colors"
                     >
                         חזור לדף הבית
                     </button>
@@ -118,9 +118,9 @@ const CoursePage = ({ user }) => {
         <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-100" dir="rtl">
             <CourseHeader course={course} stats={reviewStats} reviews={reviews} />
 
-            <div className="max-w-7xl mx-auto px-4 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-2 space-y-6">
+            <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+                    <div className="lg:col-span-2 space-y-4 sm:space-y-6">
                         <CourseDescription course={course} />
                         <CourseReviewsSection
                             courseId={course._id}

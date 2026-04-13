@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { apiFetch } from '../hooks/useApi';
 import { useNavigate } from 'react-router-dom';
 import { 
   Lock, 
@@ -104,20 +104,16 @@ const ResetPassword = ({ user, onLogout, updateUser }) => {
     }
 
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/auth/reset-password`,
-        {
+      const data = await apiFetch(`/api/auth/reset-password`, {
+        method: 'POST',
+        body: {
           currentPassword: formData.currentPassword,
-          newPassword: formData.newPassword
+          newPassword: formData.newPassword,
         },
-        {
-          headers: {
-            'Authorization': `Bearer ${user.token}`
-          }
-        }
-      );
+        token: user.token,
+      });
 
-      setMessage(response.data.message);
+      setMessage(data.message);
       setIsSuccess(true);
       
       // Clear the password reset requirement
@@ -142,7 +138,7 @@ const ResetPassword = ({ user, onLogout, updateUser }) => {
       }, 3000);
 
     } catch (err) {
-      setMessage(err.response?.data?.message || 'שגיאה בשינוי הסיסמה');
+      setMessage(err.message || 'שגיאה בשינוי הסיסמה');
       setIsSuccess(false);
     } finally {
       setIsLoading(false);
@@ -157,7 +153,7 @@ const ResetPassword = ({ user, onLogout, updateUser }) => {
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-500 rounded-full mb-4 shadow-lg">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-500 rounded-full mb-4 shadow-card">
             <Shield className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
@@ -171,9 +167,9 @@ const ResetPassword = ({ user, onLogout, updateUser }) => {
           </p>
         </div>
 
-        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl border border-emerald-100 p-8" dir="rtl">
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-elevated border border-emerald-100 p-8" dir="rtl">
           {isUsingTempPassword && (
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-card">
               <div className="flex items-center">
                 <Shield className="w-5 h-5 text-blue-600 ml-2" />
                 <div>
@@ -199,7 +195,7 @@ const ResetPassword = ({ user, onLogout, updateUser }) => {
                   value={formData.currentPassword}
                   onChange={handleChange}
                   placeholder={isUsingTempPassword ? "סיסמה זמנית" : "סיסמה נוכחית"}
-                  className="w-full bg-gray-50/70 border-2 border-gray-200 rounded-2xl py-4 pr-12 pl-12 text-right text-gray-700 placeholder-gray-400 focus:outline-none focus:border-emerald-400 focus:bg-white/90 transition-all duration-300"
+                  className="w-full bg-gray-50/70 border-2 border-gray-200 rounded-card-lg py-4 pr-12 pl-12 text-right text-gray-700 placeholder-gray-400 focus:outline-none focus:border-emerald-400 focus:bg-white/90 transition-all duration-ui"
                   required
                 />
                 <button
@@ -222,7 +218,7 @@ const ResetPassword = ({ user, onLogout, updateUser }) => {
                   value={formData.newPassword}
                   onChange={handleChange}
                   placeholder="סיסמה חדשה"
-                  className="w-full bg-gray-50/70 border-2 border-gray-200 rounded-2xl py-4 pr-12 pl-12 text-right text-gray-700 placeholder-gray-400 focus:outline-none focus:border-emerald-400 focus:bg-white/90 transition-all duration-300"
+                  className="w-full bg-gray-50/70 border-2 border-gray-200 rounded-card-lg py-4 pr-12 pl-12 text-right text-gray-700 placeholder-gray-400 focus:outline-none focus:border-emerald-400 focus:bg-white/90 transition-all duration-ui"
                   required
                 />
                 <button
@@ -236,7 +232,7 @@ const ResetPassword = ({ user, onLogout, updateUser }) => {
 
               {/* Password validation errors */}
               {passwordErrors.length > 0 && (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                <div className="bg-red-50 border border-red-200 rounded-card p-4">
                   <ul className="text-red-700 text-sm space-y-1">
                     {passwordErrors.map((error, index) => (
                       <li key={index} className="flex items-center">
@@ -259,7 +255,7 @@ const ResetPassword = ({ user, onLogout, updateUser }) => {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   placeholder="אישור סיסמה חדשה"
-                  className="w-full bg-gray-50/70 border-2 border-gray-200 rounded-2xl py-4 pr-12 pl-12 text-right text-gray-700 placeholder-gray-400 focus:outline-none focus:border-emerald-400 focus:bg-white/90 transition-all duration-300"
+                  className="w-full bg-gray-50/70 border-2 border-gray-200 rounded-card-lg py-4 pr-12 pl-12 text-right text-gray-700 placeholder-gray-400 focus:outline-none focus:border-emerald-400 focus:bg-white/90 transition-all duration-ui"
                   required
                 />
                 <button
@@ -274,7 +270,7 @@ const ResetPassword = ({ user, onLogout, updateUser }) => {
               <button
                 type="submit"
                 disabled={isLoading || passwordErrors.length > 0}
-                className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold py-4 rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold py-4 rounded-card-lg shadow-card hover:shadow-card-hover transform hover:-translate-y-0.5 transition-all duration-ui disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center space-x-2">
@@ -294,7 +290,7 @@ const ResetPassword = ({ user, onLogout, updateUser }) => {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 rounded-2xl border-2 border-gray-200 transition-all duration-300 flex items-center justify-center space-x-2"
+                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 rounded-card-lg border-2 border-gray-200 transition-all duration-ui flex items-center justify-center space-x-2"
                 >
                   <LogOut className="ml-3 w-4 h-4" />
                   <span className="mr-2">חזרה להתחברות</span>
@@ -315,7 +311,7 @@ const ResetPassword = ({ user, onLogout, updateUser }) => {
               </div>
 
               {isRedirecting ? (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                <div className="bg-emerald-50 border border-emerald-200 rounded-card p-4">
                   <div className="flex items-center justify-center space-x-2">
                     <Loader2 className="ml-3 w-5 h-5 animate-spin text-emerald-600" />
                     <p className="text-emerald-700 text-sm mr-2">מעביר אותך לדף הראשי...</p>
@@ -328,7 +324,7 @@ const ResetPassword = ({ user, onLogout, updateUser }) => {
                   </div>
                 </div>
               ) : (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                <div className="bg-emerald-50 border border-emerald-200 rounded-card p-4">
                   <p className="text-emerald-700 text-sm">
                     הכנה למעבר לדף הראשי...
                   </p>
@@ -338,7 +334,7 @@ const ResetPassword = ({ user, onLogout, updateUser }) => {
           )}
 
           {message && !isSuccess && (
-            <div className="mt-6 p-4 rounded-2xl flex items-center space-x-3 bg-red-50 text-red-700 border border-red-200">
+            <div className="mt-6 p-4 rounded-card-lg flex items-center space-x-3 bg-red-50 text-red-700 border border-red-200">
               <AlertCircle className="w-5 h-5 text-red-500 ml-3" />
               <p className="text-right font-medium">{message}</p>
             </div>

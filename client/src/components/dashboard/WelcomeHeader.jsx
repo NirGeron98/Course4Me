@@ -16,7 +16,7 @@ const WelcomeHeader = ({ userName }) => {
             </div>
           </div>
           <div className="hidden md:block">
-            <div className="bg-white/10 rounded-2xl p-4 backdrop-blur-sm">
+            <div className="bg-white/10 rounded-card-lg p-4 backdrop-blur-sm">
               <div className="text-center">
                 <div className="text-2xl font-bold">{new Date().toLocaleDateString('he-IL')}</div>
                 <div className="text-emerald-200 text-sm">היום</div>
